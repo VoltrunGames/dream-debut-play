@@ -4339,12 +4339,7 @@ function catchUpPct() {
   return S.level < h.reduce((a, m) => a + (m.lvl || 1), 0) / h.length ? 50 : 0;
 }
 function levelUps(from) { for (let l = from + 1; l <= S.level; l++) if (l >= 10) S.tb++; syncGlobal(); }
-// Startbonus: die ersten 24 Stunden doppelte Energie-Regeneration
-regenTick = (orig => function () {
-  const now = Date.now(), dt = Math.max(0, now - (S.tick || now));
-  if (S.born && now - S.born < 24 * JOB_H) S.enAcc += dt / EN_REGEN_MS;
-  return orig();
-})(regenTick);
+// (Startbonus mit doppelter Energie-Regeneration am 8. Okt. entfernt: Energie voll in 10 h, immer.)
 
 // ---------- Nebenjob: neuer Lohn, sofort fertig mit Traumbällen ----------
 abShowRun = (orig => function () {
@@ -4858,4 +4853,11 @@ vrClubUI = (orig => function () {
 
 // Kiosk-Drinks: Preis wächst mit dem Level (4 / 10 / 25 Stunden Nebenjob)
 try { [4, 10, 25].forEach((k, i) => { if (KI_SIZES[i]) Object.defineProperty(KI_SIZES[i], 'p', { get: () => Math.max(2, Math.round(k * GU(S.level))) }); }); } catch (e) {}
+
+
+// ---------- Während des Trainings keine Regeneration (8. Okt.) ----------
+let TR_ON = false;
+startTraining = (orig => function (i) { const before = S.en; orig(i); if (S.en < before) TR_ON = true; })(startTraining);
+finish = (orig => function (o) { TR_ON = false; S.tick = Date.now(); return orig(o); })(finish);
+regenTick = (orig => function () { if (TR_ON) { S.tick = Date.now(); return false; } return orig(); })(regenTick);
 </script>
