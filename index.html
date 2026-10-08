@@ -2044,7 +2044,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -2645,7 +2645,10 @@ const STAGES = [
 const MAXLV = 10;
 const B_COST = { 2: 200, 3: 400, 4: 800, 5: 19000, 6: 230000, 7: 850000, 8: 1700000, 9: 2900000, 10: 4200000 };
 const bCost = l => B_COST[l] || 0;   // Simulation: 4 Spieler haben nach 1 Woche alles auf Stufe 4, 8 F2P-Spieler Stufe 10 nach ca. 1,5 Jahren
-const bTime = l => (4 + l * 3) * 3600;   // Sekunden im Klick-Test (später Stunden)
+const B_SEC = [0, 0, 300, 900, 2700, 10800, 28800, 57600, 86400, 129600, 172800];   // Zielstufe 2: 5 min, 3: 15 min, 4: 45 min, 5: 3 h, 6: 8 h, 7: 16 h, 8: 24 h, 9: 36 h, 10: 48 h
+const bTime = l => Math.max(1, (B_SEC[l] || 0) * JOB_H / 3600000);   // Sekunden in der laufenden Version
+const fmtHMS = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return [h ? h + 'h' : '', m ? m + 'm' : '', s || (!h && !m) ? s + 's' : ''].filter(Boolean).join(' '); };
+const fmtLeft = sec => fmtHMS(sec * 3600000 / JOB_H);   // Sekunden im Klick-Test (später Stunden)
 function ensureBuild() {
   if (!CLUB) return;
   if (!CLUB.build) { CLUB.build = {}; CLUB.kasse = 0; CLUB.job = null; }
@@ -2722,7 +2725,7 @@ function sdRender() {
   g.innerHTML = BUILD.map(b => {
     const l = CLUB.build[b.k], busy = CLUB.job && CLUB.job.k === b.k, max = l >= MAXLV, cost = bCost(l + 1);
     let btn;
-    if (busy) { const left = Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)); btn = `<span class="sd-cost build">Bau läuft · ${left}s</span>`; }
+    if (busy) { const left = Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)); btn = `<span class="sd-cost build">Bau läuft · ${fmtLeft(left)}</span>`; }
     else if (max) btn = '<span class="sd-cost max">Maximal</span>';
     else btn = `<span class="sd-cost${CLUB.kasse < cost || CLUB.job ? ' no' : ''}">▲ <svg width="13" height="13" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="#F2B705" stroke="#2A1209" stroke-width="2.6"/></svg>${fmt(cost)}</span>`;
     return `<button type="button" class="sd-card${busy ? ' building' : ''}" data-k="${b.k}" aria-label="${b.n} Stufe ${l}">
@@ -2742,7 +2745,7 @@ document.getElementById('sdGrid').addEventListener('click', e => {
   const why = busy ? (CLUB.job.k === b.k ? 'Wird gerade ausgebaut.' : 'Es kann immer nur ein Gebäude gleichzeitig gebaut werden.') : poor ? 'Nicht genug Gold in der Vereinskasse.' : '';
   sdPopup(`<h3>${b.n}</h3>
     <div class="sd-cmp"><div><small>STUFE ${l}</small>${b.bon(l).replace(/<\/?b>/g, '')}</div><span>➜</span><div class="n"><small>STUFE ${l + 1}</small>${b.bon(l + 1).replace(/<\/?b>/g, '')}</div></div>
-    <div class="sd-meta"><span>Kosten: ${fmt(cost)} Gold</span><span>Bauzeit: ${bTime(l + 1)} s</span></div>
+    <div class="sd-meta"><span>Kosten: ${fmt(cost)} Gold</span><span>Bauzeit: ${fmtHMS(B_SEC[l + 1])}</span></div>
     ${why ? `<p style="color:#FF9A8A">${why}</p>` : '<p>Gilt für alle Spieler im Verein.</p>'}
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Zurück</button><button type="button" class="sd-pb" id="sdGo"${why ? ' disabled' : ''}>Ausbauen</button></div>`);
   const go = document.getElementById('sdGo');
@@ -2866,7 +2869,7 @@ function sdSceneRender() {
     const can = !CLUB.job && l < MAXLV && CLUB.kasse >= bCost(l + 1);
     const left = busy ? Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)) : 0;
     html += `<button type="button" class="sd-sign" data-k="${b.k}" style="left:${Math.round(x * k)}px;top:${Math.round(y * k)}px" aria-label="${b.n} Stufe ${l}">
-      <i style="background:${b.c}">${l}</i><b>${b.n.toUpperCase()}</b>${busy ? `<span class="bz">Bau ${left}s</span>` : can ? '<span class="up">▲</span>' : ''}</button>`;
+      <i style="background:${b.c}">${l}</i><b>${b.n.toUpperCase()}</b>${busy ? `<span class="bz">Bau ${fmtLeft(left)}</span>` : can ? '<span class="up">▲</span>' : ''}</button>`;
   });
   sc.innerHTML = html;
 }
@@ -2909,7 +2912,7 @@ sdRender = function () {
     const l = CLUB.build[b.k], busy = CLUB.job && CLUB.job.k === b.k, max = l >= MAXLV, cost = bCost(l + 1);
     const can = !CLUB.job && !max && CLUB.kasse >= cost;
     const left = busy ? Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)) : 0;
-    const c = busy ? `<small class="c bz">Bau ${left}s</small>` : max ? '<small class="c">MAX</small>' : `<small class="c${can ? '' : ' no'}">▲ ${fmt(cost)}</small>`;
+    const c = busy ? `<small class="c bz">Bau ${fmtLeft(left)}</small>` : max ? '<small class="c">MAX</small>' : `<small class="c${can ? '' : ' no'}">▲ ${fmt(cost)}</small>`;
     return `<button type="button" class="sd-up sd-card${busy ? ' building' : ''}" data-k="${b.k}" aria-label="${b.n} Stufe ${l}, ${b.short(l)}">
       <span class="sd-ic" style="background:${b.c}"><svg viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round">${b.ic}</svg></span>
       <b>${b.n}</b><small>Lv ${l} · ${b.short(l)}</small>${c}${can ? '<span class="up">▲</span>' : ''}</button>`;
@@ -2993,14 +2996,14 @@ function sdDetail(k) {
   const b = BUILD.find(x => x.k === k), l = CLUB.build[k], max = l >= MAXLV, cost = bCost(l + 1);
   const busy = !!CLUB.job, poor = CLUB.kasse < cost;
   const capped = false;
-  const why = max ? '' : capped ? `Erst den Platz ausbauen: Die Tribüne kann nicht moderner sein als der Platz (Platz auf Stufe ${[1, 4, 7, 10][lvStage(l + 1)]} bringen).` : busy ? (CLUB.job.k === k ? `Wird gerade ausgebaut (noch ${Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000))} s).` : 'Es kann immer nur eins gleichzeitig ausgebaut werden.') : poor ? 'Nicht genug Gold in der Vereinskasse.' : '';
+  const why = max ? '' : capped ? `Erst den Platz ausbauen: Die Tribüne kann nicht moderner sein als der Platz (Platz auf Stufe ${[1, 4, 7, 10][lvStage(l + 1)]} bringen).` : busy ? (CLUB.job.k === k ? `Wird gerade ausgebaut (noch ${fmtLeft(Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)))}).` : 'Es kann immer nur eins gleichzeitig ausgebaut werden.') : poor ? 'Nicht genug Gold in der Vereinskasse.' : '';
   const now = DET[k].rows(l), nxt = max ? null : DET[k].rows(l + 1);
   sdPopup(`<h3>${b.n}</h3>
     <div class="lv">STUFE ${l} / ${MAXLV}<span class="bar">${Array.from({ length: MAXLV }, (_, j) => `<i class="${j < l ? 'on' : ''}"></i>`).join('')}</span></div>
     <p class="desc">${DET[k].d}</p>
     <table><tr><th>STATS</th><th>JETZT</th>${max ? '' : `<th>STUFE ${l + 1}</th>`}</tr>
       ${now.map((r, i) => `<tr><td>${r[0]}</td><td${max ? ' style="color:#8FD14F;border-radius:0 8px 8px 0"' : ' style="color:#FFF6E3;border-radius:0"'}>${r[1]}</td>${max ? '' : `<td>${nxt[i][1]}</td>`}</tr>`).join('')}</table>
-    ${max ? '<p class="desc"><b style="color:#FFC93C">Maximalstufe erreicht!</b></p>' : `<div class="cost"><span>Kosten: <b>${fmt(cost)} Gold</b></span><span>Bauzeit: <b>${bTime(l + 1)} s</b></span></div>`}
+    ${max ? '<p class="desc"><b style="color:#FFC93C">Maximalstufe erreicht!</b></p>' : `<div class="cost"><span>Kosten: <b>${fmt(cost)} Gold</b></span><span>Bauzeit: <b>${fmtHMS(B_SEC[l + 1])}</b></span></div>`}
     ${why ? `<p class="why">${why}</p>` : ''}
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Zurück</button>${max ? '' : `<button type="button" class="sd-pb" id="sdGo"${why ? ' disabled' : ''}>Ausbauen</button>`}</div>`);
   document.getElementById('sdPopIn').classList.add('sd-det');
@@ -3118,7 +3121,7 @@ sdSceneRender = function () {
   BUILD.forEach(b => {
     const [x, y] = b.k === 'rasen' ? ART.badge.rasen : (b.k === 'tribuene' && lvStage(B.rasen) >= 2 && lvStage(B.tribuene) < 2 ? ART.proTrib[lvStage(B.tribuene)] : artPick(ART.layers[b.k], B[b.k])).b, l = B[b.k], busy = CLUB.job && CLUB.job.k === b.k;
     const left = busy ? Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)) : 0;
-    if (busy) html += `<span class="sd-badge" style="left:${px(x)};top:${px(y)}"><span class="bz">Bau ${left}s</span></span>`;
+    if (busy) html += `<span class="sd-badge" style="left:${px(x)};top:${px(y)}"><span class="bz">Bau ${fmtLeft(left)}</span></span>`;
   });
   sc.innerHTML = html;
 };
@@ -3219,7 +3222,7 @@ sdSceneRender = function () {
   BUILD.forEach(b => {
     const busy = CLUB.job && CLUB.job.k === b.k; if (!busy) return;
     const [x, y] = b.k === 'rasen' ? ART.badge.rasen : sdLayerFor(b.k, B).b;
-    html += `<span class="sd-badge" style="left:${px(x)};top:${px(y)}"><span class="bz">Bau ${Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000))}s</span></span>`;
+    html += `<span class="sd-badge" style="left:${px(x)};top:${px(y)}"><span class="bz">Bau ${fmtLeft(Math.max(0, Math.ceil((CLUB.job.until - Date.now()) / 1000)))}</span></span>`;
   });
   sc.innerHTML = html;
 };
@@ -4324,17 +4327,17 @@ rollOffers = function () {
   }
   const foc = TR_FOCUS.slice().sort(() => Math.random() - .5), used = new Set();
   offers = [0, 1, 2].map(i => {
-    const en = trDur(S.level), f = foc[i];
+    const en = trDur(S.level), f = TR_FOCUS[0];   // 9. Okt.: kein Fokus mehr (immer ausgewogen)
     let at, tr; do { at = Math.random() < .75 ? pick(classMains()) : pick(ATTR_NAMES); tr = pick(TR_BY[at]); } while (used.has(tr[0])); used.add(tr[0]);
     return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: en, en, focus: f, attr: at,
-      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: S.level <= 5 ? Math.max(1, trSt(en / 10 * f.st)) : trSt(en / 10 * f.st) };
+      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: Math.max(1, Math.round(en / 5)) };
   });
 };
 renderOffers = (orig => function () {
   orig();
   document.querySelectorAll('#trList .tr-card').forEach((c, i) => {
     const o = offers[i]; if (!o) return;
-    const dd = c.querySelector('.tr-info dd'); if (dd) dd.textContent = S.tut === 1 ? '10 Sekunden · Probetraining' : `${fmtDur(o.min)} · ${o.focus.t.toLowerCase()}`;
+    const dd = c.querySelector('.tr-info dd'); if (dd) dd.textContent = S.tut === 1 ? '10 Sekunden · Probetraining' : fmtDur(o.min);
     const gv = c.querySelector('.gv'); if (gv) { gv.textContent = '+' + o.st + ' ' + attrLabel(o.attr); gv.style.display = o.st ? '' : 'none'; }
     const go = c.querySelector('.tr-go'); if (go && / ENERGIE$/.test(go.textContent)) go.textContent = fmtEn(o.en) + ' ENERGIE';
   });
