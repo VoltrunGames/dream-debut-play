@@ -4288,13 +4288,16 @@ const TR_BY = {
   Ausdauer: [['Platzrunden im Regen', 'runden', '#FFC93C', 'Der Trainer sitzt trocken im Auto und zählt <em>jede einzelne</em> Runde.'], ['Bälle aus dem Teich holen', 'runden', '#FFC93C', 'Nach dem letzten Training liegen <em>14 Bälle</em> im Ententeich.']],
   Instinkt: [['Kopfball am Kirschbaum', 'kopf', '#E0489A', 'Köpf die Kirschen vom Baum, bevor die <em>Spatzen</em> schneller sind.'], ['Blind-Elfer mit Augenbinde', 'dehnen', '#5BB8FF', 'Der Trainer sagt: <em>Spür den Ball!</em> Du spürst vor allem den Pfosten.']]
 };
-// Trainingsdauer (8. Okt.): Level 1–5 zufällig 30 s–2 min, Level 6–9 steigt langsam,
-// ab Level 10 zufällig 2:30, 5 oder 10 Minuten – unabhängig von den Energiekosten.
+// Trainingsdauer (8. Okt.): 1 Minute = 1 Energie. Level 1–5 zufällig 0:30/1/1:30/2 min,
+// Level 6–9 steigt langsam, ab Level 10 zufällig 2:30, 5 oder 10 Minuten.
 function trDur(L) {
-  if (L <= 5) return (3 + Math.floor(Math.random() * 10)) / 6;            // 30, 40 … 120 Sekunden
+  if (L <= 5) return pick([.5, 1, 1.5, 2]);
   const k = Math.min(1, (L - 5) / 5), r5 = v => Math.round(v * 2) / 2;
   return pick([r5(1 + 1.5 * k), r5(2 + 3 * k), r5(2 + 8 * k)]);
 }
+const fmtEn = v => String(Math.round(v * 10) / 10).replace('.', ',');
+// Werte-Lohn: 1 Punkt je 10 Energie wie bisher, Bruchteile werden beim Auswürfeln als Chance gezogen
+const trSt = x => Math.floor(x) + (Math.random() < x - Math.floor(x) ? 1 : 0);
 function fmtDur(m) {
   const s = Math.round(m * 60);
   if (s < 60) return s + ' Sekunden';
@@ -4307,12 +4310,12 @@ rollOffers = function () {
       focus: TR_FOCUS[0], attr: HAUPT[myPos()], xp: Math.max(1, xpNeed(S.level) - S.xp), st: 2 }];
     return;
   }
-  const ens = [10, 20, 40].sort(() => Math.random() - .5), foc = TR_FOCUS.slice().sort(() => Math.random() - .5), used = new Set();
+  const foc = TR_FOCUS.slice().sort(() => Math.random() - .5), used = new Set();
   offers = [0, 1, 2].map(i => {
-    const en = ens[i], f = foc[i];
+    const en = trDur(S.level), f = foc[i];
     let at, tr; do { at = Math.random() < .75 ? pick(classMains()) : pick(ATTR_NAMES); tr = pick(TR_BY[at]); } while (used.has(tr[0])); used.add(tr[0]);
-    return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: trDur(S.level), en, focus: f, attr: at,
-      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: Math.max(1, Math.round(en / 10 * f.st)) };
+    return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: en, en, focus: f, attr: at,
+      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: S.level <= 5 ? Math.max(1, trSt(en / 10 * f.st)) : trSt(en / 10 * f.st) };
   });
 };
 renderOffers = (orig => function () {
@@ -4320,12 +4323,14 @@ renderOffers = (orig => function () {
   document.querySelectorAll('#trList .tr-card').forEach((c, i) => {
     const o = offers[i]; if (!o) return;
     const dd = c.querySelector('.tr-info dd'); if (dd) dd.textContent = S.tut === 1 ? '10 Sekunden · Probetraining' : `${fmtDur(o.min)} · ${o.focus.t.toLowerCase()}`;
-    const gv = c.querySelector('.gv'); if (gv) gv.textContent = '+' + o.st + ' ' + attrLabel(o.attr);
+    const gv = c.querySelector('.gv'); if (gv) { gv.textContent = '+' + o.st + ' ' + attrLabel(o.attr); gv.style.display = o.st ? '' : 'none'; }
+    const go = c.querySelector('.tr-go'); if (go && / ENERGIE$/.test(go.textContent)) go.textContent = fmtEn(o.en) + ' ENERGIE';
   });
   const l = document.getElementById('trList'); if (l) l.classList.toggle('tut1', S.tut === 1);
 })(renderOffers);
 finish = (orig => function (o) {
   const lv = S.level; if (S.tut === 1) S.tut = 2; orig(o); qInc('train'); levelUps(lv);
+  const sb = document.getElementById('trDoneGold'); if (sb) sb.parentElement.style.display = o.st ? '' : 'none';
 })(finish);
 document.getElementById('trDoneOk').onclick = (orig => function () { orig(); if (S.tut >= 2) tutStep(); })(document.getElementById('trDoneOk').onclick);
 function catchUpPct() {
@@ -4363,8 +4368,11 @@ document.querySelectorAll('svg path[fill="#E0489A"]').forEach(p => {
   sv.outerHTML = TB_IC.replace('class="tb-ic"', 'width="24" height="24"');
   const sp = d.querySelector('span'); if (sp) sp.classList.add('g-tb');
 });
+regenTick = (orig => function () { const r = orig(); if (S.en > 100) S.en = 100; S.en = Math.round(S.en * 10) / 10; return r; })(regenTick);
+abBars = (orig => function () { orig(); const sp = document.querySelector('#abBars .ab-bar.en span'); if (sp) sp.textContent = '⚡ ' + fmtEn(S.en) + (S.reserve ? ' +' + S.reserve : ''); })(abBars);
 syncGlobal = (orig => function () {
   orig();
+  document.querySelectorAll('.g-en').forEach(e => e.textContent = fmtEn(S.en));
   document.querySelectorAll('.g-tb').forEach(e => e.textContent = fmt(S.tb || 0));
   if (S.en < 20 && !S.jobHint && PLAYER && !S.tut) { S.jobHint = 1; const t = document.getElementById('hubToast'); if (t) { t.textContent = 'Energie leer? Sie lädt von selbst nach. Schick deinen Spieler solange zum Nebenjob, die Energie lädt dabei weiter.'; t.hidden = false; setTimeout(() => t.hidden = true, 3500); } }
 })(syncGlobal);
