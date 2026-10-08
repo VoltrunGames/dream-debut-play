@@ -1076,9 +1076,10 @@ button.mt-pl[disabled] { cursor: default; }
 .cr-chips button { font-size: 11.5px !important; padding: 0 2px !important; }
 
 body > .bar { display: none !important; }
-html, body { overflow: hidden; overscroll-behavior: none; background: #000 !important; }
-body { padding: 0 !important; gap: 0 !important; justify-content: center; align-items: center; height: 100dvh; }
-.phone { border-radius: 0 !important; box-shadow: none !important; max-width: none !important; transform-origin: center center !important; flex-shrink: 0; }
+html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
+body { padding: 0 !important; gap: 0 !important; display: block !important; min-height: 0 !important; }
+.phone { position: absolute !important; margin: 0 !important; border-radius: 0 !important; box-shadow: none !important; max-width: none !important; transform-origin: center center !important; }
+#safeProbe { position: fixed; left: 0; top: 0; width: 0; height: 0; visibility: hidden; pointer-events: none; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom) 0; }
 * { -webkit-tap-highlight-color: transparent; }
 </style>
 <div class="bar"><strong style="color:#FFC93C;font-family:'Lilita One',sans-serif;font-size:18px;letter-spacing:1px">DREAM DEBUT · Klick-Test</strong></div>
@@ -1624,10 +1625,21 @@ document.addEventListener('click', e => {
 document.getElementById('restart').addEventListener('click', start);
 document.getElementById('newPlayer').addEventListener('click', () => { try { ['dd_player','dd_state','dd_profile','dd_club','dd_shop','dd_kiosk'].forEach(k => localStorage.removeItem(k)); } catch (e) {} location.reload(); });
 function fit() {
+  // Handy: sichtbare Fläche messen (visualViewport, minus Notch/Home-Balken), Spiel mittig hineinskalieren
   const p = document.getElementById('phone');
-  const s = Math.min(window.innerWidth / 390, window.innerHeight / 844);
-  p.style.transform = `scale(${s})`;
+  let pr = document.getElementById('safeProbe');
+  if (!pr) { pr = document.createElement('div'); pr.id = 'safeProbe'; document.body.appendChild(pr); }
+  const cs = getComputedStyle(pr), it = parseFloat(cs.paddingTop) || 0, ib = parseFloat(cs.paddingBottom) || 0;
+  const vv = window.visualViewport, de = document.documentElement;
+  const W = Math.min(vv ? vv.width : 1e9, de.clientWidth || 1e9, window.innerWidth);
+  const H = Math.min(vv ? vv.height : 1e9, de.clientHeight || 1e9, window.innerHeight) - it - ib;
+  const s = Math.min(W / 390, H / 844);
+  p.style.left = (W / 2) + 'px'; p.style.top = (it + H / 2) + 'px';
+  p.style.transform = `translate(-50%, -50%) scale(${s})`;
 }
+['load', 'orientationchange', 'pageshow'].forEach(e => window.addEventListener(e, () => { fit(); setTimeout(fit, 300); }));
+if (window.visualViewport) visualViewport.addEventListener('resize', fit);
+[100, 500, 1500].forEach(ms => setTimeout(fit, ms));
 window.addEventListener('resize', fit); fit();
 start();
 // ---- Profil v2: Ausrüstung, Sporttasche, Attribute (Beispieldaten) ----
