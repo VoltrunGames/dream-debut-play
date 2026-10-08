@@ -2017,7 +2017,7 @@ function startTraining(i) {
   const tick = () => {
     const el = (Date.now() - t0) / (S.tut === 1 ? 1000 : 60000), left = Math.max(0, total - el);
     const mm = Math.floor(left), ss = Math.floor((left - mm) * 60);
-    document.getElementById('trRunTime').textContent = mm + ':' + String(ss).padStart(2, '0');
+    document.getElementById('trRunTime').textContent = fmtHMS(left * 60);
     document.getElementById('trRunBar').style.width = Math.min(100, el / total * 100) + '%';
     if (left <= 0) finish(o);
   };
@@ -3764,7 +3764,7 @@ function abShowRun() {
   const left = Math.max(0, J.until - Date.now()), done = left <= 0;
   document.getElementById('abRunD').textContent = J.kind === 'work' ? (done ? 'Feierabend! Dein Lohn wartet.' : `${J.h} h · Lohn: ${fmt(J.gold)} Gold`) : J.kind === 'spa' ? (done ? 'Tiefenentspannt!' : 'Blubb… Form kommt zurück.') : (done ? 'Guten Morgen! Voll ausgeschlafen.' : 'Zzz… morgen bist du wie neu.');
   const sec = Math.ceil(left / 1000);
-  document.getElementById('abRunTime').textContent = done ? 'FERTIG' : Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0');
+  document.getElementById('abRunTime').textContent = done ? 'FERTIG' : fmtLeft(sec);
   document.getElementById('abRunBar').style.width = Math.min(100, (Date.now() - J.start) / (J.until - J.start) * 100) + '%';
   const c = document.getElementById('abCollect'); c.disabled = !done; c.textContent = J.kind === 'work' ? `Abholen${done ? ' +' + fmt(J.gold) : ''}` : 'Aufstehen';
   document.getElementById('abCancel').hidden = done;
@@ -4848,6 +4848,28 @@ sdDetail = (orig => function (k) {
     go.disabled = true;
     if (!document.querySelector('#sdPopIn .why')) go.closest('.sd-pop-btns').insertAdjacentHTML('beforebegin', `<p class="why">Nicht genug Traumbälle in der Vereinskasse (${CLUB.kasseTb || 0} / ${tb}).</p>`);
   } else { const o = go.onclick; go.onclick = () => { CLUB.kasseTb -= tb; o(); }; }
+})(sdDetail);
+// ---------- 9. Okt.: Ausbau abbrechen – 50 % der Kosten (Gold + Traumbälle) zurück in die Vereinskasse ----------
+sdDetail = (orig => function (k) {
+  orig(k);
+  const l = CLUB.build[k], go = document.getElementById('sdGo');
+  if (go && !go.disabled) { const o = go.onclick; go.onclick = () => { o(); if (CLUB.job && CLUB.job.k === k && CLUB.job.cost == null) { CLUB.job.cost = bCost(l + 1); CLUB.job.tb = tbCost(l + 1); saveClub(); } }; }
+  if (!CLUB.job || CLUB.job.k !== k) return;
+  const J = CLUB.job, cost = J.cost != null ? J.cost : bCost(l + 1), tb = J.tb != null ? J.tb : tbCost(l + 1);
+  const back = Math.floor(cost / 2), backTb = Math.floor(tb / 2);
+  const box = document.querySelector('#sdPopIn .sd-pop-btns'); if (!box) return;
+  const g2 = document.getElementById('sdGo'); if (g2) g2.style.display = 'none';
+  box.insertAdjacentHTML('beforeend', '<button type="button" class="sd-pb two" id="sdStop">Ausbau abbrechen</button>');
+  const st = document.getElementById('sdStop'); let sure = false;
+  st.onclick = () => {
+    if (!sure) { sure = true; st.innerHTML = `Sicher? +${fmt(back)}${backTb ? ' + ' + backTb + ' ' + TB_IC : ''}`; st.classList.remove('two'); return; }
+    if (!CLUB.job || CLUB.job.k !== k) return;
+    CLUB.kasse += back; CLUB.kasseTb = (CLUB.kasseTb || 0) + backTb; CLUB.job = null; saveClub();
+    document.getElementById('sdPop').hidden = true;
+    const b = (typeof BUILD !== 'undefined' && BUILD.find(x => x.k === k)) || { n: 'Ausbau' };
+    sdChat(null, `${b.n}: Ausbau abgebrochen, ${fmt(back)} Gold${backTb ? ' + ' + backTb + ' Traumbälle' : ''} zurück in die Kasse (50 %).`); sdRender();
+  };
+  const why = document.querySelector('#sdPopIn .why'); if (why) why.insertAdjacentHTML('beforeend', ' Abbrechen gibt 50 % der Kosten zurück.');
 })(sdDetail);
 sdRender = (orig => function () {
   orig(); if (!CLUB) return;
