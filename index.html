@@ -4288,6 +4288,18 @@ const TR_BY = {
   Ausdauer: [['Platzrunden im Regen', 'runden', '#FFC93C', 'Der Trainer sitzt trocken im Auto und zählt <em>jede einzelne</em> Runde.'], ['Bälle aus dem Teich holen', 'runden', '#FFC93C', 'Nach dem letzten Training liegen <em>14 Bälle</em> im Ententeich.']],
   Instinkt: [['Kopfball am Kirschbaum', 'kopf', '#E0489A', 'Köpf die Kirschen vom Baum, bevor die <em>Spatzen</em> schneller sind.'], ['Blind-Elfer mit Augenbinde', 'dehnen', '#5BB8FF', 'Der Trainer sagt: <em>Spür den Ball!</em> Du spürst vor allem den Pfosten.']]
 };
+// Trainingsdauer (8. Okt.): Level 1–5 zufällig 30 s–2 min, Level 6–9 steigt langsam,
+// ab Level 10 zufällig 2:30, 5 oder 10 Minuten – unabhängig von den Energiekosten.
+function trDur(L) {
+  if (L <= 5) return (3 + Math.floor(Math.random() * 10)) / 6;            // 30, 40 … 120 Sekunden
+  const k = Math.min(1, (L - 5) / 5), r5 = v => Math.round(v * 2) / 2;
+  return pick([r5(1 + 1.5 * k), r5(2 + 3 * k), r5(2 + 8 * k)]);
+}
+function fmtDur(m) {
+  const s = Math.round(m * 60);
+  if (s < 60) return s + ' Sekunden';
+  return Math.floor(s / 60) + (s % 60 ? ':' + String(s % 60).padStart(2, '0') : '') + (s === 60 ? ' Minute' : ' Minuten');
+}
 rollOffers = function () {
   const t = CLUB && CLUB.build ? CLUB.build.trainer : 0;
   if (S.tut === 1) {
@@ -4299,7 +4311,7 @@ rollOffers = function () {
   offers = [0, 1, 2].map(i => {
     const en = ens[i], f = foc[i];
     let at, tr; do { at = Math.random() < .75 ? pick(classMains()) : pick(ATTR_NAMES); tr = pick(TR_BY[at]); } while (used.has(tr[0])); used.add(tr[0]);
-    return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: en / 5, en, focus: f, attr: at,
+    return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: trDur(S.level), en, focus: f, attr: at,
       xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: Math.max(1, Math.round(en / 10 * f.st)) };
   });
 };
@@ -4307,7 +4319,7 @@ renderOffers = (orig => function () {
   orig();
   document.querySelectorAll('#trList .tr-card').forEach((c, i) => {
     const o = offers[i]; if (!o) return;
-    const dd = c.querySelector('.tr-info dd'); if (dd) dd.textContent = S.tut === 1 ? '10 Sekunden · Probetraining' : `${o.en / 2} Minuten · ${o.focus.t.toLowerCase()}`;
+    const dd = c.querySelector('.tr-info dd'); if (dd) dd.textContent = S.tut === 1 ? '10 Sekunden · Probetraining' : `${fmtDur(o.min)} · ${o.focus.t.toLowerCase()}`;
     const gv = c.querySelector('.gv'); if (gv) gv.textContent = '+' + o.st + ' ' + attrLabel(o.attr);
   });
   const l = document.getElementById('trList'); if (l) l.classList.toggle('tut1', S.tut === 1);
