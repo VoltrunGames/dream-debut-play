@@ -1074,6 +1074,12 @@ button.mt-pl[disabled] { cursor: default; }
 .sd-kad i { font-size: 12px !important; width: 18px !important; }
 .cr-chips { grid-template-columns: repeat(5, minmax(0,1fr)) !important; gap: 4px !important; }
 .cr-chips button { font-size: 11.5px !important; padding: 0 2px !important; }
+.sh-sell { position: absolute; right: 8px; top: 102px; z-index: 2; height: 26px; padding: 0 10px; border-radius: 999px; border: 3px solid #2A1209; background: #8FD14F; color: #2A1209; font-family: 'Lilita One', sans-serif; font-size: 12px; letter-spacing: .5px; cursor: pointer; box-shadow: 0 2px 0 #2A1209; }
+.sh-sell-p { margin: 4px 0 8px; font-size: 12px; color: var(--pale); text-align: center; }
+.sh-sell-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; margin-bottom: 8px; }
+.sh-sell-grid button { position: relative; aspect-ratio: 1; border-radius: 10px; border: 2px solid #2A1209; background: #E9DFC6; padding: 2px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.sh-sell-grid img { width: 80%; height: 64%; object-fit: contain; }
+.sh-sell-grid small { font-size: 10px; font-weight: 900; color: #2A1209; line-height: 1; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -4897,4 +4903,83 @@ let TR_ON = false;
 startTraining = (orig => function (i) { const before = S.en; orig(i); if (S.en < before) TR_ON = true; })(startTraining);
 finish = (orig => function (o) { TR_ON = false; S.tick = Date.now(); return orig(o); })(finish);
 regenTick = (orig => function () { if (TR_ON) { S.tick = Date.now(); return false; } return orig(); })(regenTick);
+
+// ---------- 9. Okt.: Gelände-Umfärbung robuster (iPhone: Canvas-Zeichnen schlug still fehl → schwarzes Tag-Bild) ----------
+// Bild zuerst zeichnen und prüfen, ob wirklich Pixel da sind; sonst ungefärbtes Original zeigen. Canvas danach freigeben.
+mapTint = function () {
+  const img = document.getElementById('mapImg'), src = mapNight() ? 'img/map/night.jpg' : 'img/map/day.jpg';
+  const { c1 } = clubColors(), [h, s0] = rgb2hsl(hx2rgb(c1)), green = s0 > .3 && h > 120 && h < 160;
+  img.onerror = () => { if (img.getAttribute('src') !== src) img.src = src; };
+  if (green) { img.src = src; return; }
+  if (!img.getAttribute('src') || img.getAttribute('src').indexOf('img/map/') === 0) img.src = src;   // sofort etwas zeigen
+  const key = 'map2|' + src + '|' + c1;
+  if (!TINT_CACHE[key]) TINT_CACHE[key] = new Promise(res => {
+    const load = u => new Promise(r => { const i = new Image(); i.onload = () => (i.decode ? i.decode().catch(() => {}) : Promise.resolve()).then(() => r(i)); i.onerror = () => r(null); i.src = u; });
+    Promise.all([load(src), load('img/map/clubmask.png')]).then(([im, mk]) => {
+      if (!im || !mk) { res(src); return; }
+      const W = im.naturalWidth, H = im.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
+      const x = c.getContext('2d'), done = u => { c.width = c.height = 0; res(u); };
+      if (!x) { done(src); return; }
+      try {
+        x.drawImage(im, 0, 0, W, H); const d = x.getImageData(0, 0, W, H), p = d.data;
+        let lit = 0; for (let i = 0; i < p.length; i += 4 * 997) if (p[i] + p[i + 1] + p[i + 2] > 30) lit++;
+        if (lit < 20) { done(src); return; }   // Zeichnen hat nicht geklappt → Original
+        x.clearRect(0, 0, W, H); x.drawImage(mk, 0, 0, W, H); const M = x.getImageData(0, 0, W, H).data;
+        const [th, ts0, tl0] = rgb2hsl(hx2rgb(c1)), ts = Math.max(.35, ts0), tl = Math.min(.6, Math.max(.3, tl0));
+        for (let i = 0; i < p.length; i += 4) {
+          const w = M[i] / 255; if (w < .02) continue;
+          const r = p[i] / 255, g = p[i + 1] / 255, b = p[i + 2] / 255, l = (Math.max(r, g, b) + Math.min(r, g, b)) / 2;
+          const [nr, ng, nb] = hsl2rgb(th, ts, Math.min(.92, Math.max(.05, tl * l / .45)));
+          p[i] = p[i] * (1 - w) + nr * w; p[i + 1] = p[i + 1] * (1 - w) + ng * w; p[i + 2] = p[i + 2] * (1 - w) + nb * w;
+        }
+        x.putImageData(d, 0, 0);
+        if (c.toBlob) c.toBlob(bl => done(bl ? URL.createObjectURL(bl) : src), 'image/jpeg', .86); else done(c.toDataURL('image/jpeg', .86));
+      } catch (e) { done(src); }
+    });
+  });
+  TINT_CACHE[key].then(u => { if ((mapNight() ? 'img/map/night.jpg' : 'img/map/day.jpg') === src) img.src = u; });
+};
+
+// ---------- 9. Okt.: Items aus der Sporttasche im Sportladen verkaufen (50 % vom Ladenpreis) ----------
+const sellPrice = id => Math.max(1, Math.floor(kiInfo({ type: 'item', id }).price / 2));
+(() => {
+  const box = document.querySelector('#shop .ki'); if (!box) return;
+  box.insertAdjacentHTML('beforeend', '<button type="button" class="sh-sell" id="shSell">💰 VERKAUFEN</button>');
+  const pop = document.getElementById('shPop'), inn = document.getElementById('shPopIn');
+  const list = () => {
+    const bag = P.bag.map((id, i) => ({ id, i })).filter(x => ITEMS[x.id]);
+    inn.innerHTML = `<h3>Verkaufen</h3><p class="sh-sell-p">Items aus deiner Sporttasche. Du bekommst die <b>Hälfte</b> vom Ladenpreis.</p>
+      ${bag.length ? `<div class="sh-sell-grid">${bag.map(x => { const it = ITEMS[x.id]; return `<button type="button" data-sell="${x.i}" aria-label="${it.name} verkaufen"><img src="${it.img}" alt=""><small>${fmt(sellPrice(x.id))}</small></button>`; }).join('')}</div>` : '<p class="sh-sell-p"><b>Deine Sporttasche ist leer.</b> Angezogene Sachen kannst du nicht verkaufen.</p>'}
+      <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Fertig</button></div>`;
+    inn.querySelectorAll('[data-sell]').forEach(b => b.onclick = () => ask(+b.dataset.sell));
+  };
+  const ask = i => {
+    const id = P.bag[i], it = ITEMS[id]; if (!it) return list();
+    const f = kiInfo({ type: 'item', id }), pr = sellPrice(id);
+    inn.innerHTML = `<img class="ki-dimg" src="${it.img}" alt=""><h3 style="color:${RAR[f.rar][1]}">${it.name}</h3>
+      <div class="rar" style="color:${RAR[f.rar][1]}">${RAR[f.rar][0].toUpperCase()} · ${f.sub.toUpperCase()}</div>
+      <div class="eff">${f.eff}</div><div class="price">${fmt(pr)} Gold</div><p class="sh-sell-p">Ladenpreis ${fmt(f.price)} Gold – du bekommst die Hälfte.</p>
+      <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="shSellBack">Zurück</button><button type="button" class="sd-pb" id="shSellOk">Verkaufen</button></div>`;
+    document.getElementById('shSellBack').onclick = list;
+    document.getElementById('shSellOk').onclick = () => {
+      if (P.bag[i] !== id) return list();
+      P.bag.splice(i, 1); gold += pr; saveProfile(); if (typeof renderProfile === 'function') renderProfile(); syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs();
+      shRender(); shSay('buy'); list();
+    };
+  };
+  document.getElementById('shSell').onclick = () => { document.getElementById('shTip').hidden = true; list(); pop.hidden = false; };
+})();
+
+// ---------- 9. Okt.: Menü-Zeile „Täglich" – Tagesbonus-Kalender und Aufgaben selbst öffnen ----------
+(() => {
+  const grid = document.querySelector('#menu .mn-grid'); if (!grid) return;
+  const cal = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="2" fill="#FFF6E3"/><path d="M3 10h18" /><rect x="3" y="5" width="18" height="5" rx="2" fill="#E0489A"/><path d="M8 3v4M16 3v4" fill="none"/><rect x="7" y="13" width="3" height="3" fill="#FFC93C"/><rect x="14" y="13" width="3" height="3" fill="#8FD14F"/></svg>';
+  const clip = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><rect x="5" y="4" width="14" height="17" rx="2" fill="#C9A0FF"/><rect x="9" y="2.5" width="6" height="3" rx="1" fill="#FFF6E3"/><path d="M8 10h8M8 13.5h8M8 17h5" fill="none"/></svg>';
+  grid.insertAdjacentHTML('beforeend', `<div class="mn-row"><div class="mn-tiles"><button type="button" class="mn-tile" id="mnDaily" aria-label="Tagesbonus">${cal}<span>Tages­bonus</span></button><button type="button" class="mn-tile" id="mnQuests" aria-label="Aufgaben">${clip}<span>Aufgaben</span></button></div><div class="mn-cat" title="Täglich">${cal}<span>Täglich</span></div></div>`);
+  document.getElementById('mnDaily').onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; dailyCheck(true); };
+  document.getElementById('mnQuests').onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; hubQuestBtn(); const q = document.getElementById('hubQ'); if (q && q.onclick) q.onclick(); };
+  const badge = () => { const t = document.getElementById('mnDaily'); if (!t || !PLAYER) return; const { D, today } = dbState(); let bd = t.querySelector('.mn-badge'); const open = D.last !== today;
+    if (open && !bd) t.insertAdjacentHTML('beforeend', '<span class="mn-badge mn-badge-y">!</span>'); else if (!open && bd) bd.remove(); };
+  syncGlobal = (orig => function () { orig(); try { badge(); } catch (e) {} })(syncGlobal);
+})();
 </script>
