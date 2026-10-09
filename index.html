@@ -3742,7 +3742,7 @@ function abRender() {
     L.className = 'ab-list';
     L.innerHTML = `<div class="ab-card"><div class="ab-ic" style="background:#5BB8FF">🏊</div><div class="ab-txt"><b>Wellness: Pool & Sauna</b><span>Abschalten im Whirlpool. Form erholt sich 4× schneller. Kein Training währenddessen.</span><em class="form">Ideal kurz vor dem Anpfiff</em>
         <div class="ab-hrs">${[1, 2, 3].map(h => `<button type="button" data-spa="${h}"${busy ? ' disabled' : ''}>${h} h</button>`).join('')}</div></div></div>
-      <div class="ab-card"><div class="ab-ic" style="background:#C9A0FF">🏨</div><div class="ab-txt"><b>Hotel: Ausschlafen</b><span>8 Stunden Schlaf im Mannschaftshotel. Morgens Form voll, plus 50 Energie Reserve obendrauf.</span><em class="en">Statt Nachtschicht: Extra-Training morgen</em>
+      <div class="ab-card"><div class="ab-ic" style="background:#C9A0FF">🏨</div><div class="ab-txt"><b>Hotel: Ausschlafen</b><span>8 Stunden Schlaf im Mannschaftshotel. Ausschlafen: Morgens ist die Form wieder voll.</span><em class="en">Topfit ins nächste Spiel</em>
         <div class="ab-hrs"><button type="button" data-hotel="8"${busy ? ' disabled' : ''}>Einchecken · 8 h</button></div></div></div>`;
   }
   abBars(); abShowRun();
@@ -3779,7 +3779,7 @@ function abShowRun() {
 document.getElementById('abCollect').onclick = () => {
   const J = S.job; if (!J || J.until > Date.now()) return;
   if (J.kind === 'work') { gold += J.gold; abRoll(); }
-  if (J.kind === 'hotel') { S.form = 100; S.reserve = 50; }
+  if (J.kind === 'hotel') { S.form = 100; }
   S.job = null; syncGlobal(); abRender(); if (typeof renderOffers === 'function') renderOffers();
 };
 document.getElementById('abCancel').onclick = () => { S.job = null; syncGlobal(); abRender(); if (typeof renderOffers === 'function') renderOffers(); };
@@ -4385,7 +4385,7 @@ document.querySelectorAll('svg path[fill="#E0489A"]').forEach(p => {
   const sp = d.querySelector('span'); if (sp) sp.classList.add('g-tb');
 });
 regenTick = (orig => function () { const r = orig(); if (S.en > 100) S.en = 100; S.en = Math.round(S.en * 10) / 10; return r; })(regenTick);
-abBars = (orig => function () { orig(); const sp = document.querySelector('#abBars .ab-bar.en span'); if (sp) sp.textContent = '⚡ ' + fmtEn(S.en) + (S.reserve ? ' +' + S.reserve : ''); })(abBars);
+abBars = (orig => function () { orig(); const sp = document.querySelector('#abBars .ab-bar.en span'); if (sp) sp.textContent = '⚡ ' + fmtEn(S.en); })(abBars);
 syncGlobal = (orig => function () {
   orig();
   document.querySelectorAll('.g-en').forEach(e => e.textContent = fmtEn(S.en));
@@ -4982,4 +4982,11 @@ const sellPrice = id => Math.max(1, Math.floor(kiInfo({ type: 'item', id }).pric
     if (open && !bd) t.insertAdjacentHTML('beforeend', '<span class="mn-badge mn-badge-y">!</span>'); else if (!open && bd) bd.remove(); };
   syncGlobal = (orig => function () { orig(); try { badge(); } catch (e) {} })(syncGlobal);
 })();
+
+
+// ---------- 9. Okt.: Energie-Reserve komplett abgeschafft – Energie ist genau das, was man sieht (max. 100) ----------
+S.reserve = 0;
+enRefill = function () {};
+regenTick = (orig => function () { const r = orig(); S.reserve = 0; if (S.en > 100) S.en = 100; return r; })(regenTick);
+syncGlobal = (orig => function () { S.reserve = 0; orig(); document.querySelectorAll('.g-res').forEach(e => e.textContent = ''); })(syncGlobal);
 </script>
