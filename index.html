@@ -1110,6 +1110,33 @@ button.mt-pl[disabled] { cursor: default; }
 .wh-ad { position: absolute; inset: -6px; border-radius: 16px; background: #0B1622; color: #FFF6E3; border: 3px solid #2A1209; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; z-index: 2; }
 .wh-ad b { font-family: 'Luckiest Guy', 'Lilita One', sans-serif; font-size: 26px; letter-spacing: 1px; }
 .wh-ad span { font-size: 12px; opacity: .8; }
+.tr-buyen .tb-ic { width: 16px; height: 16px; }
+.hub-ev { position: absolute; top: 44px; left: 50%; transform: translateX(-50%); z-index: 3; border: 3px solid #2A1209; border-radius: 999px; background: #E0489A; color: #FFF6E3; font: inherit; font-weight: 900; font-size: 12px; padding: 3px 10px; box-shadow: 0 3px 0 #2A1209; white-space: nowrap; cursor: pointer; }
+.hub-ev[hidden] { display: none !important; }
+.pr-up { width: 100%; margin: 4px 0 6px; background: #FFC93C !important; color: #2A1209 !important; }
+.pr-up[disabled] { opacity: .5; }
+.pr-up[hidden] { display: none !important; }
+.se-rew { display: flex; justify-content: center; gap: 8px; margin: 8px 0; }
+.se-rew div { flex: 1; max-width: 96px; background: rgba(0,0,0,.25); border: 2px solid #2A1209; border-radius: 12px; padding: 6px 4px; display: flex; flex-direction: column; align-items: center; font-size: 20px; }
+.se-rew b { font-size: 15px; color: #FFC93C; } .se-rew span { font-size: 10px; opacity: .8; }
+.cp-list, .hf-list, .ac-list, .du-list { display: flex; flex-direction: column; gap: 4px; margin: 6px 0; }
+.cp-row { display: grid; grid-template-columns: 1fr auto; gap: 0 8px; background: rgba(0,0,0,.22); border-radius: 10px; padding: 5px 9px; font-size: 13px; }
+.cp-row small { display: block; font-size: 10px; opacity: .7; } .cp-row em { grid-column: 1 / -1; font-style: normal; font-size: 11px; opacity: .85; }
+.cp-row.w { box-shadow: inset 4px 0 0 #8FD14F; } .cp-row.l { box-shadow: inset 4px 0 0 #FF7A6E; }
+.du-me { text-align: center; font-size: 12px; background: rgba(0,0,0,.22); border-radius: 10px; padding: 5px; }
+.du-opp { display: grid; grid-template-columns: 1fr auto; text-align: left; border: 3px solid #2A1209; border-radius: 12px; background: #FFF6E3; color: #2A1209; font: inherit; padding: 6px 10px; cursor: pointer; box-shadow: 0 3px 0 #2A1209; }
+.du-opp span { grid-column: 1; font-size: 11px; opacity: .8; } .du-opp em { grid-row: 1 / 3; grid-column: 2; align-self: center; font-style: normal; font-weight: 900; font-size: 12px; }
+.du-opp[disabled] { opacity: .5; cursor: not-allowed; }
+.du-skip { border: 2px solid #2A1209; border-radius: 8px; background: #FFC93C; font: inherit; font-size: 11px; font-weight: 900; padding: 1px 6px; cursor: pointer; }
+.hf-row { display: grid; grid-template-columns: 34px 1fr auto auto; gap: 6px; align-items: center; background: rgba(0,0,0,.22); border-radius: 8px; padding: 4px 8px; font-size: 13px; }
+.hf-row small { font-size: 10px; opacity: .7; } .hf-row em { font-style: normal; font-weight: 900; color: #FFC93C; }
+.hf-row.me { background: #FFC93C; color: #2A1209; } .hf-row.me em { color: #2A1209; }
+.hf-gap { text-align: center; opacity: .6; line-height: .8; }
+.ac-row { display: grid; grid-template-columns: 28px 1fr auto; gap: 8px; align-items: center; background: rgba(0,0,0,.22); border-radius: 10px; padding: 4px 8px; }
+.ac-row i { font-style: normal; font-size: 20px; } .ac-row b { font-size: 13px; display: block; } .ac-row b small { color: #FFC93C; font-size: 11px; }
+.ac-row span { font-size: 10px; opacity: .8; } .ac-row u { display: block; height: 5px; border-radius: 3px; background: rgba(255,255,255,.18); margin-top: 2px; overflow: hidden; } .ac-row u s { display: block; height: 100%; background: #8FD14F; }
+.ac-row.open { box-shadow: inset 0 0 0 2px #FFC93C; }
+.ac-get { border: 3px solid #2A1209; border-radius: 10px; background: #FFC93C; font: inherit; font-weight: 900; font-size: 12px; padding: 3px 7px; cursor: pointer; }
 .wh-ad em { font-style: normal; font-weight: 900; font-size: 30px; color: #FFC93C; }
 
 body > .bar { display: none !important; }
@@ -2081,7 +2108,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel', 'enBuy', 'bought', 'rr', 'duel', 'ach', 'cnt', 'itUp', 'evTest'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -2680,8 +2707,8 @@ const STAGES = [
   { n: 'Bolzplatz', at: 1 }, { n: 'Sportplatz', at: 4 }, { n: 'Stadion', at: 7 }, { n: 'Arena', at: 10 }
 ];
 const MAXLV = 10;
-const B_COST = { 2: 200, 3: 400, 4: 800, 5: 6000, 6: 200000, 7: 3000000, 8: 8000000, 9: 16000000, 10: 28000000 };
-const bCost = l => B_COST[l] || 0;   // Ligasimulation 10. Okt. (15 Spieler/Verein, Meldepflicht): nach 12 Monaten Ø Stufe ~8, Stufe 10 überall frühestens nach ~2 Jahren
+const B_COST = { 2: 200, 3: 400, 4: 800, 5: 6000, 6: 50000, 7: 250000, 8: 600000, 9: 1200000, 10: 2000000 };
+const bCost = l => B_COST[l] || 0;   // Ligasimulation 10. Okt. Nacht (fit_stadion2.py, Spenden = Anteil vom Tageseinkommen): nach 12 Monaten Ø Stufe ~7,8, nach 2 Jahren nur die besten Vereine komplett 10
 const B_SEC = [0, 0, 300, 900, 2700, 10800, 28800, 86400, 172800, 259200, 432000];   // Zielstufe 2: 5 min, 3: 15 min, 4: 45 min, 5: 3 h, 6: 8 h, 7: 1 Tag, 8: 2 Tage, 9: 3 Tage, 10: 5 Tage
 const bTime = l => Math.max(1, (B_SEC[l] || 0) * JOB_H / 3600000);   // Sekunden in der laufenden Version
 const fmtHMS = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return [h ? h + 'h' : '', m ? m + 'm' : '', s || (!h && !m) ? s + 's' : ''].filter(Boolean).join(' '); };
@@ -3412,8 +3439,8 @@ function mtPlayDay() {
   const won = res.g[0] > res.g[1], draw = res.g[0] === res.g[1];
   res.me.rate = +(+res.me.rate).toFixed(1);
   const mgr = CLUB.build ? CLUB.build.manager : 1, fans = (CLUB.build ? CLUB.build.tribuene : 1) * 10;
-  res.gold = Math.round(mtRewF() * Math.max(1, Math.round(((won ? 4 : draw ? 1.5 : .75) * (1 + mgr * .05) + (res.home ? fans / 50 : 0) + res.me.goals * .5) * GU(S.level) * (res.me.fac || 1))));
-  res.xp = Math.round(mtRewF() * ((won ? 60 : draw ? 30 : 15) + res.me.goals * 10 + res.me.assists * 5) * S.level * (res.me.fac || 1) * (res.me.motm ? 1.2 : 1) * (1 + catchUpPct() / 100));
+  res.gold = Math.round(mtRewF() * evMul('gold') * Math.max(1, Math.round(((won ? 4 : draw ? 1.5 : .75) * (1 + mgr * .05) + (res.home ? fans / 50 : 0) + res.me.goals * .5) * GU(S.level) * (res.me.fac || 1))));
+  res.xp = Math.round(mtRewF() * evMul('xp') * ((won ? 60 : draw ? 30 : 15) + res.me.goals * 10 + res.me.assists * 5) * S.level * (res.me.fac || 1) * (res.me.motm ? 1.2 : 1) * (1 + catchUpPct() / 100));
   res.kasse = Math.round(res.gold * .1); res.place = mtPlace(); res.won = won; res.draw = draw;
   gold += res.gold; S.xp += res.xp; CLUB.kasse = (CLUB.kasse || 0) + res.kasse;
   res.up = false; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; res.up = true; }
@@ -4143,7 +4170,7 @@ MAP.b.find(b => b.k === 'shop').go = () => openShop();
 
 // ================== SYSTEME (Fahrplan Phase 1) ==================
 // Neue Spielstand-Felder laden (die alte Lade-Routine kennt sie nicht)
-const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel'];
+const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel', 'enBuy', 'bought', 'rr', 'duel', 'ach', 'cnt', 'itUp', 'evTest'];
 try { const sv = JSON.parse(localStorage.getItem('dd_state') || 'null'); if (sv) S_NEW.forEach(k => { if (k in sv) S[k] = sv[k]; }); } catch (e) {}
 if (S.tb == null) S.tb = 35;
 if (!S.car) S.car = { sp: 0, tore: 0, vorl: 0, ns: 0, nn: 0 };
@@ -4175,7 +4202,7 @@ renderAttrs = function (flashIdx) {
   const pos = myPos(), top = posTop(pos, 3);
   box.innerHTML = '';
   ATTR.forEach((a, i) => {
-    const c = cost(a.v), lbl = attrLabel(a.n, pos), tot = Math.round(attrEff(a.n)), ib = tot - a.v;
+    const c = attrPrice(a.n), lbl = attrLabel(a.n, pos), tot = Math.round(attrEff(a.n)), ib = tot - a.v;
     const d = document.createElement('div');
     d.className = 'pr-at' + (i === flashIdx ? ' flash' : '') + (attrW(a.n) <= 10 ? ' low' : '');
     d.innerHTML = `<div class="pr-at-n"><span class="pr-at-l">${top.includes(a.n) ? '<span class="st">★ </span>' : ''}${lbl}</span>` +
@@ -4186,7 +4213,7 @@ renderAttrs = function (flashIdx) {
     b.innerHTML = `<b>+</b><span>${c >= 10000 ? fmt(Math.round(c / 1000)) + 'k' : fmt(c)}</span>`;
     b.onclick = () => {
       if (gold < c) return;
-      gold -= c; a.v += 1; qInc('stat');
+      gold -= c; a.v += 1; S.bought = S.bought || {}; S.bought[a.n] = (S.bought[a.n] || 0) + 1; qInc('stat');
       if (typeof syncGlobal === 'function') syncGlobal();
       renderAttrs(i); bumpPower();
       if (S.tut === 4) { S.tut = 5; syncGlobal(); tutStep(); }
@@ -4367,7 +4394,7 @@ rollOffers = function () {
     const en = trDur(S.level), f = TR_FOCUS[0];   // 9. Okt.: kein Fokus mehr (immer ausgewogen)
     let at, tr; do { at = Math.random() < .75 ? pick(classMains()) : pick(ATTR_NAMES); tr = pick(TR_BY[at]); } while (used.has(tr[0])); used.add(tr[0]);
     return { n: tr[0], ic: tr[1], c: tr[2], d: tr[3], min: en, en, focus: f, attr: at,
-      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100)), st: Math.max(1, Math.round(en / 5)) };
+      xp: Math.round(2 * S.level * en * f.xp * (1 + .05 * t) * (1 + catchUpPct() / 100) * evMul('xp')), st: Math.max(1, Math.round(en / 5)) };
   });
 };
 renderOffers = (orig => function () {
@@ -4390,7 +4417,7 @@ function catchUpPct() {
   const h = CLUB.kader.filter(m => !m.bot && !m.me); if (!h.length) return 0;
   return S.level < h.reduce((a, m) => a + (m.lvl || 1), 0) / h.length ? 50 : 0;
 }
-function levelUps(from) { for (let l = from + 1; l <= S.level; l++) if (l >= 10) S.tb++; syncGlobal(); }
+function levelUps(from) { for (let l = from + 1; l <= S.level; l++) if (l >= 10 && l % 5 === 0) S.tb++; syncGlobal(); }   // 10. Okt. Nacht: nur noch jedes 5. Level 1 Traumball (sonst Energie-Kreislauf)
 // (Startbonus mit doppelter Energie-Regeneration am 8. Okt. entfernt: Energie voll in 10 h, immer.)
 
 // ---------- Nebenjob: neuer Lohn, sofort fertig mit Traumbällen ----------
@@ -4421,7 +4448,7 @@ syncGlobal = (orig => function () {
   orig();
   document.querySelectorAll('.g-en').forEach(e => e.textContent = fmtEn(S.en));
   document.querySelectorAll('.g-tb').forEach(e => e.textContent = fmt(S.tb || 0));
-  if (S.en < 20 && !S.jobHint && PLAYER && !S.tut) { S.jobHint = 1; const t = document.getElementById('hubToast'); if (t) { t.textContent = 'Energie fast leer? Um 0 Uhr ist sie wieder voll. Bis dahin: Nebenjob für Gold.'; t.hidden = false; setTimeout(() => t.hidden = true, 3500); } }
+  if (S.en < 20 && !S.jobHint && PLAYER && !S.tut) { S.jobHint = 1; const t = document.getElementById('hubToast'); if (t) { t.textContent = 'Energie fast leer? Um 0 Uhr ist sie wieder voll. Oder im Training mit Traumbällen nachfüllen (1 ⚽ = 20 Energie).'; t.hidden = false; setTimeout(() => t.hidden = true, 3500); } }
 })(syncGlobal);
 
 // ---------- Verein: 16 Spieler (11 + 5 Bank), Ränge ----------
@@ -5133,7 +5160,7 @@ mtRenderPre = (orig => function () {
   document.querySelectorAll('#mtBox .mt-pl.me').forEach(e => e.classList.toggle('off', !ok));
 })(mtRenderPre);
 document.getElementById('mtGo').onclick = () => {
-  if (CLUB.liga.day >= MT_DAYS) { mtNewSeason(); return; }
+  if (CLUB.liga.day >= MT_DAYS) { seasonEndPop(); return; }
   if (mtMeld()) return;
   S.meld = mtNextT(); syncGlobal(); mtRenderPre();
   const t = document.getElementById('mtCost'); if (t) t.textContent = 'Gemeldet! Du spielst ' + mtNextSlot().label + ' mit.';
@@ -5165,16 +5192,17 @@ const whItem = rars => () => { const b = pick(Object.values(ITEMS_BASE).filter(i
 const WH_SEG = [
   { ic: '🪙', t: 'Gold', w: 24, col: '#FFC93C', v: () => Math.round(5 * GU(S.level)), f: v => { gold += v; } },
   { ic: '🔷', t: 'XP', w: 18, col: '#5BB8FF', v: () => 100 * S.level, f: v => { const lv = S.level; S.xp += v; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); } },
-  { ic: '🎁', t: 'Item', w: 10, col: '#9CA2AA', v: () => 1, f: whItem(['grau', 'selten']) },
+  { ic: '🎁', t: 'Item', w: 10, col: '#9CA2AA', v: () => 1, f: () => giveItem(Math.random() < .5 ? 'grau' : 'selten') },
   { ic: '⚽', t: 'Traumbälle', w: 12, col: '#E0489A', v: () => 2, f: v => { S.tb += v; } },
   { ic: '🪙', t: 'Gold', w: 15, col: '#FFC93C', v: () => Math.round(12 * GU(S.level)), f: v => { gold += v; } },
   { ic: '🧪', t: 'Trank', w: 12, col: '#8FD14F', v: () => 1, f: () => { if (bagUsed() >= BAG_SIZE) { gold += Math.round(6 * GU(S.level)); return 'Tasche voll – stattdessen Gold'; } potBagAdd(HAUPT[myPos()], 0); } },
   { ic: '💰', t: 'Viel Gold', w: 6, col: '#FF7A2F', v: () => Math.round(30 * GU(S.level)), f: v => { gold += v; } },
-  { ic: '🟣', t: 'Lila-Item', w: 3, col: '#B07CFF', v: () => 1, f: whItem(['episch']) },
+  { ic: '🟣', t: 'Top-Item', w: 3, col: '#B07CFF', v: () => 1, f: () => giveItem(Math.random() < .05 ? 'legendaer' : 'episch') },
 ];
 const whKey = () => kiDayKey() + '/' + (S.dbOff || 0);
 function whState() { if (!S.wheel || S.wheel.d !== whKey()) S.wheel = { d: whKey(), n: 0 }; return S.wheel; }
-const whFreeLeft = () => whState().n < WH_FREE;
+const whFree = () => WH_FREE + (evOn('wheel') ? 1 : 0);
+const whFreeLeft = () => whState().n < whFree();
 let whAng = 0, whBusy = false;
 function whSvg() {
   const n = WH_SEG.length, R = 100, seg = 360 / n, rad = a => (a - 90) * Math.PI / 180;
@@ -5184,13 +5212,13 @@ function whSvg() {
   }).join('')}<circle r="18" fill="#FFF6E3" stroke="#2A1209" stroke-width="4"/></g><path d="M-12 -112L12 -112L0 -88z" fill="#D83A34" stroke="#2A1209" stroke-width="3" stroke-linejoin="round"/></svg>`;
 }
 function openWheel() {
-  const W = whState(), adsLeft = Math.max(0, WH_FREE + WH_ADS - W.n);
-  const btn = W.n < WH_FREE ? 'Gratis drehen' : adsLeft ? `📺 Video + Drehen (${adsLeft})` : 'Morgen wieder';
-  ddPop(`<h3>Glücksrad</h3><p class="dd-p">Jeden Tag 1× gratis drehen. Danach noch ${WH_ADS}× mit einem Werbevideo.</p>
+  const W = whState(), adsLeft = Math.max(0, whFree() + WH_ADS - W.n);
+  const btn = W.n < whFree() ? 'Gratis drehen' : adsLeft ? `📺 Video + Drehen (${adsLeft})` : 'Morgen wieder';
+  ddPop(`<h3>Glücksrad</h3><p class="dd-p">Jeden Tag ${whFree()}× gratis drehen. Danach noch ${WH_ADS}× mit einem Werbevideo.</p>
     <div class="wh-box">${whSvg()}</div><p class="wh-res" id="whRes">&nbsp;</p>
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="whClose">Schließen</button><button type="button" class="sd-pb" id="whGo"${adsLeft ? '' : ' disabled'}>${btn}</button></div>`);
   document.getElementById('whClose').onclick = () => { if (!whBusy) ddPopClose(); };
-  document.getElementById('whGo').onclick = () => { if (whBusy || !adsLeft) return; if (W.n < WH_FREE) whSpin(); else whAd(); };
+  document.getElementById('whGo').onclick = () => { if (whBusy || !adsLeft) return; if (W.n < whFree()) whSpin(); else whAd(); };
 }
 function whAd() {   // Platzhalter: hier läuft später ein echtes Werbevideo
   whBusy = true; let t = WH_AD_SEC;
@@ -5211,7 +5239,7 @@ function whSpin() {
   setTimeout(() => {
     const G = WH_SEG[k], v = G.v(), note = G.f(v);
     whBusy = false; syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs();
-    const val = G.t === 'XP' ? '+' + fmtK(v) + ' XP' : /Gold/.test(G.t) ? '+' + fmt(v) + ' Gold' : G.t === 'Traumbälle' ? '+' + v + ' Traumbälle' : G.t === 'Trank' ? 'Kleiner Trank (in der Tasche)' : G.t + ' (in der Tasche)';
+    const val = G.t === 'XP' ? '+' + fmtK(v) + ' XP' : /Gold/.test(G.t) ? '+' + fmt(v) + ' Gold' : G.t === 'Traumbälle' ? '+' + v + ' Traumbälle' : G.t === 'Trank' ? 'Kleiner Trank (in der Tasche)' : G.t;
     openWheel(); document.getElementById('whRes').innerHTML = `${G.ic} <b>${note || val}</b>`;
   }, 3300);
 }
@@ -5222,6 +5250,270 @@ function whSpin() {
   document.getElementById('mnWheel').onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; openWheel(); };
   syncGlobal = (orig => function () { orig(); try { const t = document.getElementById('mnWheel'); if (!t || !PLAYER) return; const on = whFreeLeft(); let b = t.querySelector('.mn-badge');
     if (on && !b) t.insertAdjacentHTML('beforeend', '<span class="mn-badge mn-badge-y">!</span>'); else if (!on && b) b.remove(); } catch (e) {} })(syncGlobal);
+  syncGlobal();
+})();
+
+// =====================================================================
+// 10. Okt. Nacht – Langzeit-Paket: Energie mit Traumbällen, Gold-Wirtschaft, Schmied, seltenere Items,
+// Saisonende-Belohnung, Pokal, Duelle + Ruhmeshalle, Erfolge, Wochenend-Events
+// =====================================================================
+const dayK = () => kiDayKey() + '/' + (S.dbOff || 0);
+S.cnt = S.cnt || {}; S.bought = S.bought || {}; S.itUp = S.itUp || {};
+const cntInc = (k, n) => { S.cnt[k] = (S.cnt[k] || 0) + (n || 1); };
+const RAR_NAME = { grau: 'Graues Item', selten: 'Blaues Item', episch: 'Lila-Item', legendaer: 'Gold-Item' };
+function giveItem(rar) {
+  const b = pick(Object.values(ITEMS_BASE).filter(it => it.rar === rar && it.cat !== 'gl' && (it.cat !== 'po' || it.pos === myPos()) && !it.kiosk));
+  if (!b) return '';
+  if (bagUsed() >= BAG_SIZE) { const g = Math.round(itPrice({ lvl: S.level, rar }) / 2); gold += g; return `Tasche voll – ${fmt(g)} Gold statt ${RAR_NAME[rar]}`; }
+  P.bag.push(itMake(b.id, S.level, myPos())); saveProfile(); renderProfile(); return RAR_NAME[rar] + ' (in der Tasche)';
+}
+
+// ---------- Wochenend-Events (Sa + So, jede Woche ein anderes) ----------
+var EVENTS = [
+  { k: 'xp', n: 'Doppel-XP-Wochenende', d: 'Training und Ligaspiele geben doppelt so viel XP.', ic: '🔷' },
+  { k: 'gold', n: 'Goldrausch', d: 'Nebenjob und Ligaspiele geben doppelt so viel Gold.', ic: '🪙' },
+  { k: 'items', n: 'Schatz-Wochenende', d: 'Im Sportladen und Kiosk gibt es dreimal so oft Lila- und Gold-Items.', ic: '🟣' },
+  { k: 'wheel', n: 'Glücksrad-Fest', d: 'Am Glücksrad gibt es 2 Gratis-Drehs statt 1.', ic: '🎡' },
+];
+function evNow() {
+  if (S.evTest != null) return EVENTS[S.evTest] || null;
+  const d = new Date(Date.now() + (S.dbOff || 0) * 86400000), wd = d.getDay(); if (wd !== 0 && wd !== 6) return null;
+  const wk = Math.floor((d.getTime() - new Date(2026, 0, 3).getTime()) / 604800000); return EVENTS[((wk % 4) + 4) % 4];
+}
+function evOn(k) { const e = EVENTS && evNow(); return !!e && e.k === k; }
+function evMul(k) { return evOn(k) ? 2 : 1; }
+document.getElementById('abCollect').onclick = (orig => function () {
+  const J = S.job; if (J && J.kind === 'work' && Date.now() >= J.until && evOn('gold')) gold += J.gold || 0;
+  return orig.apply(this, arguments);
+})(document.getElementById('abCollect').onclick);
+(() => {   // Hinweis auf der Karte
+  const map = document.querySelector('#hub .map'); if (!map) return;
+  map.insertAdjacentHTML('beforeend', '<button type="button" class="hub-ev" id="hubEv" hidden></button>');
+  const b = document.getElementById('hubEv');
+  b.onclick = () => { const e = evNow(); if (e) ddPop(`<h3>${e.ic} ${e.n}</h3><p class="dd-p">${e.d}<br><br>Jedes Wochenende gibt es ein anderes Event.</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">Super!</button></div>`); };
+  syncGlobal = (orig => function () { orig(); try { const e = evNow(); b.hidden = !e || !PLAYER || !!S.tut; if (e) b.innerHTML = `${e.ic} ${e.n}`; } catch (er) {} })(syncGlobal);
+})();
+// Testleiste: Event durchschalten (nur Klick-Test)
+(() => {
+  const bar = document.querySelector('.bar'); if (!bar || !document.getElementById('tNextDay')) return;
+  bar.insertAdjacentHTML('beforeend', '<button type="button" id="tEvent"></button>');
+  const t = document.getElementById('tEvent'), upd = () => t.textContent = 'Event: ' + (S.evTest == null ? 'echt' : EVENTS[S.evTest].n);
+  upd(); t.onclick = () => { S.evTest = S.evTest == null ? 0 : S.evTest >= EVENTS.length - 1 ? null : S.evTest + 1; upd(); syncGlobal(); };
+})();
+
+// ---------- Energie mit Traumbällen: 1 ⚽ = +20 Energie, bis zu 300 Energie am Tag (100 gratis + 200 gekauft) ----------
+const EN_TB = 20, EN_BUY_MAX = 10;
+function enBuyState() { if (!S.enBuy || S.enBuy.d !== dayK()) S.enBuy = { d: dayK(), n: 0 }; return S.enBuy; }
+(() => {
+  const v = document.getElementById('trVideo'); if (!v) return;
+  v.insertAdjacentHTML('afterend', `<button type="button" class="tr-video tr-buyen" id="trBuyEn" aria-label="1 Traumball für 20 Energie"><b>+20</b>${TB_IC}<small id="trBuyLeft"></small></button>`);
+  const b = document.getElementById('trBuyEn');
+  b.onclick = () => {
+    const E = enBuyState();
+    if (E.n >= EN_BUY_MAX || S.tb < 1 || S.en > 100 - EN_TB) return;
+    S.tb -= 1; S.en = Math.min(100, S.en + EN_TB); E.n++; syncGlobal(); if (typeof renderOffers === 'function') renderOffers();
+  };
+  syncGlobal = (orig => function () { orig(); try { const E = enBuyState(), left = EN_BUY_MAX - E.n; b.disabled = left <= 0 || S.tb < 1 || S.en > 100 - EN_TB; document.getElementById('trBuyLeft').textContent = left + '×'; b.title = left > 0 ? `Heute noch ${left}× (max. 300 Energie am Tag)` : 'Heute nichts mehr – max. 300 Energie am Tag'; } catch (e) {} })(syncGlobal);
+})();
+
+// ---------- Werte kaufen: Preis wächst mit dem Einkommen (Gold-Einheit) und mit jedem gekauften Punkt ----------
+function attrPrice(n) { return Math.max(1, Math.round(GU(S.level) * (1 + ((S.bought || {})[n] || 0) / 50))); }
+
+// ---------- Laden neu würfeln: jeder weitere Wurf am selben Tag kostet mehr ----------
+function rrState() { if (!S.rr || S.rr.d !== dayK()) S.rr = { d: dayK(), n: 0 }; return S.rr; }
+const rrPrice = () => kiRefresh() * (1 + rrState().n);
+[['kiNew', () => kiRoll(), () => kiRender(), w => kiSay(w)], ['shNew', () => shRoll(), () => shRender(), w => shSay(w)]].forEach(([id, roll, render, say]) => {
+  const b = document.getElementById(id);
+  b.onclick = () => { const c = rrPrice(); if (gold < c) { say('poor'); return; } gold -= c; rrState().n++; syncGlobal(); roll(); render(); say(); };
+});
+kiRender = (orig => function () { orig(); const nb = document.getElementById('kiNew'); nb.textContent = `NEUE WARE · ${fmt(rrPrice())} Gold`; nb.disabled = gold < rrPrice(); })(kiRender);
+shRender = (orig => function () { orig(); const nb = document.getElementById('shNew'); nb.textContent = `NEUE WARE · ${fmt(rrPrice())} Gold`; nb.disabled = gold < rrPrice(); })(shRender);
+
+// ---------- Items seltener; Gold-Items selten auch im Laden; Item-Level schwankt (85–102 % vom eigenen Level) ----------
+kiRollRar = function () {
+  const b = evOn('items') ? 3 : 1, r = Math.random() * 100 - kiLuck() * .8;
+  return r < .1 * b ? 'legendaer' : r < 1.6 * b ? 'episch' : r < 21.6 ? 'selten' : 'grau';
+};
+const itShopLvl = () => Math.max(1, Math.round(S.level * (0.85 + Math.random() * 0.17)));
+itRollShop = function (cat) {
+  const rar = kiRollRar(), ok = it => it.cat === cat && !it.kiosk && (cat !== 'po' || it.pos === myPos());
+  let pool = Object.values(ITEMS).filter(it => ok(it) && it.rar === rar); if (!pool.length) pool = Object.values(ITEMS).filter(it => ok(it) && it.rar !== 'legendaer');
+  return itMake(pick(pool).id, itShopLvl(), myPos());
+};
+kiRoll = (orig => function () { orig(); KI.stock.forEach(w => { if (w.type === 'item' && itIsNew(w.id)) { const it = ITEMS[w.id]; w.id = itMake(it.base, itShopLvl(), myPos()); } }); kiSave(); })(kiRoll);
+
+// ---------- Schmied: Items im Profil verbessern (+8 % je Stufe, max. +5), kostet Gold ----------
+const UP_MAX = 5, UP_F = 1.08;
+const upLvl = id => (S.itUp || {})[id] || 0;
+const upPrice = it => Math.round(itPrice(it) * 2 * (upLvl(it.id) + 1));
+function itUpgrade(id) {
+  const it = ITEMS[id], n = upLvl(id), up = v => Math.max(v + 1, Math.round(v * UP_F));
+  const st = it.all ? 'A' + up(it.stats.Schuss) : Object.entries(it.stats).map(([k, v]) => ATTR_NAMES.indexOf(k) + ':' + up(v)).join('.');
+  const nid = it.base + '@' + it.lvl + '~' + st; delete S.itUp[id]; S.itUp[nid] = n + 1; return nid;
+}
+(() => {
+  document.querySelector('#prPop .pr-pop-btns').insertAdjacentHTML('beforebegin', '<button type="button" class="pr-btn pr-up" id="popUp"></button>');
+  const b = document.getElementById('popUp');
+  openPop = (orig => function (it, ctx) {
+    orig(it, ctx);
+    const n = upLvl(it.id); if (n) document.getElementById('popT').textContent = it.name + ' +' + n;
+    if (!it.stats || !Object.keys(it.stats).length) { b.hidden = true; return; }
+    b.hidden = false; const c = upPrice(it);
+    b.innerHTML = n >= UP_MAX ? '🔨 Maximal verbessert (+5)' : `🔨 Verbessern auf +${n + 1} · ${fmt(c)} Gold`;
+    b.disabled = n >= UP_MAX || gold < c;
+    b.onclick = () => {
+      const c2 = upPrice(it); if (upLvl(it.id) >= UP_MAX || gold < c2) return;
+      gold -= c2; const nid = itUpgrade(it.id);
+      if (ctx.type === 'bag') P.bag[ctx.i] = nid; else P.equip[ctx.cat] = nid;
+      saveProfile(); syncGlobal(); renderProfile(); bumpPower(); openPop(ITEMS[nid], ctx);
+    };
+  })(openPop);
+})();
+
+// ---------- Saisonende: Belohnung nach Platz und Liga ----------
+function seasonRew(place, lg) {
+  const m = 1 + LIGA_STEP * Math.max(0, MT_LEAGUES.indexOf(lg)), g = place === 1 ? 60 : place <= 3 ? 40 : place <= 8 ? 20 : place <= 16 ? 10 : 5;
+  return { gold: Math.round(g * GU(S.level) * m), tb: place === 1 ? 10 : place <= 3 ? 5 : 2, item: place === 1 ? 'legendaer' : place <= 3 ? 'episch' : place <= 8 ? 'selten' : null };
+}
+function seasonEndPop() {
+  const place = mtPlace(), lg = CLUB.league || 'Pfützenliga', R = seasonRew(place, lg), i = MT_LEAGUES.indexOf(lg);
+  const move = place === 1 && i < MT_LEAGUES.length - 1 ? `<b style="color:#8FD14F">Aufstieg in die ${MT_LEAGUES[i + 1]}!</b>` : place >= 17 && i > 0 ? `<b style="color:#FF7A6E">Abstieg in die ${MT_LEAGUES[i - 1]}.</b>` : 'Ihr bleibt in der ' + lg + '.';
+  ddPop(`<h3>${place === 1 ? '🏆 MEISTER!' : 'Saisonende'}</h3><p class="dd-p">${lg} · Platz <b>${place}</b> von 18<br>${move}</p>
+    <div class="se-rew"><div>🪙<b>+${fmt(R.gold)}</b><span>Gold</span></div><div>⚽<b>+${R.tb}</b><span>Traumbälle</span></div>${R.item ? `<div>🎁<b>${RAR_NAME[R.item].replace(' Item', '').replace('-Item', '')}</b><span>Item</span></div>` : ''}</div>
+    <p class="dd-p" style="font-size:11px;opacity:.8">Je besser der Platz und je höher die Liga, desto mehr gibt es.</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb" id="seGo">Abholen & neue Saison</button></div>`);
+  document.getElementById('seGo').onclick = () => {
+    gold += R.gold; S.tb += R.tb; cntInc('seasons'); if (place === 1) cntInc('titles');
+    if (R.item) giveItem(R.item);
+    ddPopClose(); syncGlobal(); mtNewSeason();
+  };
+}
+
+// ---------- Pokal: pro Saison 4 K.-o.-Runden (nach Spieltag 8, 16, 24, 32), automatisch ----------
+const CUP_DAYS = [8, 16, 24, 32], CUP_N = ['Achtelfinale', 'Viertelfinale', 'Halbfinale', 'Finale'];
+const CUP_OPP = ['Kickers Kuhweide', 'FC Flutlicht', 'SV Elfmeterpunkt', 'Dynamo Dorfplatz', 'Rot-Gelb Rasenkante', 'TSV Torlinie', 'SC Seitenaus', 'Victoria Volley'];
+function cupState() {
+  const L = CLUB && CLUB.liga; if (!L) return null;
+  if (!CLUB.cup || CLUB.cup.s !== L.start) CLUB.cup = { s: L.start, r: 0, out: false, res: [], seen: 0 };
+  return CLUB.cup;
+}
+function cupPlay() {
+  const C = cupState(), L = CLUB.liga; if (!C) return;
+  while (!C.out && C.r < 4 && L.day >= CUP_DAYS[C.r]) {
+    const T = L.teams.filter(t => !t.me), base = T.reduce((a, t) => a + t.str, 0) / T.length;
+    const opp = { name: pick(CUP_OPP), str: base * (1.05 + .08 * C.r) * (1 + Math.random() * .1) };
+    const r = simCore(squadUs(), squadOpp({ str: opp.str * oppGrow() }), { tacA: L.tactic || 'bal', tacB: 'bal', homeA: Math.random() < .5, homePct: 3, quiet: true });
+    let [a, b] = r.g, pen = '';
+    if (a === b) { const w = Math.random() < .5 + (mtOurStr() / (opp.str * oppGrow()) - 1) * .5; pen = w ? ' n. E.' : ' n. E.'; if (w) a += .1; else b += .1; }
+    const won = a > b, rew = won ? Math.round(8 * (C.r + 1) * GU(S.level) * ligaMul()) : 0;
+    C.res.push({ r: C.r, opp: opp.name, g: [Math.floor(a), Math.floor(b)], pen, won, rew });
+    if (won) { gold += rew; C.r++; if (C.r === 4) { cntInc('cupW'); S.tb += 15; C.item = giveItem('legendaer'); } } else C.out = true;
+  }
+  saveClub(); syncGlobal();
+}
+mtPlayDay = (orig => function () { const r = orig(); try { cupPlay(); } catch (e) {} return r; })(mtPlayDay);
+function openCup() {
+  if (!CLUB || !CLUB.liga) { ddPop('<h3>Pokal</h3><p class="dd-p">Der Pokal läuft nur mit Verein. Tritt einem Verein bei oder gründe einen.</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>'); return; }
+  const C = cupState(); C.seen = C.res.length; saveClub(); syncGlobal();
+  const rows = CUP_N.map((n, i) => { const x = C.res.find(q => q.r === i);
+    return `<div class="cp-row ${x ? (x.won ? 'w' : 'l') : ''}"><span>${n}<small>nach Spieltag ${CUP_DAYS[i]}</small></span><b>${x ? `${x.g[0]}:${x.g[1]}${x.pen}` : C.out ? '–' : 'offen'}</b><em>${x ? x.opp : ''}${x && x.won ? ` · +${fmt(x.rew)} Gold` : ''}</em></div>`; }).join('');
+  const st = C.r === 4 ? '🏆 <b>Pokalsieger!</b> +15 Traumbälle und ein Gold-Item.' : C.out ? 'Ausgeschieden. Nächste Saison neues Glück!' : `Nächstes Spiel: <b>${CUP_N[C.r]}</b> nach Spieltag ${CUP_DAYS[C.r]}.`;
+  ddPop(`<h3>🏆 Pokal</h3><p class="dd-p">Jede Saison: 4 K.-o.-Runden gegen Vereine aus anderen Ligen. Jeder Sieg bringt Gold, der Pokalsieg ein Gold-Item.</p><div class="cp-list">${rows}</div><p class="dd-p">${st}</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`);
+}
+
+// ---------- Duelle + Ruhmeshalle (Gegner sind im Prototyp Bots; mit Server echte Spieler) ----------
+function seedRnd(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+const DU_CD = 10 * 60 * 1000;   // 10 Minuten (Klick-Test: im Zeitraffer)
+const duCd = () => DU_CD * JOB_H / 3600000;
+function duState() { if (!S.duel) S.duel = { r: 100, w: 0, l: 0, next: 0, d: '', xw: 0 }; if (S.duel.d !== dayK()) { S.duel.d = dayK(); S.duel.xw = 0; } return S.duel; }
+let HOF = null;
+function hofList() {
+  if (HOF) return HOF;
+  const rnd = seedRnd((S.born || 1) % 2147483647), N = ['Ben', 'Lea', 'Tim', 'Mia', 'Jan', 'Emma', 'Noah', 'Lina', 'Paul', 'Ida', 'Finn', 'Ella', 'Luis', 'Nele', 'Max', 'Ole', 'Zoe', 'Tom', 'Lou', 'Jona', 'Kai', 'Pia', 'Leo', 'Mats'];
+  const X = ['Blitz', 'Kicker', 'Pfosten', 'Turbo', 'Wade', 'Flanke', 'Kopfball', 'Tunnel', 'Grätsche', 'Volley', 'Lupfer', 'Zehner'];
+  HOF = Array.from({ length: 150 }, (_, i) => ({ n: N[Math.floor(rnd() * N.length)] + X[Math.floor(rnd() * X.length)] + (rnd() < .5 ? Math.floor(rnd() * 99) : ''), f: .6 + rnd() * .9, r0: Math.floor(rnd() * rnd() * 2500), g: .3 + rnd() * 1.4, pos: ['ST', 'MF', 'AB', 'TW'][Math.floor(rnd() * 4)] }));
+  return HOF;
+}
+const hofDays = () => Math.max(0, (Date.now() - (S.born || Date.now())) / 86400000 + (S.dbOff || 0));
+const botRuhm = b => Math.round(b.r0 + b.g * 60 * hofDays());
+const botLvl = b => Math.max(1, Math.round(S.level * (0.55 + b.f * 0.45)));
+function hofRank() { const D = duState(); return hofList().filter(b => botRuhm(b) > D.r).length + 1; }
+function duOpps() {
+  const D = duState(), L = hofList().slice().sort((a, b) => Math.abs(botRuhm(a) - D.r) - Math.abs(botRuhm(b) - D.r)).slice(0, 8);
+  return L.sort(() => Math.random() - .5).slice(0, 3);
+}
+let DU_OPP = null;
+function openDuel() {
+  const D = duState(), left = Math.max(0, D.next - Date.now()); if (!DU_OPP) DU_OPP = duOpps();
+  const me = posPower();
+  ddPop(`<h3>⚔️ Duell</h3><p class="dd-p">Fordere einen Spieler zum Elfmeter-Duell heraus. Sieg = Ruhm, die ersten 10 Siege am Tag geben XP. Alle 10 Minuten ein Duell.</p>
+    <div class="du-me">Dein Ruhm <b>${fmt(D.r)}</b> · Platz <b>${hofRank()}</b> · ${D.w} S / ${D.l} N · XP-Siege heute ${D.xw}/10</div>
+    <div class="du-list">${DU_OPP.map((b, i) => { const p = Math.round(me * b.f); return `<button type="button" class="du-opp" data-i="${i}"${left ? ' disabled' : ''}><b>${b.n}</b><span>Lv ${botLvl(b)} · ${b.pos} · Stärke ${fmt(p)}</span><em>${fmt(botRuhm(b))} Ruhm</em></button>`; }).join('')}</div>
+    <p class="dd-p" id="duRes">${left ? `Nächstes Duell in <b>${fmtHMS(left / 1000 * 3600000 / JOB_H)}</b>` + (S.tb >= 1 ? ' · <button type="button" class="du-skip" id="duSkip">Sofort · 1 ⚽</button>' : '') : 'Wähle deinen Gegner.'}</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" onclick="openHof()">Ruhmeshalle</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  document.querySelectorAll('#ddPopIn .du-opp').forEach(b => b.onclick = () => duFight(DU_OPP[+b.dataset.i]));
+  const sk = document.getElementById('duSkip'); if (sk) sk.onclick = () => { if (S.tb < 1) return; S.tb--; D.next = 0; syncGlobal(); openDuel(); };
+  if (left) setTimeout(() => { if (!document.getElementById('ddPop').hidden && document.querySelector('#ddPopIn .du-list')) openDuel(); }, Math.min(left, 1000) + 50);
+}
+function duFight(b) {
+  const D = duState(); if (D.next > Date.now()) return;
+  const me = posPower(), op = me * b.f * (0.9 + Math.random() * .2), p = me * me / (me * me + op * op), win = Math.random() < p;
+  const wg = 3 + Math.floor(Math.random() * 3), lg = Math.floor(Math.random() * wg);
+  const dr = win ? Math.round(12 + 10 * (1 - p)) : -Math.round(4 + 8 * p);
+  D.r = Math.max(0, D.r + dr); D.next = Date.now() + duCd(); win ? D.w++ : D.l++;
+  let xp = 0; if (win && D.xw < 10) { D.xw++; xp = Math.round(xpNeed(S.level) * .002); const lv = S.level; S.xp += xp; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); }
+  DU_OPP = null; syncGlobal(); openDuel();
+  document.getElementById('duRes').innerHTML = `${win ? '<b style="color:#8FD14F">SIEG!</b>' : '<b style="color:#FF7A6E">Niederlage.</b>'} ${win ? wg + ':' + lg : lg + ':' + wg} im Elfmeterschießen gegen ${b.n} · ${dr >= 0 ? '+' : ''}${dr} Ruhm${xp ? ` · +${fmtK(xp)} XP` : ''}`;
+}
+function openHof() {
+  const D = duState(), me = { n: PLAYER ? PLAYER.name : 'Du', me: true, r: D.r, L: S.level, pos: myPos() };
+  const all = hofList().map(b => ({ n: b.n, r: botRuhm(b), L: botLvl(b), pos: b.pos })).concat([me]).sort((a, b) => b.r - a.r);
+  const k = all.indexOf(me), show = new Set([0, 1, 2]); for (let i = Math.max(0, k - 3); i <= Math.min(all.length - 1, k + 3); i++) show.add(i);
+  let last = -1, rows = '';
+  [...show].sort((a, b) => a - b).forEach(i => { if (i > last + 1) rows += '<div class="hf-gap">…</div>'; const x = all[i]; rows += `<div class="hf-row${x.me ? ' me' : ''}"><b>${i + 1}.</b><span>${x.n}</span><small>Lv ${x.L} · ${x.pos}</small><em>${fmt(x.r)}</em></div>`; last = i; });
+  ddPop(`<h3>🏛️ Ruhmeshalle</h3><p class="dd-p">Rangliste nach Ruhm aus Duellen. ${all.length} Spieler.</p><div class="hf-list">${rows}</div>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" onclick="openDuel()">Zum Duell</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+}
+
+// ---------- Erfolge ----------
+const ACH = [
+  { k: 'lvl', n: 'Aufsteiger', ic: '⭐', t: [10, 50, 100, 200, 300], v: () => S.level, u: 'Level' },
+  { k: 'tore', n: 'Torjäger', ic: '⚽', t: [10, 50, 250, 1000], v: () => (S.car && S.car.tore) || 0, u: 'Tore' },
+  { k: 'sp', n: 'Stammspieler', ic: '👟', t: [10, 100, 500, 2000], v: () => (S.car && S.car.sp) || 0, u: 'Spiele' },
+  { k: 'train', n: 'Trainingsfleiß', ic: '🏋️', t: [10, 100, 1000, 5000], v: () => S.cnt.train || 0, u: 'Trainings' },
+  { k: 'duel', n: 'Duellant', ic: '⚔️', t: [10, 100, 500, 2000], v: () => (S.duel && S.duel.w) || 0, u: 'Duell-Siege' },
+  { k: 'stad', n: 'Bauherr', ic: '🏟️', t: [3, 5, 8, 10], v: () => CLUB && CLUB.build ? Math.max(...Object.values(CLUB.build).filter(x => typeof x === 'number')) : 0, u: 'Stadion-Stufe' },
+  { k: 'titel', n: 'Meister', ic: '🏆', t: [1, 3, 10], v: () => S.cnt.titles || 0, u: 'Meistertitel' },
+  { k: 'cup', n: 'Pokalheld', ic: '🥇', t: [1, 3, 10], v: () => S.cnt.cupW || 0, u: 'Pokalsiege' },
+  { k: 'gold', n: 'Sammler', ic: '🎁', t: [1, 3, 6], v: () => P.bag.concat(Object.values(P.equip)).filter(id => id && ITEMS[id] && ITEMS[id].rar === 'legendaer').length, u: 'Gold-Items' },
+];
+const ACH_TB = [2, 5, 10, 20, 40];
+const achGot = a => (S.ach && S.ach[a.k]) || 0;
+const achOpen = a => achGot(a) < a.t.length && a.v() >= a.t[achGot(a)];
+const achAny = () => ACH.some(achOpen);
+finish = (orig => function (o) { cntInc('train'); return orig(o); })(finish);
+function openAch() {
+  const rows = ACH.map(a => {
+    const g = achGot(a), done = g >= a.t.length, goal = done ? a.t[a.t.length - 1] : a.t[g], v = a.v(), pc = Math.min(100, Math.round(v / goal * 100));
+    return `<div class="ac-row${achOpen(a) ? ' open' : ''}"><i>${a.ic}</i><div><b>${a.n} <small>${'★'.repeat(g)}${'☆'.repeat(a.t.length - g)}</small></b><span>${done ? 'Alle Stufen geschafft!' : `${fmt(Math.min(v, goal))} / ${fmt(goal)} ${a.u}`}</span><u><s style="width:${pc}%"></s></u></div>${achOpen(a) ? `<button type="button" class="ac-get" data-k="${a.k}">+${ACH_TB[g]} ⚽</button>` : ''}</div>`;
+  }).join('');
+  ddPop(`<h3>Erfolge</h3><div class="ac-list">${rows}</div><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  document.querySelectorAll('#ddPopIn .ac-get').forEach(b => b.onclick = () => { const a = ACH.find(x => x.k === b.dataset.k); if (!achOpen(a)) return; S.ach = S.ach || {}; S.tb += ACH_TB[achGot(a)]; S.ach[a.k] = achGot(a) + 1; syncGlobal(); openAch(); });
+}
+
+// ---------- Menü: Erfolge-Kachel aktivieren, neue Zeile „Arena" (Duell, Ruhmeshalle, Pokal) ----------
+(() => {
+  const ach = document.querySelector('.mn-tile[aria-label="Erfolge"]');
+  if (ach) { ach.removeAttribute('data-soon'); ach.id = 'mnAch'; ach.onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; openAch(); }; }
+  const grid = document.getElementById('mnDaily') && document.getElementById('mnDaily').closest('.mn-row').parentElement; if (!grid) return;
+  const sw = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M4 20l9-9M20 20l-9-9" fill="none" stroke-width="2.6"/><path d="M13 11l5-7 2 2-7 5M11 11L6 4 4 6l7 5" fill="#C9D3DC"/><circle cx="5" cy="19" r="1.8" fill="#8A5A2B"/><circle cx="19" cy="19" r="1.8" fill="#8A5A2B"/></svg>';
+  const hall = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M3 9l9-5 9 5z" fill="#FFC93C"/><path d="M5 9v9M9.5 9v9M14.5 9v9M19 9v9" fill="none" stroke-width="2"/><path d="M3 20h18" fill="none" stroke-width="2.4"/></svg>';
+  const cup = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="#FFC93C"/><path d="M7 6H4c0 3 1.5 4.5 3.5 4.5M17 6h3c0 3-1.5 4.5-3.5 4.5" fill="none"/><path d="M12 14v3M8 20h8l-1-3H9z" fill="#C98B06"/></svg>';
+  grid.insertAdjacentHTML('beforeend', `<div class="mn-row"><div class="mn-tiles"><button type="button" class="mn-tile" id="mnDuel" aria-label="Duell">${sw}<span>Duell</span></button><button type="button" class="mn-tile" id="mnHof" aria-label="Ruhmeshalle">${hall}<span>Ruhmes­halle</span></button><button type="button" class="mn-tile" id="mnCup" aria-label="Pokal">${cup}<span>Pokal</span></button></div><div class="mn-cat" title="Arena">${sw}<span>Arena</span></div></div>`);
+  const on = (id, f) => document.getElementById(id).onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; f(); };
+  on('mnDuel', openDuel); on('mnHof', openHof); on('mnCup', openCup);
+  const badge = (el, on2, txt) => { if (!el) return; let b = el.querySelector('.mn-badge'); if (on2 && !b) el.insertAdjacentHTML('beforeend', `<span class="mn-badge mn-badge-y">${txt || '!'}</span>`); else if (!on2 && b) b.remove(); };
+  syncGlobal = (orig => function () { orig(); try { if (!PLAYER) return; badge(document.getElementById('mnAch'), achAny()); badge(document.getElementById('mnDuel'), duState().next <= Date.now()); const C = CLUB && CLUB.liga ? cupState() : null; badge(document.getElementById('mnCup'), !!C && C.res.length > (C.seen || 0)); } catch (e) {} })(syncGlobal);
   syncGlobal();
 })();
 </script>
