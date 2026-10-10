@@ -5425,7 +5425,10 @@ function openCup() {
 function seedRnd(seed) { let a = seed >>> 0; return () => { a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
 const DU_CD = 10 * 60 * 1000;   // 10 Minuten (Klick-Test: im Zeitraffer)
 const duCd = () => DU_CD * JOB_H / 3600000;
-function duState() { if (!S.duel) S.duel = { r: 100, w: 0, l: 0, next: 0, d: '', xw: 0 }; if (S.duel.d !== dayK()) { S.duel.d = dayK(); S.duel.xw = 0; } return S.duel; }
+function duState() { if (!S.duel) S.duel = { r: 100, w: 0, l: 0, next: 0, d: '', n: 0 }; if (S.duel.d !== dayK()) { S.duel.d = dayK(); S.duel.n = 0; } if (S.duel.n == null) S.duel.n = 0; return S.duel; }
+const DU_MAX = 10;
+// Wettbewerb je Position: 10 Versuche, wer mehr schafft, gewinnt (bei Gleichstand Stechen)
+const DU_KIND = { ST: { t: 'Torschuss-Wettbewerb', a: 'Treffer' }, MF: { t: 'Pass-Wettbewerb', a: 'Pässe ins Ziel' }, AB: { t: 'Zweikampf-Wettbewerb', a: 'gewonnene Zweikämpfe' }, TW: { t: 'Elfmeter-Halten', a: 'gehaltene Elfmeter' } };
 let HOF = null;
 function hofList() {
   if (HOF) return HOF;
@@ -5438,32 +5441,37 @@ const hofDays = () => Math.max(0, (Date.now() - (S.born || Date.now())) / 864000
 const botRuhm = b => Math.round(b.r0 + b.g * 60 * hofDays());
 const botLvl = b => Math.max(1, Math.round(S.level * (0.55 + b.f * 0.45)));
 function hofRank() { const D = duState(); return hofList().filter(b => botRuhm(b) > D.r).length + 1; }
-function duOpps() {
-  const D = duState(), L = hofList().slice().sort((a, b) => Math.abs(botRuhm(a) - D.r) - Math.abs(botRuhm(b) - D.r)).slice(0, 8);
+function duOpps() {   // 3 Gegner auf deiner Position mit ähnlichem Ruhm
+  const D = duState(), me = myPos(), L = hofList().filter(b => b.pos === me).sort((a, b) => Math.abs(botRuhm(a) - D.r) - Math.abs(botRuhm(b) - D.r)).slice(0, 8);
   return L.sort(() => Math.random() - .5).slice(0, 3);
 }
+const duMine = () => Math.round(attrEff(HAUPT[myPos()]));
 let DU_OPP = null;
 function openDuel() {
-  const D = duState(), left = Math.max(0, D.next - Date.now()); if (!DU_OPP) DU_OPP = duOpps();
-  const me = posPower();
-  ddPop(`<h3>⚔️ Duell</h3><p class="dd-p">Fordere einen Spieler zum Elfmeter-Duell heraus. Sieg = Ruhm, die ersten 10 Siege am Tag geben XP. Alle 10 Minuten ein Duell.</p>
-    <div class="du-me">Dein Ruhm <b>${fmt(D.r)}</b> · Platz <b>${hofRank()}</b> · ${D.w} S / ${D.l} N · XP-Siege heute ${D.xw}/10</div>
-    <div class="du-list">${DU_OPP.map((b, i) => { const p = Math.round(me * b.f); return `<button type="button" class="du-opp" data-i="${i}"${left ? ' disabled' : ''}><b>${b.n}</b><span>Lv ${botLvl(b)} · ${b.pos} · Stärke ${fmt(p)}</span><em>${fmt(botRuhm(b))} Ruhm</em></button>`; }).join('')}</div>
-    <p class="dd-p" id="duRes">${left ? `Nächstes Duell in <b>${fmtHMS(left / 1000 * 3600000 / JOB_H)}</b>` + (S.tb >= 1 ? ' · <button type="button" class="du-skip" id="duSkip">Sofort · 1 ⚽</button>' : '') : 'Wähle deinen Gegner.'}</p>
+  const D = duState(), left = Math.max(0, D.next - Date.now()), done = D.n >= DU_MAX, K = DU_KIND[myPos()];
+  if (!DU_OPP) DU_OPP = duOpps();
+  const me = duMine(), off = left > 0 || done;
+  ddPop(`<h3>⚔️ Duell · ${K.t}</h3><p class="dd-p">Fordere einen Spieler deiner Position (${POSITIONS.find(p => p.id === myPos()).n}) heraus: je 10 Versuche, dein ${HAUPT[myPos()]} zählt. Bis zu 10 Duelle am Tag, alle 10 Minuten eins. Sieg = Ruhm, XP und Gold.</p>
+    <div class="du-me">Dein ${HAUPT[myPos()]} <b>${fmt(me)}</b> · Ruhm <b>${fmt(D.r)}</b> · Platz <b>${hofRank()}</b> · Heute <b>${D.n}/${DU_MAX}</b></div>
+    <div class="du-list">${DU_OPP.map((b, i) => `<button type="button" class="du-opp" data-i="${i}"${off ? ' disabled' : ''}><b>${b.n}</b><span>Lv ${botLvl(b)} · ${HAUPT[b.pos]} ${fmt(Math.round(me * b.f))}</span><em>${fmt(botRuhm(b))} Ruhm</em></button>`).join('')}</div>
+    <p class="dd-p" id="duRes">${done ? 'Für heute alle 10 Duelle gespielt. Morgen geht es weiter!' : left ? `Nächstes Duell in <b>${fmtHMS(left / 1000 * 3600000 / JOB_H)}</b>` : 'Wähle deinen Gegner.'}</p>
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" onclick="openHof()">Ruhmeshalle</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
   document.querySelectorAll('#ddPopIn .du-opp').forEach(b => b.onclick = () => duFight(DU_OPP[+b.dataset.i]));
-  const sk = document.getElementById('duSkip'); if (sk) sk.onclick = () => { if (S.tb < 1) return; S.tb--; D.next = 0; syncGlobal(); openDuel(); };
-  if (left) setTimeout(() => { if (!document.getElementById('ddPop').hidden && document.querySelector('#ddPopIn .du-list')) openDuel(); }, Math.min(left, 1000) + 50);
+  if (left && !done) setTimeout(() => { if (!document.getElementById('ddPop').hidden && document.querySelector('#ddPopIn .du-list') && !document.querySelector('#duRes b.du-r')) openDuel(); }, Math.min(left, 1000) + 50);
 }
 function duFight(b) {
-  const D = duState(); if (D.next > Date.now()) return;
-  const me = posPower(), op = me * b.f * (0.9 + Math.random() * .2), p = me * me / (me * me + op * op), win = Math.random() < p;
-  const wg = 3 + Math.floor(Math.random() * 3), lg = Math.floor(Math.random() * wg);
-  const dr = win ? Math.round(12 + 10 * (1 - p)) : -Math.round(4 + 8 * p);
-  D.r = Math.max(0, D.r + dr); D.next = Date.now() + duCd(); win ? D.w++ : D.l++;
-  let xp = 0; if (win && D.xw < 10) { D.xw++; xp = Math.round(xpNeed(S.level) * .002); const lv = S.level; S.xp += xp; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); }
+  const D = duState(); if (D.next > Date.now() || D.n >= DU_MAX) return;
+  const me = duMine(), op = me * b.f * (0.9 + Math.random() * .2), q = me / (me + op);
+  const pm = Math.min(.92, Math.max(.08, .3 + .8 * (q - .5) + .3)), po = Math.min(.92, Math.max(.08, .3 - .8 * (q - .5) + .3));
+  let a = 0, o = 0; for (let i = 0; i < 10; i++) { if (Math.random() < pm) a++; if (Math.random() < po) o++; }
+  let tie = ''; if (a === o) { while (true) { const x = Math.random() < pm, y = Math.random() < po; if (x !== y) { x ? a++ : o++; break; } } tie = ' nach Stechen'; }
+  const win = a > o, dr = win ? Math.round(12 + 10 * (1 - q)) : -Math.round(4 + 8 * q);
+  D.r = Math.max(0, D.r + dr); D.n++; D.next = Date.now() + duCd(); win ? D.w++ : D.l++;
+  let xp = 0, g = 0;
+  if (win) { xp = Math.max(5 * S.level, Math.round(xpNeed(S.level) * .002)); g = Math.max(1, Math.round(GU(S.level))); gold += g; const lv = S.level; S.xp += xp; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); }
   DU_OPP = null; syncGlobal(); openDuel();
-  document.getElementById('duRes').innerHTML = `${win ? '<b style="color:#8FD14F">SIEG!</b>' : '<b style="color:#FF7A6E">Niederlage.</b>'} ${win ? wg + ':' + lg : lg + ':' + wg} im Elfmeterschießen gegen ${b.n} · ${dr >= 0 ? '+' : ''}${dr} Ruhm${xp ? ` · +${fmtK(xp)} XP` : ''}`;
+  const K = DU_KIND[myPos()];
+  document.getElementById('duRes').innerHTML = `<b class="du-r" style="color:${win ? '#8FD14F' : '#FF7A6E'}">${win ? 'SIEG!' : 'Niederlage.'}</b> ${K.t} gegen ${b.n}: <b>${a}</b> zu <b>${o}</b> ${K.a}${tie}<br>${dr >= 0 ? '+' : ''}${dr} Ruhm${win ? ` · +${fmtK(xp)} XP · +${fmt(g)} Gold` : ''}`;
 }
 function openHof() {
   const D = duState(), me = { n: PLAYER ? PLAYER.name : 'Du', me: true, r: D.r, L: S.level, pos: myPos() };
@@ -5513,7 +5521,7 @@ function openAch() {
   const on = (id, f) => document.getElementById(id).onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; f(); };
   on('mnDuel', openDuel); on('mnHof', openHof); on('mnCup', openCup);
   const badge = (el, on2, txt) => { if (!el) return; let b = el.querySelector('.mn-badge'); if (on2 && !b) el.insertAdjacentHTML('beforeend', `<span class="mn-badge mn-badge-y">${txt || '!'}</span>`); else if (!on2 && b) b.remove(); };
-  syncGlobal = (orig => function () { orig(); try { if (!PLAYER) return; badge(document.getElementById('mnAch'), achAny()); badge(document.getElementById('mnDuel'), duState().next <= Date.now()); const C = CLUB && CLUB.liga ? cupState() : null; badge(document.getElementById('mnCup'), !!C && C.res.length > (C.seen || 0)); } catch (e) {} })(syncGlobal);
+  syncGlobal = (orig => function () { orig(); try { if (!PLAYER) return; badge(document.getElementById('mnAch'), achAny()); badge(document.getElementById('mnDuel'), duState().next <= Date.now() && duState().n < DU_MAX); const C = CLUB && CLUB.liga ? cupState() : null; badge(document.getElementById('mnCup'), !!C && C.res.length > (C.seen || 0)); } catch (e) {} })(syncGlobal);
   syncGlobal();
 })();
 </script>
