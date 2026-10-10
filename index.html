@@ -1725,7 +1725,7 @@ const phUri = (k, rar, alt) => { const [a, b] = RAR_DRAW[rar]; return 'data:imag
   ['ho', null, 'shorts', [['grau', 'jogging', 'Ausgebeulte Jogginghose'], ['grau', 'badehose', 'Omas Badehose'], ['selten', 'kurz', 'Klassische Kurze'], ['selten', 'retro', 'Retro-Shorts'], ['episch', 'ritter', 'Ritter-Hose'], ['episch', 'neon', 'Neon-Shorts'], ['legendaer', 'koenig', 'Königs-Hose'], ['legendaer', 'feuer', 'Flammen-Shorts']]]
 ].forEach(([cat, pos, shape, list]) => list.forEach(([rar, key, name], i) => {
   const id = `${cat}_${rar}_${String(i + 1).padStart(2, '0')}_${pos ? pos.toLowerCase() + '_' : ''}${key}`;
-  ITEMS_BASE[id] = { id, cat, rar, name, bonus: RAR_BONUS[rar] + (i % 3), img: phUri(shape, rar, i % 2 === 1), pos: pos || undefined };   // Vektor-Bilder liegen bereit (item_art.py), Nutzer will erst gemalte
+  ITEMS_BASE[id] = { id, cat, rar, name, bonus: RAR_BONUS[rar] + (i % 3), img: 'img/items/' + id + '.png', pos: pos || undefined };   // Bilder: tools/kit/item_art.py + render_items.py
 }));
 // ---- Item-Instanzen: "basis@Level~Werte" ----
 // Werte: "A12" = alle 6 Werte +12, sonst "Index:Wert.Index:Wert" (Index in ATTR_NAMES)
@@ -1810,7 +1810,7 @@ const KI_ITEMS = { ac: [['goldkette', 'Goldkette'], ['sonnenbrille', 'Sonnenbril
 const kiSvgUri = k => 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" stroke-linecap="round">${KI_SVG[k]}</svg>`);
 Object.entries(KI_ITEMS).forEach(([cat, list]) => list.forEach(([k, n], i) => Object.keys(RAR).forEach(rar => {
   const id = `${cat}_${rar}_k${i}_${k}`;
-  ITEMS[id] = { id, cat, rar, name: n, bonus: RAR_BONUS[rar] + (i % 3), img: kiSvgUri(k), kiosk: true };
+  ITEMS[id] = { id, cat, rar, name: n, bonus: RAR_BONUS[rar] + (i % 3), img: 'img/items/' + id + '.png', kiosk: true };
 })));
 const EMPTY_IC = '<svg viewBox="0 0 24 24" fill="none" stroke="#E8B23A" stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>';
 const SLOT_ORDER = { L: ['ko', 'ac', 'gl'], R: ['tr', 'sch', 'sc'] };
