@@ -1102,6 +1102,15 @@ button.mt-pl[disabled] { cursor: default; }
 .mt-go.meld { background: linear-gradient(#9BE36A, #5FB83A); }
 .mt-pl.off { opacity: .45; filter: grayscale(1); }
 .mt-off { color: #FF7A6E; font-style: normal; font-weight: 900; font-size: 10px; }
+#trVideo { display: none !important; }
+.wh-box { position: relative; width: 230px; height: 230px; margin: 4px auto 0; }
+.wh-svg { width: 100%; height: 100%; display: block; overflow: visible; }
+#whRot { transform-origin: 0 0; }
+.wh-res { text-align: center; min-height: 22px; margin: 6px 0 2px; font-size: 15px; }
+.wh-ad { position: absolute; inset: -6px; border-radius: 16px; background: #0B1622; color: #FFF6E3; border: 3px solid #2A1209; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; z-index: 2; }
+.wh-ad b { font-family: 'Luckiest Guy', 'Lilita One', sans-serif; font-size: 26px; letter-spacing: 1px; }
+.wh-ad span { font-size: 12px; opacity: .8; }
+.wh-ad em { font-style: normal; font-weight: 900; font-size: 30px; color: #FFC93C; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -2072,7 +2081,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -4134,7 +4143,7 @@ MAP.b.find(b => b.k === 'shop').go = () => openShop();
 
 // ================== SYSTEME (Fahrplan Phase 1) ==================
 // Neue Spielstand-Felder laden (die alte Lade-Routine kennt sie nicht)
-const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay'];
+const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel'];
 try { const sv = JSON.parse(localStorage.getItem('dd_state') || 'null'); if (sv) S_NEW.forEach(k => { if (k in sv) S[k] = sv[k]; }); } catch (e) {}
 if (S.tb == null) S.tb = 35;
 if (!S.car) S.car = { sp: 0, tore: 0, vorl: 0, ns: 0, nn: 0 };
@@ -5077,20 +5086,9 @@ regenTick = (orig => function () {
 regenTick();
 
 // ---------- 10. Okt. (Balancing nach Ligasimulation) ----------
-// (1) Werbevideos: jeden Tag wieder 3 (vorher nur 3× im ganzen Spiel – Bug)
-regenTick = (orig => function () {
-  let r = orig(); const k = kiDayKey() + '/' + (S.dbOff || 0);
-  if (!S.vidDay) S.vidDay = k; else if (S.vidDay !== k) { S.vidDay = k; S.videos = 3; r = true; }
-  return r;
-})(regenTick);
-regenTick();
-// (2) Aufholbonus: erst ab 10 % unter dem Vereinsschnitt, gestaffelt +10 … +30 % (vorher pauschal +50 %)
-catchUpPct = function () {
-  if (!CLUB || !CLUB.kader) return 0;
-  const h = CLUB.kader.filter(m => !m.bot && !m.me); if (!h.length) return 0;
-  const avg = h.reduce((a, m) => a + (m.lvl || 1), 0) / h.length, rel = (avg - S.level) / avg;
-  return rel <= .1 ? 0 : Math.min(30, Math.round(10 + (rel - .1) * 100));
-};
+// (1) Energie-Videos (+20 Energie) abgeschafft (Nutzer 10. Okt.) – Werbevideo gibt es nur noch am Glücksrad
+// (2) Aufholbonus abgeschafft (Nutzer 10. Okt.)
+catchUpPct = () => 0;
 // (3) Liga-Bonus: jede Liga höher +15 % auf Spiel-Gold und Spiel-XP (Pfützenliga ×1 … Traumliga ×2,05)
 const LIGA_STEP = .15;
 function ligaMul() { return 1 + LIGA_STEP * Math.max(0, MT_LEAGUES.indexOf(CLUB && CLUB.league || 'Pfützenliga')); }
@@ -5159,4 +5157,71 @@ syncGlobal = (orig => function () {
   try { const t = document.querySelector('.mn-tile[data-go="spieltag"]'); if (!t) return; const need = !!(CLUB && PLAYER && !S.tut && CLUB.liga && CLUB.liga.day < MT_DAYS && !mtMeld()); let b = t.querySelector('.mn-badge');
     if (need && !b) t.insertAdjacentHTML('beforeend', '<span class="mn-badge">!</span>'); else if (!need && b) b.remove(); } catch (e) {}
 })(syncGlobal);
+
+// ---------- Glücksrad (wie S&F): 1× gratis pro Tag, danach 2× mit Werbevideo ----------
+// S.wheel = { d: Tages-Schlüssel, n: heute schon gedreht }
+const WH_FREE = 1, WH_ADS = 2, WH_AD_SEC = 5;
+const whItem = rars => () => { const b = pick(Object.values(ITEMS_BASE).filter(it => rars.includes(it.rar) && it.cat !== 'gl' && (it.cat !== 'po' || it.pos === myPos()) && !it.kiosk)); if (!b) return; if (bagUsed() >= BAG_SIZE) { gold += Math.round(10 * GU(S.level)); return 'Tasche voll – stattdessen Gold'; } P.bag.push(itMake(b.id, S.level, myPos())); saveProfile(); renderProfile(); };
+const WH_SEG = [
+  { ic: '🪙', t: 'Gold', w: 24, col: '#FFC93C', v: () => Math.round(5 * GU(S.level)), f: v => { gold += v; } },
+  { ic: '🔷', t: 'XP', w: 18, col: '#5BB8FF', v: () => 100 * S.level, f: v => { const lv = S.level; S.xp += v; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); } },
+  { ic: '🎁', t: 'Item', w: 10, col: '#9CA2AA', v: () => 1, f: whItem(['grau', 'selten']) },
+  { ic: '⚽', t: 'Traumbälle', w: 12, col: '#E0489A', v: () => 2, f: v => { S.tb += v; } },
+  { ic: '🪙', t: 'Gold', w: 15, col: '#FFC93C', v: () => Math.round(12 * GU(S.level)), f: v => { gold += v; } },
+  { ic: '🧪', t: 'Trank', w: 12, col: '#8FD14F', v: () => 1, f: () => { if (bagUsed() >= BAG_SIZE) { gold += Math.round(6 * GU(S.level)); return 'Tasche voll – stattdessen Gold'; } potBagAdd(HAUPT[myPos()], 0); } },
+  { ic: '💰', t: 'Viel Gold', w: 6, col: '#FF7A2F', v: () => Math.round(30 * GU(S.level)), f: v => { gold += v; } },
+  { ic: '🟣', t: 'Lila-Item', w: 3, col: '#B07CFF', v: () => 1, f: whItem(['episch']) },
+];
+const whKey = () => kiDayKey() + '/' + (S.dbOff || 0);
+function whState() { if (!S.wheel || S.wheel.d !== whKey()) S.wheel = { d: whKey(), n: 0 }; return S.wheel; }
+const whFreeLeft = () => whState().n < WH_FREE;
+let whAng = 0, whBusy = false;
+function whSvg() {
+  const n = WH_SEG.length, R = 100, seg = 360 / n, rad = a => (a - 90) * Math.PI / 180;
+  return `<svg viewBox="-110 -110 220 220" class="wh-svg" aria-hidden="true"><g id="whRot" style="transform:rotate(${whAng}deg)">${WH_SEG.map((g, i) => {
+    const a0 = i * seg, a1 = a0 + seg, x0 = R * Math.cos(rad(a0)), y0 = R * Math.sin(rad(a0)), x1 = R * Math.cos(rad(a1)), y1 = R * Math.sin(rad(a1)), am = rad(a0 + seg / 2);
+    return `<path d="M0 0L${x0.toFixed(1)} ${y0.toFixed(1)}A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}z" fill="${g.col}" stroke="#2A1209" stroke-width="3"/><text x="${(66 * Math.cos(am)).toFixed(1)}" y="${(66 * Math.sin(am)).toFixed(1)}" font-size="26" text-anchor="middle" dominant-baseline="central">${g.ic}</text>`;
+  }).join('')}<circle r="18" fill="#FFF6E3" stroke="#2A1209" stroke-width="4"/></g><path d="M-12 -112L12 -112L0 -88z" fill="#D83A34" stroke="#2A1209" stroke-width="3" stroke-linejoin="round"/></svg>`;
+}
+function openWheel() {
+  const W = whState(), adsLeft = Math.max(0, WH_FREE + WH_ADS - W.n);
+  const btn = W.n < WH_FREE ? 'Gratis drehen' : adsLeft ? `📺 Video + Drehen (${adsLeft})` : 'Morgen wieder';
+  ddPop(`<h3>Glücksrad</h3><p class="dd-p">Jeden Tag 1× gratis drehen. Danach noch ${WH_ADS}× mit einem Werbevideo.</p>
+    <div class="wh-box">${whSvg()}</div><p class="wh-res" id="whRes">&nbsp;</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="whClose">Schließen</button><button type="button" class="sd-pb" id="whGo"${adsLeft ? '' : ' disabled'}>${btn}</button></div>`);
+  document.getElementById('whClose').onclick = () => { if (!whBusy) ddPopClose(); };
+  document.getElementById('whGo').onclick = () => { if (whBusy || !adsLeft) return; if (W.n < WH_FREE) whSpin(); else whAd(); };
+}
+function whAd() {   // Platzhalter: hier läuft später ein echtes Werbevideo
+  whBusy = true; let t = WH_AD_SEC;
+  const box = document.querySelector('#ddPopIn .wh-box'), res = document.getElementById('whRes');
+  const ov = document.createElement('div'); ov.className = 'wh-ad'; box.appendChild(ov);
+  const tick = () => { ov.innerHTML = `<b>📺 WERBUNG</b><span>Platzhalter für ein Werbevideo</span><em>${t}</em>`; if (t-- <= 0) { ov.remove(); whBusy = false; whSpin(); return; } setTimeout(tick, 1000); };
+  res.textContent = 'Video läuft …'; document.getElementById('whGo').disabled = true; tick();
+}
+function whSpin() {
+  const W = whState(); whBusy = true; W.n++; syncGlobal();
+  const tot = WH_SEG.reduce((a, g) => a + g.w, 0); let r = Math.random() * tot, k = 0;
+  for (; k < WH_SEG.length - 1; k++) { r -= WH_SEG[k].w; if (r <= 0) break; }
+  const seg = 360 / WH_SEG.length, target = 360 - (k * seg + seg / 2) + (Math.random() - .5) * seg * .6;
+  whAng = whAng - (whAng % 360) + 360 * 5 + target;
+  const g = document.getElementById('whRot'); g.style.transition = 'transform 3.2s cubic-bezier(.17,.67,.2,1)'; g.style.transform = `rotate(${whAng}deg)`;
+  document.getElementById('whRes').textContent = '…';
+  document.getElementById('whGo').disabled = true;
+  setTimeout(() => {
+    const G = WH_SEG[k], v = G.v(), note = G.f(v);
+    whBusy = false; syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs();
+    const val = G.t === 'XP' ? '+' + fmtK(v) + ' XP' : /Gold/.test(G.t) ? '+' + fmt(v) + ' Gold' : G.t === 'Traumbälle' ? '+' + v + ' Traumbälle' : G.t === 'Trank' ? 'Kleiner Trank (in der Tasche)' : G.t + ' (in der Tasche)';
+    openWheel(); document.getElementById('whRes').innerHTML = `${G.ic} <b>${note || val}</b>`;
+  }, 3300);
+}
+(() => {
+  const row = document.getElementById('mnQuests'); if (!row) return;
+  const wheelIc = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round"><circle cx="12" cy="13" r="8.5" fill="#FFC93C"/><path d="M12 13V4.5M12 13l7.4 4.2M12 13l-7.4 4.2" fill="none"/><path d="M12 13l7.4-4.2M12 13l-7.4-4.2M12 13v8.5" fill="none" stroke="#D83A34"/><circle cx="12" cy="13" r="2" fill="#FFF6E3"/><path d="M10 1.5h4L12 5z" fill="#D83A34"/></svg>';
+  row.insertAdjacentHTML('afterend', `<button type="button" class="mn-tile" id="mnWheel" aria-label="Glücksrad">${wheelIc}<span>Glücks­rad</span></button>`);
+  document.getElementById('mnWheel').onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; openWheel(); };
+  syncGlobal = (orig => function () { orig(); try { const t = document.getElementById('mnWheel'); if (!t || !PLAYER) return; const on = whFreeLeft(); let b = t.querySelector('.mn-badge');
+    if (on && !b) t.insertAdjacentHTML('beforeend', '<span class="mn-badge mn-badge-y">!</span>'); else if (!on && b) b.remove(); } catch (e) {} })(syncGlobal);
+  syncGlobal();
+})();
 </script>
