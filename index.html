@@ -1099,6 +1099,10 @@ button.mt-pl[disabled] { cursor: default; }
 #abList.work .ab-card { flex: 0 0 auto !important; height: auto !important; min-height: 0 !important; }
 #abList.work .ab-dur { margin-top: auto; }
 
+.mt-go.meld { background: linear-gradient(#9BE36A, #5FB83A); }
+.mt-pl.off { opacity: .45; filter: grayscale(1); }
+.mt-off { color: #FF7A6E; font-style: normal; font-weight: 900; font-size: 10px; }
+
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
 body { padding: 0 !important; gap: 0 !important; display: block !important; min-height: 0 !important; }
@@ -2068,7 +2072,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -2667,9 +2671,9 @@ const STAGES = [
   { n: 'Bolzplatz', at: 1 }, { n: 'Sportplatz', at: 4 }, { n: 'Stadion', at: 7 }, { n: 'Arena', at: 10 }
 ];
 const MAXLV = 10;
-const B_COST = { 2: 200, 3: 400, 4: 800, 5: 6000, 6: 70000, 7: 850000, 8: 1700000, 9: 2900000, 10: 4200000 };
-const bCost = l => B_COST[l] || 0;   // Simulation: 4 Spieler haben nach 1 Woche alles auf Stufe 4, 8 F2P-Spieler Stufe 10 nach ca. 1,5 Jahren
-const B_SEC = [0, 0, 300, 900, 2700, 10800, 28800, 57600, 86400, 129600, 172800];   // Zielstufe 2: 5 min, 3: 15 min, 4: 45 min, 5: 3 h, 6: 8 h, 7: 16 h, 8: 24 h, 9: 36 h, 10: 48 h
+const B_COST = { 2: 200, 3: 400, 4: 800, 5: 6000, 6: 200000, 7: 3000000, 8: 8000000, 9: 16000000, 10: 28000000 };
+const bCost = l => B_COST[l] || 0;   // Ligasimulation 10. Okt. (15 Spieler/Verein, Meldepflicht): nach 12 Monaten Ø Stufe ~8, Stufe 10 überall frühestens nach ~2 Jahren
+const B_SEC = [0, 0, 300, 900, 2700, 10800, 28800, 86400, 172800, 259200, 432000];   // Zielstufe 2: 5 min, 3: 15 min, 4: 45 min, 5: 3 h, 6: 8 h, 7: 1 Tag, 8: 2 Tage, 9: 3 Tage, 10: 5 Tage
 const bTime = l => Math.max(1, (B_SEC[l] || 0) * JOB_H / 3600000);   // Sekunden in der laufenden Version
 const fmtHMS = sec => { sec = Math.max(0, Math.round(sec)); const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60; return [h ? h + 'h' : '', m ? m + 'm' : '', s || (!h && !m) ? s + 's' : ''].filter(Boolean).join(' '); };
 const fmtLeft = sec => fmtHMS(sec * 3600000 / JOB_H);   // Sekunden im Klick-Test (später Stunden)
@@ -3399,8 +3403,8 @@ function mtPlayDay() {
   const won = res.g[0] > res.g[1], draw = res.g[0] === res.g[1];
   res.me.rate = +(+res.me.rate).toFixed(1);
   const mgr = CLUB.build ? CLUB.build.manager : 1, fans = (CLUB.build ? CLUB.build.tribuene : 1) * 10;
-  res.gold = Math.max(1, Math.round(((won ? 4 : draw ? 1.5 : .75) * (1 + mgr * .05) + (res.home ? fans / 50 : 0) + res.me.goals * .5) * GU(S.level) * (res.me.fac || 1)));
-  res.xp = Math.round(((won ? 60 : draw ? 30 : 15) + res.me.goals * 10 + res.me.assists * 5) * S.level * (res.me.fac || 1) * (res.me.motm ? 1.2 : 1) * (1 + catchUpPct() / 100));
+  res.gold = Math.round(mtRewF() * Math.max(1, Math.round(((won ? 4 : draw ? 1.5 : .75) * (1 + mgr * .05) + (res.home ? fans / 50 : 0) + res.me.goals * .5) * GU(S.level) * (res.me.fac || 1))));
+  res.xp = Math.round(mtRewF() * ((won ? 60 : draw ? 30 : 15) + res.me.goals * 10 + res.me.assists * 5) * S.level * (res.me.fac || 1) * (res.me.motm ? 1.2 : 1) * (1 + catchUpPct() / 100));
   res.kasse = Math.round(res.gold * .1); res.place = mtPlace(); res.won = won; res.draw = draw;
   gold += res.gold; S.xp += res.xp; CLUB.kasse = (CLUB.kasse || 0) + res.kasse;
   res.up = false; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; res.up = true; }
@@ -4130,7 +4134,7 @@ MAP.b.find(b => b.k === 'shop').go = () => openShop();
 
 // ================== SYSTEME (Fahrplan Phase 1) ==================
 // Neue Spielstand-Felder laden (die alte Lade-Routine kennt sie nicht)
-const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay'];
+const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay'];
 try { const sv = JSON.parse(localStorage.getItem('dd_state') || 'null'); if (sv) S_NEW.forEach(k => { if (k in sv) S[k] = sv[k]; }); } catch (e) {}
 if (S.tb == null) S.tb = 35;
 if (!S.car) S.car = { sp: 0, tore: 0, vorl: 0, ns: 0, nn: 0 };
@@ -5071,4 +5075,88 @@ regenTick = (orig => function () {
   return r;
 })(regenTick);
 regenTick();
+
+// ---------- 10. Okt. (Balancing nach Ligasimulation) ----------
+// (1) Werbevideos: jeden Tag wieder 3 (vorher nur 3× im ganzen Spiel – Bug)
+regenTick = (orig => function () {
+  let r = orig(); const k = kiDayKey() + '/' + (S.dbOff || 0);
+  if (!S.vidDay) S.vidDay = k; else if (S.vidDay !== k) { S.vidDay = k; S.videos = 3; r = true; }
+  return r;
+})(regenTick);
+regenTick();
+// (2) Aufholbonus: erst ab 10 % unter dem Vereinsschnitt, gestaffelt +10 … +30 % (vorher pauschal +50 %)
+catchUpPct = function () {
+  if (!CLUB || !CLUB.kader) return 0;
+  const h = CLUB.kader.filter(m => !m.bot && !m.me); if (!h.length) return 0;
+  const avg = h.reduce((a, m) => a + (m.lvl || 1), 0) / h.length, rel = (avg - S.level) / avg;
+  return rel <= .1 ? 0 : Math.min(30, Math.round(10 + (rel - .1) * 100));
+};
+// (3) Liga-Bonus: jede Liga höher +15 % auf Spiel-Gold und Spiel-XP (Pfützenliga ×1 … Traumliga ×2,05)
+const LIGA_STEP = .15;
+function ligaMul() { return 1 + LIGA_STEP * Math.max(0, MT_LEAGUES.indexOf(CLUB && CLUB.league || 'Pfützenliga')); }
+// (4) Zum Spiel melden: nur wer sich für die nächste Anstoßzeit gemeldet hat, spielt mit und bekommt Belohnung.
+//     S.meld = Zeitstempel der Anstoßzeit, für die man gemeldet ist (gilt für genau ein Spiel).
+let MT_SLOT = null, MT_OFF = false;
+const mtNextT = () => mtSlotTimes(Date.now(), Date.now() + 2 * 86400000)[0];
+const mtMeld = () => !!S.meld && S.meld === mtNextT();
+function mtRewF() { return MT_OFF ? 0 : ligaMul(); }
+mtCatchUp = function () {
+  const L = CLUB.liga, slots = mtSlotTimes(L.start, Date.now()), target = Math.min(MT_DAYS, slots.length + (L.extra || 0));
+  const done = [];
+  while (L.day < target) { MT_SLOT = slots[L.day - (L.extra || 0)] || -1; done.push(mtPlayDay()); }
+  MT_SLOT = null;
+  if (done.length) { L.unseen = (L.unseen || []).concat(done.map(r => ({ day: r.day, opp: r.opp, home: r.home, g: r.g, gold: r.gold, xp: r.xp, off: r.off }))).slice(-6); saveClub(); syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs(); }
+  return done.length;
+};
+mtPlayDay = (orig => function () {
+  MT_OFF = !(S.meld && S.meld === MT_SLOT);
+  if (!MT_OFF) S.meld = 0;
+  const r = orig(); r.off = MT_OFF; MT_OFF = false; syncGlobal(); return r;
+})(mtPlayDay);
+// Nicht gemeldet: ein Bot spielt für dich (keine Werte von dir, keine Statistik)
+squadUs = (orig => function () {
+  const sq = orig(); if (!MT_OFF) return sq;
+  sq.on.concat(sq.bench).forEach(p => { if (p.me) { p.me = false; p.name = 'Ersatz-Bot'; p.str = 0.85 * typStr(clubAvgLvl()); p.sta = 10 + 2 * clubAvgLvl(); p.ins = 10 + 1.5 * clubAvgLvl(); } });
+  return sq;
+})(squadUs);
+// Testknopf „JETZT": zählt als die nächste Anstoßzeit
+document.getElementById('mtTest').onclick = () => {
+  if (CLUB.liga.day >= MT_DAYS) return; CLUB.liga.extra = (CLUB.liga.extra || 0) + 1;
+  MT_SLOT = mtNextT(); const r = mtPlayDay(); MT_SLOT = null;
+  saveClub(); syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs(); mtWatch(r, true);
+};
+mtRenderPre = (orig => function () {
+  orig();
+  const L = CLUB.liga; if (L.day >= MT_DAYS) return;
+  const go = document.getElementById('mtGo'), n = mtNextSlot(), ok = mtMeld();
+  go.disabled = false; go.classList.toggle('meld', ok);
+  go.querySelector('span').textContent = ok ? '✔ GEMELDET' : 'ZUM SPIEL MELDEN';
+  document.getElementById('mtCost').textContent = ok ? `Anstoß ${n.label} · in ${n.left}` : `${n.label} · ohne Meldung keine Belohnung`;
+  document.querySelectorAll('#mtBox .mt-pl.me').forEach(e => e.classList.toggle('off', !ok));
+})(mtRenderPre);
+document.getElementById('mtGo').onclick = () => {
+  if (CLUB.liga.day >= MT_DAYS) { mtNewSeason(); return; }
+  if (mtMeld()) return;
+  S.meld = mtNextT(); syncGlobal(); mtRenderPre();
+  const t = document.getElementById('mtCost'); if (t) t.textContent = 'Gemeldet! Du spielst ' + mtNextSlot().label + ' mit.';
+};
+mtAwayPopup = (orig => function () {
+  const U = (CLUB.liga.unseen || []).slice(); orig();
+  const rows = document.querySelectorAll('#mtPopIn .mt-away > div');
+  U.forEach((r, i) => { if (r.off && rows[i]) rows[i].querySelector('span').insertAdjacentHTML('beforeend', ' <i class="mt-off">nicht gemeldet</i>'); });
+  if (U.some(r => r.off)) document.querySelector('#mtPopIn p').insertAdjacentHTML('beforeend', '<br><small>Ohne Meldung hat ein Bot für dich gespielt (keine Belohnung).</small>');
+})(mtAwayPopup);
+mtEnd = (orig => function () {
+  orig();
+  const r = MT.res, n = document.querySelector('#mtPopIn .note'); if (!n || r.friendly) return;
+  if (r.off) n.insertAdjacentHTML('afterbegin', '<b style="color:#FF7A6E">Nicht gemeldet: ein Bot hat für dich gespielt, keine Belohnung.</b><br>');
+  if (r.off) { const d = document.querySelector('#mtPopIn .mt-rate div'), em = document.querySelector('#mtPopIn .mt-rate em'); if (d) d.innerHTML = `<b>${PLAYER ? PLAYER.name : 'Du'}</b><br>Nicht gemeldet`; if (em) em.textContent = '–'; }
+  else if (ligaMul() > 1) n.insertAdjacentHTML('beforeend', ` · Liga-Bonus +${Math.round((ligaMul() - 1) * 100)} %`);
+})(mtEnd);
+// Menü: „!" am Liga-Büro, solange man fürs nächste Spiel nicht gemeldet ist
+syncGlobal = (orig => function () {
+  orig();
+  try { const t = document.querySelector('.mn-tile[data-go="spieltag"]'); if (!t) return; const need = !!(CLUB && PLAYER && !S.tut && CLUB.liga && CLUB.liga.day < MT_DAYS && !mtMeld()); let b = t.querySelector('.mn-badge');
+    if (need && !b) t.insertAdjacentHTML('beforeend', '<span class="mn-badge">!</span>'); else if (!need && b) b.remove(); } catch (e) {}
+})(syncGlobal);
 </script>
