@@ -1080,6 +1080,24 @@ button.mt-pl[disabled] { cursor: default; }
 .sh-sell-grid button { position: relative; aspect-ratio: 1; border-radius: 10px; border: 2px solid #2A1209; background: #E9DFC6; padding: 2px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; }
 .sh-sell-grid img { width: 80%; height: 64%; object-fit: contain; }
 .sh-sell-grid small { font-size: 10px; font-weight: 900; color: #2A1209; line-height: 1; }
+.sb-panel { position: absolute; left: 6px; right: 6px; bottom: 6px; z-index: 5; background: var(--t2); border: 3px solid #2A1209; border-radius: 16px; padding: 8px; box-shadow: 0 -4px 16px rgba(0,0,0,.45); touch-action: none; }
+.sb-panel[hidden], .sb-ghost[hidden] { display: none !important; }
+.sb-head { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.sb-head b { font-family: 'Lilita One', sans-serif; font-size: 16px; color: var(--acc); letter-spacing: .5px; }
+.sb-head small { flex: 1; font-size: 10px; color: var(--pale); line-height: 1.15; }
+.sb-x { width: 28px; height: 28px; border-radius: 8px; border: 2px solid #2A1209; background: #FFC93C; font-weight: 900; cursor: pointer; }
+.sb-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; }
+.sb-cell { position: relative; aspect-ratio: 1; border-radius: 10px; border: 2px solid #2A1209; background: #E9DFC6; padding: 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: grab; touch-action: none; }
+.sb-cell.free { background: rgba(255,255,255,.08); border-color: rgba(0,0,0,.35); cursor: default; }
+.sb-cell img { width: 78%; height: 62%; object-fit: contain; pointer-events: none; }
+.sb-cell .rar { position: absolute; left: 4px; top: 4px; width: 7px; height: 7px; border-radius: 50%; border: 1px solid #2A1209; }
+.sb-cell small { font-size: 10px; font-weight: 900; color: #2A1209; line-height: 1; }
+.sb-ghost { position: absolute; z-index: 9; width: 64px; height: 64px; object-fit: contain; transform: translate(-50%, -60%); pointer-events: none; filter: drop-shadow(0 4px 6px rgba(0,0,0,.5)); }
+#ddPopIn .ki-dimg { display: block; width: 110px; height: 110px; object-fit: contain; margin: 0 auto 4px; }
+#ddPopIn h3 { text-align: center; }
+#abList.work { display: flex !important; flex-direction: column; justify-content: flex-start !important; gap: 8px; }
+#abList.work .ab-card { flex: 0 0 auto !important; height: auto !important; min-height: 0 !important; }
+#abList.work .ab-dur { margin-top: auto; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -1837,8 +1855,8 @@ function renderProfile(flashIdx) {
     h += `<button type="button" class="pr-cell" data-bag="${i}" aria-label="${it.name}"><img src="${it.img}" alt=""><span class="rar" style="background:${RAR[it.rar][1]}"></span>${(typeof itemUp === 'function' ? itemUp(id) : it.bonus > cur) ? '<span class="up">▲</span>' : ''}</button>`;
   }
   g.innerHTML = h;
-  document.getElementById('prBagCount').textContent = P.bag.length + '/' + BAG_SIZE;
-  document.getElementById('prBagCap').textContent = P.bag.length + ' / ' + BAG_SIZE + ' Plätze';
+  document.getElementById('prBagCount').textContent = bagUsed() + '/' + BAG_SIZE;
+  document.getElementById('prBagCap').textContent = bagUsed() + ' / ' + BAG_SIZE + ' Plätze';
   document.getElementById('prItemCount').textContent = P.bag.length + Object.values(P.equip).filter(Boolean).length;
   renderAttrs(flashIdx);
 }
@@ -1891,7 +1909,7 @@ document.getElementById('popAct').onclick = () => {
     const id = P.bag[c.i], it = ITEMS[id], old = P.equip[it.cat];
     P.equip[it.cat] = id; P.bag.splice(c.i, 1); if (old) P.bag.splice(c.i, 0, old);
   } else {
-    if (P.bag.length >= BAG_SIZE) return;
+    if (bagUsed() >= BAG_SIZE) return;
     P.bag.push(P.equip[c.cat]); P.equip[c.cat] = null;
   }
   document.getElementById('prPop').hidden = true;
@@ -2050,7 +2068,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -2649,7 +2667,7 @@ const STAGES = [
   { n: 'Bolzplatz', at: 1 }, { n: 'Sportplatz', at: 4 }, { n: 'Stadion', at: 7 }, { n: 'Arena', at: 10 }
 ];
 const MAXLV = 10;
-const B_COST = { 2: 200, 3: 400, 4: 800, 5: 19000, 6: 230000, 7: 850000, 8: 1700000, 9: 2900000, 10: 4200000 };
+const B_COST = { 2: 200, 3: 400, 4: 800, 5: 6000, 6: 70000, 7: 850000, 8: 1700000, 9: 2900000, 10: 4200000 };
 const bCost = l => B_COST[l] || 0;   // Simulation: 4 Spieler haben nach 1 Woche alles auf Stufe 4, 8 F2P-Spieler Stufe 10 nach ca. 1,5 Jahren
 const B_SEC = [0, 0, 300, 900, 2700, 10800, 28800, 57600, 86400, 129600, 172800];   // Zielstufe 2: 5 min, 3: 15 min, 4: 45 min, 5: 3 h, 6: 8 h, 7: 16 h, 8: 24 h, 9: 36 h, 10: 48 h
 const bTime = l => Math.max(1, (B_SEC[l] || 0) * JOB_H / 3600000);   // Sekunden in der laufenden Version
@@ -3611,7 +3629,7 @@ function openKiosk() {
 document.getElementById('kiGrid').addEventListener('click', e => {
   const c = e.target.closest('.ki-card'); if (!c || c.disabled) return;
   const w = KI.stock[+c.dataset.i], f = kiInfo(w), poor = gold < f.price;
-  const full = w.type === 'item' && P.bag.length >= BAG_SIZE;
+  const full = w.type === 'item' && bagUsed() >= BAG_SIZE;
   document.getElementById('kiPopIn').innerHTML = `<img class="ki-dimg" src="${f.img}" alt=""><h3 style="color:${RAR[f.rar][1]}">${f.name}</h3>
     <div class="rar" style="color:${RAR[f.rar][1]}">${RAR[f.rar][0].toUpperCase()} · ${f.sub.toUpperCase()}</div>
     <div class="eff">${f.eff}</div><div class="price">${fmt(f.price)} Gold</div>
@@ -3621,10 +3639,10 @@ document.getElementById('kiGrid').addEventListener('click', e => {
   const b = document.getElementById('kiBuy');
   if (b) b.onclick = () => {
     if (gold < f.price) { kiSay('poor'); return; }
-    if (w.t === 'trank' && !potCanAdd(w.a)) { kiSayText('Alle 3 Trank-Plätze sind voll. Warte, bis einer abläuft.'); return; }
+    if (w.t === 'trank' && bagUsed() >= BAG_SIZE) { kiSayText('Deine Sporttasche ist voll.'); return; }
     if (w.type === 'cons' && w.t !== 'trank' && kiDrinksToday() >= KI_DRINK_MAX) { kiSayText('Stopp! ' + KI_DRINK_MAX + ' Drinks am Tag reichen. Sonst platzt du.'); return; }
     gold -= f.price;
-    if (w.t === 'trank') potAdd(w.a, POT_SIZES[w.size].pct);
+    if (w.t === 'trank') potBagAdd(w.a, w.size);
     else if (w.type === 'cons') {
       const v = KI_SIZES[w.size].v[w.t]; kiDrinkAdd();
       if (w.t === 'shake') S.en = Math.min(100, S.en + v);
@@ -3735,8 +3753,8 @@ function abRender() {
       <div class="ab-txt"><b>${o.n}</b><span>${o.d}</span><em>${fmt(abGoldH(o))} Gold pro Stunde</em></div><span class="chk">${i === abSel ? '✓' : ''}</span></div>`).join('') +
       `<div class="ab-dur"><div class="ab-dur-t"><span>DAUER <b id="abH">${abHours} h</b></span><em id="abG">+${fmt(abGoldH(j) * abHours)} Gold</em></div>
       <input type="range" id="abRange" min="1" max="10" step="1" value="${abHours}" aria-label="Dauer in Stunden">
-      <div class="ab-dur-go"><small>${abHours >= 7 ? '🌙 Perfekt als Nachtschicht: morgens volle Taschen.' : 'Energie und Form laden während der Arbeit ganz normal nach.'}</small><button type="button" class="sd-pb" id="abGo"${busy ? ' disabled' : ''}>Los geht's</button></div></div>`;
-    document.getElementById('abRange').oninput = e => { abHours = +e.target.value; document.getElementById('abH').textContent = abHours + ' h'; document.getElementById('abG').textContent = '+' + fmt(abGoldH(AB_OFFERS[abSel]) * abHours) + ' Gold'; e.target.closest('.ab-dur').querySelector('small').textContent = abHours >= 7 ? '🌙 Perfekt als Nachtschicht: morgens volle Taschen.' : 'Energie und Form laden während der Arbeit ganz normal nach.'; };
+      <div class="ab-dur-go"><small>${abHours >= 7 ? '🌙 Perfekt als Nachtschicht: morgens volle Taschen.' : 'Form erholt sich während der Arbeit. Energie gibt es um 0 Uhr neu.'}</small><button type="button" class="sd-pb" id="abGo"${busy ? ' disabled' : ''}>Los geht's</button></div></div>`;
+    document.getElementById('abRange').oninput = e => { abHours = +e.target.value; document.getElementById('abH').textContent = abHours + ' h'; document.getElementById('abG').textContent = '+' + fmt(abGoldH(AB_OFFERS[abSel]) * abHours) + ' Gold'; e.target.closest('.ab-dur').querySelector('small').textContent = abHours >= 7 ? '🌙 Perfekt als Nachtschicht: morgens volle Taschen.' : 'Form erholt sich während der Arbeit. Energie gibt es um 0 Uhr neu.'; };
     document.getElementById('abGo').onclick = () => { const o = AB_OFFERS[abSel]; abStart({ kind: 'work', n: o.n, ic: o.ic, c: o.c, h: abHours, gold: abGoldH(o) * abHours }); };
   } else {
     L.className = 'ab-list';
@@ -3760,7 +3778,7 @@ function abBars() {
   if (!el) { const box = document.querySelector('#arbeit .ab-en'); box.innerHTML = '<div class="ab-bars" id="abBars"></div><small id="abRegen"></small>'; el = document.getElementById('abBars'); }
   el.innerHTML = `<div class="ab-bar en"><i style="width:${S.en}%"></i><span>⚡ ${S.en}${S.reserve ? ' +' + S.reserve : ''}</span></div><div class="ab-bar fo"><i style="width:${S.form}%"></i><span>💪 Form ${S.form} %</span></div>`;
   const J = S.job, k = J && J.until > Date.now() ? J.kind : '';
-  document.getElementById('abRegen').textContent = k === 'spa' ? 'Wellness: Form 4× schneller.' : k === 'hotel' ? 'Schläft… morgens ist die Form voll.' : 'Energie voll in ca. 10 h, Form in ca. 6 h.';
+  document.getElementById('abRegen').textContent = k === 'spa' ? 'Wellness: Form 4× schneller.' : k === 'hotel' ? 'Schläft… morgens ist die Form voll.' : 'Energie: um 0 Uhr wieder voll. Form in ca. 6 h.';
 }
 function abShowRun() {
   const r = document.getElementById('abRun'), J = S.job;
@@ -4080,7 +4098,7 @@ function openShop() {
 document.getElementById('shGrid').addEventListener('click', e => {
   const c = e.target.closest('.ki-card'); if (!c || c.disabled) return;
   document.getElementById('shTip').hidden = true;
-  const w = SHOP.stock[+c.dataset.i], f = kiInfo(w), cm = kiCmp(w), poor = gold < f.price, full = P.bag.length >= BAG_SIZE;
+  const w = SHOP.stock[+c.dataset.i], f = kiInfo(w), cm = kiCmp(w), poor = gold < f.price, full = bagUsed() >= BAG_SIZE;
   document.getElementById('shPopIn').innerHTML = `<img class="ki-dimg" src="${f.img}" alt=""><h3 style="color:${RAR[f.rar][1]}">${f.name}</h3>
     <div class="rar" style="color:${RAR[f.rar][1]}">${RAR[f.rar][0].toUpperCase()} · ${f.sub.toUpperCase()}</div>
     <div class="eff">${f.eff}</div>${kiCmpHTML(w)}<div class="price">${fmt(f.price)} Gold</div>
@@ -4112,7 +4130,7 @@ MAP.b.find(b => b.k === 'shop').go = () => openShop();
 
 // ================== SYSTEME (Fahrplan Phase 1) ==================
 // Neue Spielstand-Felder laden (die alte Lade-Routine kennt sie nicht)
-const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift'];
+const S_NEW = ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay'];
 try { const sv = JSON.parse(localStorage.getItem('dd_state') || 'null'); if (sv) S_NEW.forEach(k => { if (k in sv) S[k] = sv[k]; }); } catch (e) {}
 if (S.tb == null) S.tb = 35;
 if (!S.car) S.car = { sp: 0, tore: 0, vorl: 0, ns: 0, nn: 0 };
@@ -4390,7 +4408,7 @@ syncGlobal = (orig => function () {
   orig();
   document.querySelectorAll('.g-en').forEach(e => e.textContent = fmtEn(S.en));
   document.querySelectorAll('.g-tb').forEach(e => e.textContent = fmt(S.tb || 0));
-  if (S.en < 20 && !S.jobHint && PLAYER && !S.tut) { S.jobHint = 1; const t = document.getElementById('hubToast'); if (t) { t.textContent = 'Energie leer? Sie lädt von selbst nach. Schick deinen Spieler solange zum Nebenjob, die Energie lädt dabei weiter.'; t.hidden = false; setTimeout(() => t.hidden = true, 3500); } }
+  if (S.en < 20 && !S.jobHint && PLAYER && !S.tut) { S.jobHint = 1; const t = document.getElementById('hubToast'); if (t) { t.textContent = 'Energie fast leer? Um 0 Uhr ist sie wieder voll. Bis dahin: Nebenjob für Gold.'; t.hidden = false; setTimeout(() => t.hidden = true, 3500); } }
 })(syncGlobal);
 
 // ---------- Verein: 16 Spieler (11 + 5 Bank), Ränge ----------
@@ -4671,12 +4689,12 @@ kiRoll = (orig => function () {
 kiInfo = (orig => function (w) {
   if (w.type !== 'cons' || w.t !== 'trank') return orig(w);
   const sz = POT_SIZES[w.size];
-  return { name: POT_NAME[w.a], sub: sz.n, rar: sz.rar, img: potUri(w.a, w.size), price: Math.max(3, Math.round(sz.h * GU(S.level))), eff: `<b>+${sz.pct} % ${w.a}</b>, <b>3 Tage</b> lang`, tag: 'TRANK' };
+  return { name: POT_NAME[w.a], sub: sz.n, rar: sz.rar, img: potUri(w.a, w.size), price: Math.max(3, Math.round(sz.h * GU(S.level))), eff: `<b>+${sz.pct} % ${w.a}</b>, <b>3 Tage</b> ab dem Trinken`, tag: 'TRANK' };
 })(kiInfo);
 kiCmpHTML = (orig => function (w) {
   if (w.type !== 'cons' || w.t !== 'trank') return orig(w);
   const L = potList(), cur = L.find(p => p.a === w.a);
-  return `<p class="ki-diff">${cur ? `Aktiv: +${cur.pct} % ${w.a}. Der stärkere Wert zählt, die 3 Tage starten neu.` : ''}</p>
+  return `<p class="ki-diff">Landet in deiner Sporttasche – trinken, wann du willst.${cur ? ` Aktiv: +${cur.pct} % ${w.a}.` : ''}</p>
     <p class="ki-diff ${potCanAdd(w.a) ? '' : 'dn'}">Tränke aktiv: ${L.length} / ${POT_MAX}${potCanAdd(w.a) ? '' : ' · alle Plätze belegt'}</p>`;
 })(kiCmpHTML);
 kiRender = (orig => function () {
@@ -4686,7 +4704,7 @@ kiRender = (orig => function () {
 })(kiRender);
 document.getElementById('kiGrid').addEventListener('click', e => {
   const c = e.target.closest('.ki-card'); if (!c || c.disabled) return;
-  setTimeout(() => { const w = KI.stock[+c.dataset.i], b = document.getElementById('kiBuy'); if (w && w.t === 'trank' && b && !potCanAdd(w.a)) { b.disabled = true; b.textContent = 'Plätze voll'; } }, 0);
+  setTimeout(() => { const w = KI.stock[+c.dataset.i], b = document.getElementById('kiBuy'); if (w && w.t === 'trank' && b && bagUsed() >= BAG_SIZE) { b.disabled = true; b.textContent = 'Tasche voll'; } }, 0);
 });
 
 // ---------- Tagesbonus: 20 Belohnungen in 30 Tagen ----------
@@ -4697,7 +4715,7 @@ const dbGold = k => ({ t: 'Gold', v: () => Math.round(k * GU(S.level)), f: v => 
 const dbShake = { t: 'Kraft-Shake', v: () => 30, f: v => S.en = Math.min(100, S.en + v), ic: '🥤', s: v => '+' + v };
 const dbXp = k => ({ t: 'XP', v: () => k * 100 * S.level, f: v => { const lv = S.level; S.xp += v; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); }, ic: '🔷', s: v => '+' + fmtK(v) });
 const dbTb = k => ({ t: 'Traumbälle', v: () => k, f: v => S.tb += v, ic: '⚽', s: v => '+' + v });
-const dbPot = sz => ({ t: POT_SIZES[sz].n + '-Trank', v: () => POT_SIZES[sz].pct, f: v => potAdd(HAUPT[myPos()], v, true), ic: '🧪', s: v => '+' + v + ' %' });
+const dbPot = sz => ({ t: POT_SIZES[sz].n + '-Trank', v: () => POT_SIZES[sz].pct, f: v => potBagAdd(HAUPT[myPos()], sz), ic: '🧪', s: v => '+' + v + ' %' });
 const dbItem = rar => ({ t: rar === 'legendaer' ? 'Gold-Item' : 'Lila-Item', v: () => 1, f: () => { const b = pick(Object.values(ITEMS_BASE).filter(it => it.rar === rar && it.cat !== 'gl' && (it.cat !== 'po' || it.pos === myPos()) && !it.kiosk)); if (b) { P.bag.push(itMake(b.id, S.level, myPos())); saveProfile(); renderProfile(); } }, ic: '🎁', s: () => rar === 'legendaer' ? '★' : '1×' });
 const DB_REW = [dbGold(6), dbShake, dbGold(9), dbXp(1), dbPot(0), dbGold(12), dbTb(5), dbXp(2), dbGold(15), dbItem('episch'),
   dbGold(18), dbShake, dbXp(3), dbPot(1), dbTb(10), dbGold(24), dbXp(4), dbPot(2), dbGold(30), dbItem('legendaer')];
@@ -4940,36 +4958,6 @@ mapTint = function () {
   TINT_CACHE[key].then(u => { if ((mapNight() ? 'img/map/night.jpg' : 'img/map/day.jpg') === src) img.src = u; });
 };
 
-// ---------- 9. Okt.: Items aus der Sporttasche im Sportladen verkaufen (50 % vom Ladenpreis) ----------
-const sellPrice = id => Math.max(1, Math.floor(kiInfo({ type: 'item', id }).price / 2));
-(() => {
-  const box = document.querySelector('#shop .ki'); if (!box) return;
-  box.insertAdjacentHTML('beforeend', '<button type="button" class="sh-sell" id="shSell">💰 VERKAUFEN</button>');
-  const pop = document.getElementById('shPop'), inn = document.getElementById('shPopIn');
-  const list = () => {
-    const bag = P.bag.map((id, i) => ({ id, i })).filter(x => ITEMS[x.id]);
-    inn.innerHTML = `<h3>Verkaufen</h3><p class="sh-sell-p">Items aus deiner Sporttasche. Du bekommst die <b>Hälfte</b> vom Ladenpreis.</p>
-      ${bag.length ? `<div class="sh-sell-grid">${bag.map(x => { const it = ITEMS[x.id]; return `<button type="button" data-sell="${x.i}" aria-label="${it.name} verkaufen"><img src="${it.img}" alt=""><small>${fmt(sellPrice(x.id))}</small></button>`; }).join('')}</div>` : '<p class="sh-sell-p"><b>Deine Sporttasche ist leer.</b> Angezogene Sachen kannst du nicht verkaufen.</p>'}
-      <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Fertig</button></div>`;
-    inn.querySelectorAll('[data-sell]').forEach(b => b.onclick = () => ask(+b.dataset.sell));
-  };
-  const ask = i => {
-    const id = P.bag[i], it = ITEMS[id]; if (!it) return list();
-    const f = kiInfo({ type: 'item', id }), pr = sellPrice(id);
-    inn.innerHTML = `<img class="ki-dimg" src="${it.img}" alt=""><h3 style="color:${RAR[f.rar][1]}">${it.name}</h3>
-      <div class="rar" style="color:${RAR[f.rar][1]}">${RAR[f.rar][0].toUpperCase()} · ${f.sub.toUpperCase()}</div>
-      <div class="eff">${f.eff}</div><div class="price">${fmt(pr)} Gold</div><p class="sh-sell-p">Ladenpreis ${fmt(f.price)} Gold – du bekommst die Hälfte.</p>
-      <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="shSellBack">Zurück</button><button type="button" class="sd-pb" id="shSellOk">Verkaufen</button></div>`;
-    document.getElementById('shSellBack').onclick = list;
-    document.getElementById('shSellOk').onclick = () => {
-      if (P.bag[i] !== id) return list();
-      P.bag.splice(i, 1); gold += pr; saveProfile(); if (typeof renderProfile === 'function') renderProfile(); syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs();
-      shRender(); shSay('buy'); list();
-    };
-  };
-  document.getElementById('shSell').onclick = () => { document.getElementById('shTip').hidden = true; list(); pop.hidden = false; };
-})();
-
 // ---------- 9. Okt.: Menü-Zeile „Täglich" – Tagesbonus-Kalender und Aufgaben selbst öffnen ----------
 (() => {
   const grid = document.querySelector('#menu .mn-grid'); if (!grid) return;
@@ -4989,4 +4977,98 @@ S.reserve = 0;
 enRefill = function () {};
 regenTick = (orig => function () { const r = orig(); S.reserve = 0; if (S.en > 100) S.en = 100; return r; })(regenTick);
 syncGlobal = (orig => function () { S.reserve = 0; orig(); document.querySelectorAll('.g-res').forEach(e => e.textContent = ''); })(syncGlobal);
+
+// ================== 10. Okt. ==================
+// ---------- Tränke in der Sporttasche: kaufen/geschenkt → Tasche, selbst trinken (dann starten die 3 Tage) ----------
+function potBag() { try { if (!KI.potBag) KI.potBag = []; return KI.potBag; } catch (e) { return []; } }   // KI existiert beim allerersten renderProfile noch nicht
+function bagUsed() { return P.bag.length + potBag().length; }
+function potBagAdd(a, size) { if (bagUsed() >= BAG_SIZE) return false; potBag().push({ a, size }); kiSave(); if (typeof renderProfile === 'function') renderProfile(); return true; }
+const potInfo = p => kiInfo({ type: 'cons', t: 'trank', a: p.a, size: p.size });
+function potDrinkPop(j) {
+  const p = potBag()[j]; if (!p) return;
+  const f = potInfo(p), L = potList(), ok = potCanAdd(p.a), cur = L.find(x => x.a === p.a);
+  ddPop(`<img class="ki-dimg" src="${f.img}" alt=""><h3 style="color:${RAR[f.rar][1]}">${f.name}</h3>
+    <div class="rar" style="color:${RAR[f.rar][1]};text-align:center;font-weight:900;font-size:12px">${RAR[f.rar][0].toUpperCase()} · ${f.sub.toUpperCase()}</div>
+    <p class="dd-p"><b>+${POT_SIZES[p.size].pct} % ${p.a}</b> für <b>3 Tage</b>, ab jetzt.</p>
+    <p class="dd-p">Tränke aktiv: ${L.length} / ${POT_MAX}${cur ? ` · ${p.a} läuft schon mit +${cur.pct} % (der stärkere zählt, Zeit startet neu)` : ''}${ok ? '' : '<br><b style="color:#FF9A8A">Alle 3 Plätze belegt – warte, bis einer abläuft.</b>'}</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Zurück</button><button type="button" class="sd-pb" id="potDrink"${ok ? '' : ' disabled'}>Trinken</button></div>`);
+  const d = document.getElementById('potDrink');
+  if (d) d.onclick = () => { if (!potCanAdd(p.a)) return; potAdd(p.a, POT_SIZES[p.size].pct); potBag().splice(j, 1); kiSave(); ddPopClose(); renderProfile(); if (typeof renderAttrs === 'function') renderAttrs(); syncGlobal(); };
+}
+renderProfile = (orig => function (...a) {
+  orig(...a);
+  const g = document.getElementById('prGrid'); if (!g) return;
+  const free = [...g.querySelectorAll('.pr-cell.free')];
+  potBag().forEach((p, j) => { const c = free[j]; if (!c) return; const f = potInfo(p);
+    c.outerHTML = `<button type="button" class="pr-cell" data-pot="${j}" aria-label="${f.name}"><img src="${f.img}" alt=""><span class="rar" style="background:${RAR[f.rar][1]}"></span></button>`; });
+})(renderProfile);
+document.getElementById('prGrid').addEventListener('click', e => { const c = e.target.closest('[data-pot]'); if (!c) return; e.stopImmediatePropagation(); potDrinkPop(+c.dataset.pot); }, true);
+
+// ---------- Rucksack in Kiosk UND Sportladen: antippen = verkaufen (mit Nachfrage), auf den Verkäufer ziehen = sofort verkaufen ----------
+const sellPrice = id => Math.max(1, Math.floor(kiInfo({ type: 'item', id }).price / 2));
+const potSellPrice = p => Math.max(1, Math.floor(potInfo(p).price / 2));
+function shopBag(cfg) {
+  const box = document.querySelector(cfg.box); if (!box) return;
+  box.insertAdjacentHTML('beforeend', `<button type="button" class="sh-sell" id="${cfg.id}Btn">🎒 RUCKSACK</button><div class="sb-panel" id="${cfg.id}Panel" hidden></div><img class="sb-ghost" id="${cfg.id}Ghost" alt="" hidden>`);
+  const panel = document.getElementById(cfg.id + 'Panel'), ghost = document.getElementById(cfg.id + 'Ghost');
+  const say = txt => { const el = document.getElementById(cfg.say); if (!el) return; el.textContent = txt; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, 3500); };
+  const entries = () => [...P.bag.map((id, i) => ITEMS[id] ? { k: 'it', i, img: ITEMS[id].img, rar: ITEMS[id].rar, name: ITEMS[id].name, pr: sellPrice(id) } : null).filter(Boolean),
+    ...potBag().map((p, i) => { const f = potInfo(p); return { k: 'pot', i, img: f.img, rar: f.rar, name: f.name, pr: potSellPrice(p) }; })];
+  const doSell = e => {
+    if (e.k === 'it') P.bag.splice(e.i, 1); else potBag().splice(e.i, 1);
+    gold += e.pr; saveProfile(); kiSave(); if (typeof renderProfile === 'function') renderProfile(); syncGlobal(); if (typeof renderAttrs === 'function') renderAttrs();
+    say(pick(['Gekauft! Hier, ' + fmt(e.pr) + ' Gold.', 'Nehm ich. ' + fmt(e.pr) + ' Gold für dich.', 'Deal! +' + fmt(e.pr) + ' Gold.'])); cfg.render(); draw();
+  };
+  const ask = e => {
+    const pop = document.getElementById(cfg.pop), inn = document.getElementById(cfg.popIn);
+    inn.innerHTML = `<img class="ki-dimg" src="${e.img}" alt=""><h3 style="color:${RAR[e.rar][1]}">${e.name}</h3>
+      <div class="price">${fmt(e.pr)} Gold</div><p class="sh-sell-p">Du bekommst die Hälfte vom Ladenpreis.</p>
+      <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Zurück</button><button type="button" class="sd-pb" id="${cfg.id}Ok">Verkaufen</button></div>`;
+    pop.hidden = false;
+    document.getElementById(cfg.id + 'Ok').onclick = () => { pop.hidden = true; doSell(e); };
+  };
+  function draw() {
+    const E = entries();
+    panel.innerHTML = `<div class="sb-head"><b>🎒 RUCKSACK</b><small>${bagUsed()} / ${BAG_SIZE} · antippen oder auf den Verkäufer ziehen</small><button type="button" class="sb-x" aria-label="Rucksack schließen">✕</button></div>
+      <div class="sb-grid">${Array.from({ length: BAG_SIZE }, (_, n) => { const e = E[n]; return e ? `<button type="button" class="sb-cell" data-n="${n}" aria-label="${e.name} verkaufen"><img src="${e.img}" alt="" draggable="false"><span class="rar" style="background:${RAR[e.rar][1]}"></span><small>${fmt(e.pr)}</small></button>` : '<div class="sb-cell free"></div>'; }).join('')}</div>`;
+    panel.querySelector('.sb-x').onclick = () => panel.hidden = true;
+  }
+  document.getElementById(cfg.id + 'Btn').onclick = () => { draw(); panel.hidden = !panel.hidden; };
+  // Ziehen: Pointer-Events, Koordinaten im (skalierten) Laden-Rahmen
+  let drag = null;
+  panel.addEventListener('pointerdown', ev => {
+    const c = ev.target.closest('.sb-cell[data-n]'); if (!c) return;
+    drag = { n: +c.dataset.n, x: ev.clientX, y: ev.clientY, moved: false, img: c.querySelector('img').src }; c.setPointerCapture && c.setPointerCapture(ev.pointerId);
+  });
+  const pos = ev => { const r = box.getBoundingClientRect(), k = r.width / box.offsetWidth; return [(ev.clientX - r.left) / k, (ev.clientY - r.top) / k]; };
+  panel.addEventListener('pointermove', ev => {
+    if (!drag) return;
+    if (!drag.moved && Math.hypot(ev.clientX - drag.x, ev.clientY - drag.y) > 8) { drag.moved = true; ghost.src = drag.img; ghost.hidden = false; }
+    if (drag.moved) { const [x, y] = pos(ev); ghost.style.left = x + 'px'; ghost.style.top = y + 'px'; ev.preventDefault(); }
+  });
+  const end = ev => {
+    if (!drag) return; const d = drag; drag = null; ghost.hidden = true;
+    const e = entries()[d.n]; if (!e) return;
+    if (!d.moved) { ask(e); return; }
+    const [, y] = pos(ev), top = panel.offsetTop;
+    if (y < top - 10) doSell(e);   // über dem Rucksack losgelassen = beim Verkäufer
+  };
+  panel.addEventListener('pointerup', end); panel.addEventListener('pointercancel', () => { drag = null; ghost.hidden = true; });
+}
+shopBag({ box: '#shop .ki', id: 'shBag', pop: 'shPop', popIn: 'shPopIn', say: 'shSay', render: () => shRender() });
+shopBag({ box: '#kiosk .ki', id: 'kiBag', pop: 'kiPop', popIn: 'kiPopIn', say: 'kiSay', render: () => kiRender() });
+
+// ---------- Nebenjob: immer derselbe Job (gleicher Lohn), nur der Titel wechselt; Regler startet bei 1 h ----------
+abRoll = function () { const j = pick(AB_JOBS); AB_OFFERS = [{ ...j, g: 1 }]; abSel = 0; };
+openArbeit = (orig => function (tab) { abHours = 1; abRoll(); return orig(tab); })(openArbeit);
+
+// ---------- Energie: keine Regeneration mehr, Reset auf 100 um 0 Uhr (Form erholt sich weiter) ----------
+regenTick = (orig => function () {
+  const e = S.en; let r = orig(); if (S.en > e) S.en = e; S.enAcc = 0;
+  const d = kiDayKey();
+  if (!S.enDay) S.enDay = d;
+  else if (S.enDay !== d) { S.enDay = d; S.en = 100; r = true; }
+  return r;
+})(regenTick);
+regenTick();
 </script>
