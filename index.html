@@ -1156,6 +1156,8 @@ button.mt-pl[disabled] { cursor: default; }
 .ac-row.open { box-shadow: inset 0 0 0 2px #FFC93C; }
 .ac-get { border: 3px solid #2A1209; border-radius: 10px; background: #FFC93C; font: inherit; font-weight: 900; font-size: 12px; padding: 3px 7px; cursor: pointer; }
 .wh-ad em { font-style: normal; font-weight: 900; font-size: 30px; color: #FFC93C; }
+.emo { height: 1.2em; width: auto; vertical-align: -0.25em; display: inline-block; margin: 0 1px; }
+.tr-pic svg { width: 54px !important; height: 54px !important; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -5611,4 +5613,50 @@ function openAch() {
 
 // ---------- 12. Okt.: Kiosk-Drinks komplett raus (keine Platzhalter mehr) ----------
 (() => { let ch = false; (KI.stock || []).forEach((w, i) => { if (w.type === 'cons' && w.t !== 'trank') { KI.stock[i] = potRollWare(); ch = true; } }); KI.boosts = {}; if (ch) kiSave(); })();
+
+// ---------- 12. Okt.: Gemalte Icons statt Platzhalter-SVGs/Emojis (img/icons/*.png) ----------
+// SVG-Elemente bleiben (Größe/CSS unverändert), nur ihr Inhalt wird durch ein <image> ersetzt.
+const ICP = n => 'img/icons/' + n + '.png';
+Object.keys(TR_ICON).forEach(k => { TR_ICON[k] = `<svg viewBox="0 0 24 24"><image href="${ICP('tr_' + k)}" x="0" y="0" width="24" height="24"/></svg>`; });
+try { renderOffers(); } catch (e) {}
+const IC_MENU = { 'Profil': 'ic_profil', 'Aussehen': 'ic_aussehen', 'Erfolge': 'ic_erfolge', 'Trainingsplatz': 'ic_training', 'Stadion': 'ic_stadion', 'Liga-Büro': 'ic_liga',
+  'Vereinsheim': 'ic_vereinsheim', 'Nebenjob': 'ic_nebenjob', 'Wellness': 'ic_wellness', 'Kiosk': 'ic_kiosk', 'Sportladen': 'ic_sportladen', 'Traumbälle': 'ic_tb',
+  'Tagesbonus': 'ic_tagesbonus', 'Aufgaben': 'ic_aufgaben', 'Glücksrad': 'ic_gluecksrad', 'Duell': 'ic_duell', 'Ruhmeshalle': 'ic_ruhmeshalle', 'Pokal': 'ic_pokal',
+  'Team-Chat': 'ic_chat', 'Post': 'ic_post', 'Einstellungen': 'ic_einstellungen' };
+const IC_FOOT = { 'Training': 'ic_training', 'Profil': 'ic_trikot', 'Spielerprofil': 'ic_trikot', 'Sportladen': 'ic_schuh', 'Team-Chat': 'ic_chat', 'Stadion': 'ic_stadion', 'Sporttasche öffnen': 'ic_tasche' };
+const IC_CAT = { 'Spieler': 'ic_trikot', 'Sport': 'ic_training', 'Verein': 'ic_vereinsheim', 'Shops': 'ic_sportladen', 'Täglich': 'ic_tagesbonus', 'Arena': 'ic_duell' };
+const IC_SIG = [['rx="9" ry="4"', 'ic_gold'], ['M6 3h12l4 6', 'ic_tb'], ['M12 7.2l3 2.2', 'ic_tb'], ['M13 2L4 14h7', 'ic_energie']];
+const IC_EMO = { '🪙': 'ic_gold', '💪': 'ic_form', '⚡': 'ic_energie', '⚽': 'ic_tb', '🎁': 'ic_tagesbonus', '💰': 'ic_geldsack', '🔨': 'ic_schmied', '🎒': 'ic_tasche',
+  '🏆': 'ic_pokal', '📺': 'ic_werbung', '🔄': 'ic_wuerfel', '🎡': 'ic_gluecksrad', '🏛': 'ic_ruhmeshalle', '⚔': 'ic_duell', '💼': 'ic_nebenjob', '🏨': 'ic_hotel',
+  '💤': 'ic_schlafen', '🥇': 'ic_erfolge', '🏟': 'ic_stadion', '📋': 'ic_aufgaben', '👟': 'ic_schuh' };
+const IC_RE = new RegExp('(' + Object.keys(IC_EMO).join('|') + ')️?', 'g');
+function icSet(sv, n) { sv.setAttribute('viewBox', '0 0 24 24'); sv.innerHTML = `<image href="${ICP(n)}" x="0" y="0" width="24" height="24"/>`; sv.dataset.ic = n; }
+function icSvg(sv) {
+  if (sv.dataset.ic || sv.querySelector('image') || sv.closest('.dd-anim, .cr-arrow, .vr-arrow, .tr-x, .mn-round, .tr-nav-menu, .tut-ic')) return;
+  sv.dataset.ic = '-';
+  const host = sv.closest('[aria-label], .mn-cat'), lbl = host && (host.getAttribute('aria-label') || '').trim();
+  let n = null;
+  if (host && host.classList.contains('mn-cat')) n = IC_CAT[host.textContent.trim()];
+  else if (host && host.matches('.mn-tile')) n = IC_MENU[lbl];
+  else if (host && lbl) n = IC_FOOT[lbl];
+  if (!n) { const h = sv.innerHTML; const s = IC_SIG.find(([k]) => h.includes(k)); if (s) n = s[1]; }
+  if (n) icSet(sv, n);
+}
+function icText(t) {
+  const p = t.parentElement; if (!p || p.closest('svg, script, style, textarea, input, option, .du-ball, .emo-off')) return;
+  const v = t.nodeValue; IC_RE.lastIndex = 0; if (!IC_RE.test(v)) return;
+  const f = document.createDocumentFragment(); let last = 0; IC_RE.lastIndex = 0; let m;
+  while ((m = IC_RE.exec(v))) { if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
+    const im = document.createElement('img'); im.className = 'emo'; im.alt = m[1]; im.src = ICP(IC_EMO[m[1]]); f.appendChild(im); last = m.index + m[0].length; }
+  if (last < v.length) f.appendChild(document.createTextNode(v.slice(last)));
+  t.replaceWith(f);
+}
+function icScan(root) {
+  if (root.nodeType === 3) { icText(root); return; }
+  if (root.nodeType !== 1) return;
+  if (root.tagName === 'svg' || root.tagName === 'SVG') icSvg(root); else root.querySelectorAll('svg').forEach(icSvg);
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), ts = []; let t; while ((t = w.nextNode())) ts.push(t); ts.forEach(icText);
+}
+icScan(document.body);
+new MutationObserver(rs => rs.forEach(r => r.addedNodes.forEach(icScan))).observe(document.body, { childList: true, subtree: true });
 </script>
