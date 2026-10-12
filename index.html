@@ -1140,7 +1140,7 @@ button.mt-pl[disabled] { cursor: default; }
 .du-goal { position: absolute; left: 50%; top: 14px; width: 190px; height: 74px; transform: translateX(-50%); border: 5px solid #FFF6E3; border-bottom: none; border-radius: 4px 4px 0 0; }
 .du-net { position: absolute; inset: 0; background: repeating-linear-gradient(45deg, rgba(255,255,255,.28) 0 2px, transparent 2px 9px), repeating-linear-gradient(-45deg, rgba(255,255,255,.28) 0 2px, transparent 2px 9px); }
 .du-pitch::after { content: ''; position: absolute; left: 50%; top: 88px; width: 250px; height: 2px; transform: translateX(-50%); background: rgba(255,255,255,.7); }
-.du-keeper { position: absolute; left: 50%; top: 32px; width: 56px; transform: translateX(-50%); transform-origin: 50% 90%; z-index: 2; }
+.du-keeper { position: absolute; left: 50%; top: 22px; width: 72px; transform: translateX(-50%); transform-origin: 50% 90%; z-index: 2; }
 .du-spot { position: absolute; left: 50%; top: 158px; width: 8px; height: 5px; border-radius: 50%; background: rgba(255,255,255,.8); transform: translateX(-50%); }
 .du-ball { position: absolute; left: 50%; top: 142px; font-size: 22px; line-height: 1; transform: translateX(-50%); z-index: 5; }
 .du-run { position: absolute; left: 50%; top: 160px; width: 62px; height: 62px; border-radius: 50%; border: 3px solid #2A1209; background: #9CA2AA; object-fit: cover; transform: translate(calc(-50% - 60px), 10px); z-index: 4; }
@@ -5508,10 +5508,7 @@ function duFight(b) {
   duAnim(b, shots, { a, o, win, dr, xp, g });
 }
 // ---- Animation: Spieler-Kopf läuft an, Ball fliegt aufs Tor, NPC-Torwart hechtet ----
-const DU_KEEPER = 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 90"><g stroke="#2A1209" stroke-width="3" stroke-linejoin="round">
-  <path d="M10 44l12-6M70 44l-12-6" fill="none" stroke-width="7" stroke-linecap="round"/><circle cx="9" cy="45" r="7" fill="#8FD14F"/><circle cx="71" cy="45" r="7" fill="#8FD14F"/>
-  <path d="M22 34h36l4 30H18z" fill="#FFC93C"/><path d="M24 64h14v18H24zM42 64h14v18H42z" fill="#2A1209"/>
-  <circle cx="40" cy="20" r="14" fill="#F4A878"/><path d="M26 18c2-12 26-12 28 0-6-4-22-4-28 0z" fill="#5E3421"/><circle cx="35" cy="21" r="2" fill="#2A1209" stroke="none"/><circle cx="45" cy="21" r="2" fill="#2A1209" stroke="none"/><path d="M35 28c3 2 7 2 10 0" fill="none" stroke-width="2"/></g></svg>`);
+const DU_KEEPER = 'img/duel_keeper.png';   // NPC-Torwart (Gemini, bilder_kit 07)
 let DU_SKIP = false;
 function duAnim(b, shots, R) {
   DU_SKIP = false;
