@@ -3653,8 +3653,8 @@ function kiInfo(w) {
   return { name: it.name, sub: cat.name, rar: it.rar, img: it.img, price: KI_PRICE[it.rar], eff: cat.attr === 'Alle' ? `<b>+${Math.round(it.bonus / 3)}</b> auf alle Attribute` : `<b>+${it.bonus}</b> ${cat.attr}`, tag: it.cat === 'ac' ? 'ACCESSOIRE' : 'GLÜCK' };
 }
 const KI_LINES = {
-  day: ['Na, Lust auf Gains? Turbo-Drink macht Beine!', 'Frisch vom Grill und frisch aus dem Kühlschrank!', 'Kauf was, sonst flex ich dich an!', 'Echte Champions trinken Mega-Kanister.', 'Goldkette? Steht dir. Fast so gut wie mir.'],
-  night: ['Hmpf… eigentlich hab ich schon zu…', 'Nimm, was du willst… ich schlaf gleich…', 'Gääähn… Turbo-Drink hätt ich jetzt selber nötig.', 'Grill ist aus… Kühlschrank geht noch…'],
+  day: ['Na, Lust auf Gains? Whey macht Beine!', 'Frisch vom Grill und frisch aus dem Kühlschrank!', 'Kauf was, sonst flex ich dich an!', 'Echte Champions trinken Energy im Sixpack.', 'Goldkette? Steht dir. Fast so gut wie mir.'],
+  night: ['Hmpf… eigentlich hab ich schon zu…', 'Nimm, was du willst… ich schlaf gleich…', 'Gääähn… ein Energy hätt ich jetzt selber nötig.', 'Grill ist aus… Kühlschrank geht noch…'],
   buy: ['Starke Wahl! Zeig’s den anderen!', 'Damit wirst du zum Tier!', 'Gönn dir! Und gleich noch einen?'],
   buyNight: ['…danke… zzz…', '…gute Wahl… jetzt lass mich pennen…'],
   poor: ['Zu wenig Gold, Kollege. Erst trainieren!', 'Ohne Moos nix los!']
@@ -3744,7 +3744,7 @@ kiRender = function () {
 function kiCmpHTML(w) {
   const c = kiCmp(w); if (!c) {
     const cur = w.t !== 'shake' && w.t !== 'kaffee' ? kiActive(w.t) : 0;
-    const lim = `<p class="ki-diff ${kiDrinksToday() >= KI_DRINK_MAX ? 'dn' : ''}">Drinks heute: ${kiDrinksToday()} / ${KI_DRINK_MAX}</p>`;
+    const lim = '';
     if (!cur) return lim;
     return `<p class="ki-diff">Aktiv: +${cur} %. Der stärkere Wert zählt, die Zeit startet neu.</p>` + lim;
   }
@@ -4373,7 +4373,7 @@ shMe = function () {
 openKiosk = (orig => function () {
   if (KI.stock.some(w => w.type === 'item' && !itIsNew(w.id))) kiRoll();
   orig();
-  if (!S.seen.kiosk) { S.seen.kiosk = 1; syncGlobal(); setTimeout(() => kiSayText('Drinks wirken sofort oder 24 Stunden. Max. 3 am Tag! Accessoires und Glücksbringer machen dich stärker.'), 300); }
+  if (!S.seen.kiosk) { S.seen.kiosk = 1; syncGlobal(); setTimeout(() => kiSayText('Tränke pushen einen Wert für 3 Tage. Accessoires und Glücksbringer machen dich stärker.'), 300); }
 })(openKiosk);
 kiSay = (orig => function (k) { orig(k); if (k === 'buy') qInc('buy'); })(kiSay);
 shSay = (orig => function (k) { orig(k); if (k === 'buy') qInc('buy'); })(shSay);
@@ -4740,10 +4740,11 @@ function potAdd(a, pct, force) {
 }
 const potUri = (a, sz) => 'img/items/pot_' + ({ Schuss: 'schuss', Technik: 'technik', Zweikampf: 'zweikampf', Reflexe: 'reflexe', Ausdauer: 'ausdauer', Instinkt: 'instinkt' }[a] || 'schuss') + '_' + (sz || 0) + '.png';
 const potLeft = p => { const h = Math.max(1, Math.round((p.until - Date.now()) / 3600000)); return h >= 24 ? Math.round(h / 24) + ' T' : h + ' h'; };
+function potRollWare() { const r = Math.random(), a = Math.random() < .6 ? pick(classMains()) : pick(ATTR_NAMES); return { type: 'cons', t: 'trank', a, size: r < .5 ? 0 : r < .85 ? 1 : 2 }; }
 kiRoll = (orig => function () {
   orig();
-  const ci = KI.stock.map((w, i) => w.type === 'cons' ? i : -1).filter(i => i >= 0).pop();
-  if (ci != null) { const r = Math.random(), a = Math.random() < .6 ? pick(classMains()) : pick(ATTR_NAMES); KI.stock[ci] = { type: 'cons', t: 'trank', a, size: r < .5 ? 0 : r < .85 ? 1 : 2 }; }
+  // 12. Okt.: Drinks (Turbo, Shake, Gummis, Kaffee) abgeschafft – beide Getränke-Plätze sind jetzt Tränke
+  KI.stock.forEach((w, i) => { if (w.type === 'cons') KI.stock[i] = potRollWare(); });
   kiSave();
 })(kiRoll);
 kiInfo = (orig => function (w) {
@@ -4777,8 +4778,8 @@ const dbXp = k => ({ t: 'XP', v: () => k * 100 * S.level, f: v => { const lv = S
 const dbTb = k => ({ t: 'Traumbälle', v: () => k, f: v => S.tb += v, ic: '⚽', s: v => '+' + v });
 const dbPot = sz => ({ t: POT_SIZES[sz].n + '-Trank', v: () => POT_SIZES[sz].pct, f: v => potBagAdd(HAUPT[myPos()], sz), ic: '🧪', s: v => '+' + v + ' %' });
 const dbItem = rar => ({ t: rar === 'legendaer' ? 'Gold-Item' : 'Lila-Item', v: () => 1, f: () => { const b = pick(Object.values(ITEMS_BASE).filter(it => it.rar === rar && it.cat !== 'gl' && (it.cat !== 'po' || it.pos === myPos()) && !it.kiosk)); if (b) { P.bag.push(itMake(b.id, S.level, myPos())); saveProfile(); renderProfile(); } }, ic: '🎁', s: () => rar === 'legendaer' ? '★' : '1×' });
-const DB_REW = [dbGold(6), dbShake, dbGold(9), dbXp(1), dbPot(0), dbGold(12), dbTb(5), dbXp(2), dbGold(15), dbItem('episch'),
-  dbGold(18), dbShake, dbXp(3), dbPot(1), dbTb(10), dbGold(24), dbXp(4), dbPot(2), dbGold(30), dbItem('legendaer')];
+const DB_REW = [dbGold(6), dbTb(2), dbGold(9), dbXp(1), dbPot(0), dbGold(12), dbTb(5), dbXp(2), dbGold(15), dbItem('episch'),
+  dbGold(18), dbTb(2), dbXp(3), dbPot(1), dbTb(10), dbGold(24), dbXp(4), dbPot(2), dbGold(30), dbItem('legendaer')];
 function dbState() {
   const today = dayNum(); let D = S.daily;
   if (!D || D.start == null) D = { start: today, n: 0, last: -1 };
@@ -5607,4 +5608,7 @@ function openAch() {
   syncGlobal = (orig => function () { orig(); try { if (!PLAYER) return; badge(document.getElementById('mnAch'), achAny()); badge(document.getElementById('mnDuel'), duState().next <= Date.now() && duState().n < DU_MAX); const C = CLUB && CLUB.liga ? cupState() : null; badge(document.getElementById('mnCup'), !!C && C.res.length > (C.seen || 0)); } catch (e) {} })(syncGlobal);
   syncGlobal();
 })();
+
+// ---------- 12. Okt.: Kiosk-Drinks komplett raus (keine Platzhalter mehr) ----------
+(() => { let ch = false; (KI.stock || []).forEach((w, i) => { if (w.type === 'cons' && w.t !== 'trank') { KI.stock[i] = potRollWare(); ch = true; } }); KI.boosts = {}; if (ch) kiSave(); })();
 </script>
