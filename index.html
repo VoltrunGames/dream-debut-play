@@ -5711,7 +5711,7 @@ startTraining = (orig => function (i) {
   const bg = document.getElementById('trsBg');
   let im = bg.querySelector('img'); if (!im) { im = document.createElement('img'); im.alt = ''; bg.appendChild(im); }
   const fit = () => { const dx = Math.max(0, im.offsetWidth - bg.clientWidth); im.style.setProperty('--dx', -dx + 'px'); im.style.animation = 'none'; void im.offsetWidth; im.style.animation = ''; };
-  im.onload = fit; im.onerror = () => { if (!/platz\.jpg$/.test(im.src)) im.src = 'img/train/platz.jpg'; };
+  im.onload = fit; im.onerror = () => { if (!/map\/day\.jpg$/.test(im.src)) im.src = 'img/map/day.jpg'; };
   const src = `img/train/${TR_SCENE[o.n] || o.ic}.jpg`;
   if (im.getAttribute('src') !== src) im.src = src; else fit();
   document.getElementById('trsSub').innerHTML = `+${o.st} ${o.attr} · +${fmt(o.xp)} XP`;
