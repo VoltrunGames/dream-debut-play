@@ -5707,7 +5707,7 @@ startTraining = (orig => function (i) {
   if (!o || S.en >= en0) return;
   TR_CUR = { o, en: en0 - S.en, f: Math.max(0, f0 - S.form) };
   const bg = document.getElementById('trsBg');
-  bg.style.backgroundImage = `url(img/train/${TR_SCENE[o.n] || o.ic}.jpg), url(img/map/day.jpg)`;
+  bg.style.backgroundImage = `url(img/train/${TR_SCENE[o.n] || o.ic}.jpg), url(img/train/platz.jpg)`;
   bg.style.animation = 'none'; void bg.offsetWidth; bg.style.animation = '';
   document.getElementById('trsSub').innerHTML = `+${o.st} ${o.attr} · +${fmt(o.xp)} XP`;
   const c = document.getElementById('trCancel'); c.textContent = 'ABBRECHEN'; c.dataset.sure = '';
