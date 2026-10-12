@@ -5698,12 +5698,16 @@ new MutationObserver(rs => rs.forEach(r => r.addedNodes.forEach(icScan))).observ
     <div class="trs-bar"><div id="trRunBar"></div><span id="trRunTime">0:00</span></div><div class="trs-hint">${hint}</div></div>`;
 })();
 let TR_CUR = null;
+const TR_SCENE = { 'Erstes Training mit dem Trainer': 'erstes_training', 'Sprint-Duell gegen den Hund': 'sprint_hund', 'Torwand mit Opa Willi': 'torwand_opa',
+  'Platzrunden im Regen': 'platzrunden_regen', 'Kopfball am Kirschbaum': 'kopfball_kirschbaum', 'Slalom durch Hütchen': 'slalom_huetchen',
+  'Doppelpass mit der Wand': 'doppelpass_wand', 'Aufwärmen mit den Cheerleadern': 'aufwaermen_cheerleader', 'Elfmeter gegen den Zeugwart': 'elfmeter_zeugwart',
+  'Bälle aus dem Teich holen': 'baelle_teich', 'Hechtsprünge im Matsch': 'hechtsprung_matsch' };
 startTraining = (orig => function (i) {
   const o = offers[i], en0 = S.en, f0 = S.form; orig(i);
   if (!o || S.en >= en0) return;
   TR_CUR = { o, en: en0 - S.en, f: Math.max(0, f0 - S.form) };
   const bg = document.getElementById('trsBg');
-  bg.style.backgroundImage = `url(img/train/${o.ic}.jpg), url(img/map/day.jpg)`;
+  bg.style.backgroundImage = `url(img/train/${TR_SCENE[o.n] || o.ic}.jpg), url(img/map/day.jpg)`;
   bg.style.animation = 'none'; void bg.offsetWidth; bg.style.animation = '';
   document.getElementById('trsSub').innerHTML = `+${o.st} ${o.attr} · +${fmt(o.xp)} XP`;
   const c = document.getElementById('trCancel'); c.textContent = 'ABBRECHEN'; c.dataset.sure = '';
