@@ -1158,6 +1158,32 @@ button.mt-pl[disabled] { cursor: default; }
 .wh-ad em { font-style: normal; font-weight: 900; font-size: 30px; color: #FFC93C; }
 .emo { height: 1.2em; width: auto; vertical-align: -0.25em; display: inline-block; margin: 0 1px; }
 .tr-pic svg { width: 54px !important; height: 54px !important; }
+#trRun.trs { padding: 0 !important; display: block !important; background: #2A1209 !important; overflow: hidden; }
+#trRun.trs[hidden] { display: none !important; }
+.trs-bg { position: absolute; inset: 0; background-repeat: no-repeat; background-size: auto 100%; background-position: 0% 50%; animation: trsPan 40s ease-in-out infinite alternate; }
+@keyframes trsPan { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+.trs-top { position: absolute; left: 0; right: 0; top: 0; padding: 14px 12px 26px; text-align: center; background: linear-gradient(rgba(20,8,4,.75), rgba(20,8,4,0)); }
+.trs-t { font-family: 'Luckiest Guy', 'Lilita One', sans-serif; font-size: 26px; color: #FFC93C; text-shadow: 0 3px 0 #2A1209, 0 0 8px rgba(0,0,0,.5); line-height: 1.05; }
+.trs-sub { font-weight: 900; font-size: 14px; color: #fff; text-shadow: 0 2px 0 #2A1209; margin-top: 4px; }
+.trs-bot { position: absolute; left: 0; right: 0; bottom: 0; padding: 30px 10px 10px; background: linear-gradient(rgba(20,8,4,0), rgba(20,8,4,.8)); display: flex; flex-direction: column; gap: 8px; }
+.trs-btns { display: grid; grid-template-columns: 1fr 1.3fr; gap: 8px; }
+.trs-b { height: 48px; border-radius: 12px; border: 3px solid #2A1209; background: var(--t4); box-shadow: inset 0 0 0 2px var(--acc), 0 3px 0 #2A1209; color: #FFC93C; font-family: 'Lilita One', sans-serif; font-size: 17px; letter-spacing: .5px; white-space: nowrap; display: flex; align-items: center; justify-content: center; gap: 5px; cursor: pointer; }
+.trs-b.gold { font-size: 15px; }
+.trs-b.gold { background: #FFC93C; color: #2A1209; box-shadow: inset 0 0 0 2px #FFE58A, 0 3px 0 #2A1209; }
+.trs-b:disabled { opacity: .5; }
+.trs-b svg { width: 22px; height: 22px; }
+.trs-bar { position: relative; height: 34px; border: 3px solid #2A1209; border-radius: 10px; background: #3B2414; overflow: hidden; box-shadow: 0 3px 0 #2A1209; }
+.trs-bar div { position: absolute; left: 0; top: 0; bottom: 0; width: 0; background: #8FD14F; box-shadow: inset 0 3px 0 #C8F28A; }
+.trs-bar span { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-family: 'Luckiest Guy', 'Lilita One', sans-serif; font-size: 20px; color: #fff; text-shadow: 0 2px 0 #2A1209; font-variant-numeric: tabular-nums; }
+.trs-hint { text-align: center; font-weight: 700; font-size: 11px; color: #F6E7C8; text-shadow: 0 1px 0 #2A1209; }
+#trRun.trs .tr-run-ic { display: none !important; }
+#phone.on-menu .g-foot .ft-n { display: none !important; }
+#phone:not(.on-menu) .g-foot .ft-m { display: none !important; }
+.ft-rank { flex-direction: column; gap: 0; overflow: hidden; }
+.ft-rank img { width: 40px; height: 40px; object-fit: cover; object-position: top; border-radius: 6px; }
+.ft-rank b { position: absolute; bottom: 1px; left: 0; right: 0; text-align: center; font-size: 11px; font-weight: 900; color: #fff; text-shadow: 0 1px 0 #2A1209, 0 0 3px #2A1209; }
+.ft-time { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 10px; font-weight: 900; color: #fff; text-shadow: 0 1px 0 #2A1209, 0 0 3px #2A1209; pointer-events: none; }
+.mn-q { font-family: 'Lilita One', sans-serif; font-size: 34px; color: #8FD14F; text-shadow: 0 3px 0 #2A1209; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -5659,4 +5685,71 @@ function icScan(root) {
 }
 icScan(document.body);
 new MutationObserver(rs => rs.forEach(r => r.addedNodes.forEach(icScan))).observe(document.body, { childList: true, subtree: true });
+
+// ---------- 12. Okt.: Training-Szene (wie S&F: großes Bild, langsamer Schwenk) + Menü-Fußleiste ----------
+(() => {
+  const tr = document.getElementById('trRun'); if (!tr) return;
+  const hint = (tr.querySelector('.tr-run-hint') || {}).textContent || '';
+  tr.classList.add('trs');
+  tr.innerHTML = `<div class="trs-bg" id="trsBg"></div>
+    <div class="trs-top"><div class="trs-t" id="trRunT"></div><div class="trs-sub" id="trsSub"></div></div>
+    <div class="tr-run-ic" id="trRunIc" hidden></div>
+    <div class="trs-bot"><div class="trs-btns"><button type="button" class="trs-b" id="trCancel">ABBRECHEN</button><button type="button" class="trs-b gold" id="trSkip">Sofort fertig</button></div>
+    <div class="trs-bar"><div id="trRunBar"></div><span id="trRunTime">0:00</span></div><div class="trs-hint">${hint}</div></div>`;
+})();
+let TR_CUR = null;
+startTraining = (orig => function (i) {
+  const o = offers[i], en0 = S.en, f0 = S.form; orig(i);
+  if (!o || S.en >= en0) return;
+  TR_CUR = { o, en: en0 - S.en, f: Math.max(0, f0 - S.form) };
+  const bg = document.getElementById('trsBg');
+  bg.style.backgroundImage = `url(img/train/${o.ic}.jpg), url(img/map/day.jpg)`;
+  bg.style.animation = 'none'; void bg.offsetWidth; bg.style.animation = '';
+  document.getElementById('trsSub').innerHTML = `+${o.st} ${o.attr} · +${fmt(o.xp)} XP`;
+  const c = document.getElementById('trCancel'); c.textContent = 'ABBRECHEN'; c.dataset.sure = '';
+  document.getElementById('trSkip').onclick = () => { const k = trSkipCost(); if (!TR_CUR || S.tb < k) return; S.tb -= k; syncGlobal(); finish(o); };
+  trSkipUpd();
+})(startTraining);
+// Sofort fertig: 1 Traumball je angefangene 10 Minuten Restzeit (vorher gratis trotz Anzeige)
+function trSkipCost() { if (!TR_CUR) return 1; const w = parseFloat(document.getElementById('trRunBar').style.width) || 0; return Math.max(1, Math.ceil(TR_CUR.o.min * (1 - w / 100) / 10 - 1e-9)); }
+function trSkipUpd() { const b = document.getElementById('trSkip'); if (!b || !TR_CUR) return; const k = trSkipCost(); const h = `SOFORT FERTIG ${k} ${TB_IC}`; if (b.dataset.k != k) { b.innerHTML = h; b.dataset.k = k; } b.disabled = S.tb < k; }
+finish = (orig => function (o) { TR_CUR = null; return orig(o); })(finish);
+document.getElementById('trCancel').onclick = () => {
+  const c = document.getElementById('trCancel');
+  if (!c.dataset.sure) { c.dataset.sure = '1'; c.textContent = 'WIRKLICH?'; setTimeout(() => { if (c.dataset.sure) { c.dataset.sure = ''; c.textContent = 'ABBRECHEN'; } }, 3000); return; }
+  clearInterval(runTimer); document.getElementById('trRun').hidden = true;
+  if (TR_CUR) { S.en = Math.min(100, S.en + TR_CUR.en); S.form = Math.min(100, S.form + TR_CUR.f); }
+  TR_CUR = null; TR_ON = false; S.tick = Date.now(); syncGlobal(); renderOffers();
+};
+// Fußleiste: im Menü Chat / Hilfe / Einstellungen / Rang (wie S&F), sonst Schnellzugriff; Restzeit am Trainings-Knopf
+(() => {
+  const f = document.querySelector('.g-foot'); if (!f) return;
+  f.querySelectorAll('.mn-sq').forEach(b => b.classList.add('ft-n'));
+  const round = document.getElementById('gMenu');
+  round.insertAdjacentHTML('beforebegin', `<button type="button" class="mn-sq ft-m" data-soon="Team-Chat kommt bald" aria-label="Team-Chat"><svg width="32" height="32" viewBox="0 0 24 24"></svg><span class="mn-badge">2</span></button>
+    <button type="button" class="mn-sq ft-m mn-q" id="ftHelp" aria-label="Hilfe">?</button>
+    <button type="button" class="mn-sq ft-m" data-soon="Einstellungen kommen bald" aria-label="Einstellungen"><svg width="32" height="32" viewBox="0 0 24 24"></svg></button>
+    <button type="button" class="mn-sq ft-m ft-rank" id="ftRank" aria-label="Ruhmeshalle"><img alt=""><b></b></button>`);
+  f.querySelectorAll('.ft-m svg').forEach(sv => icSet(sv, sv.parentElement.getAttribute('aria-label') === 'Team-Chat' ? 'ic_chat' : 'ic_einstellungen'));
+  const tb = f.querySelector('[data-go="training"]'); if (tb) tb.insertAdjacentHTML('beforeend', '<span class="ft-time" hidden></span>');
+  document.getElementById('ftRank').onclick = e => { e.preventDefault(); if (S.tut) return; openHof(); };
+  document.getElementById('ftHelp').onclick = e => { e.preventDefault(); ddPop(`<h3>So läuft Dream Debut</h3>
+    <p class="dd-p"><b>Training</b> kostet Energie und macht deine Werte stärker. Energie ist jeden Tag um 0 Uhr wieder voll.</p>
+    <p class="dd-p"><b>Nebenjob</b> bringt Gold, <b>Wellness</b> bringt die Form zurück.</p>
+    <p class="dd-p"><b>Liga:</b> Melde dich im Liga-Büro zum nächsten Spiel – sonst spielt ein Ersatzspieler und du bekommst nichts.</p>
+    <p class="dd-p"><b>Kiosk &amp; Sportladen:</b> Ausrüstung und Tränke. Im Item-Fenster kannst du beim Schmied verbessern.</p>
+    <p class="dd-p"><b>Täglich:</b> Tagesbonus, Aufgaben und Glücksrad. <b>Arena:</b> Elfmeter-Duelle für Ruhm.</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb" data-close>Alles klar</button></div>`); };
+  const upd = () => {
+    const ph = document.getElementById('phone'), m = document.getElementById('menu');
+    ph.classList.toggle('on-menu', !!m && !m.hidden);
+    const r = document.getElementById('ftRank');
+    if (r) { const im = r.querySelector('img'); const av = (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.img && PLAYER.img.avatar) || 'img/avatar.png'; if (av && im.getAttribute('src') !== av) im.src = av; try { r.querySelector('b').textContent = '#' + hofRank(); } catch (e) {} }
+    const t = f.querySelector('.ft-time'), rt = document.getElementById('trRunTime');
+    if (t) { t.hidden = !TR_CUR; if (TR_CUR && rt) t.textContent = rt.textContent; }
+    trSkipUpd();
+  };
+  show = (orig => function (id) { const r = orig.apply(this, arguments); upd(); return r; })(show);
+  setInterval(upd, 1000); upd();
+})();
 </script>
