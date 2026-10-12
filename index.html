@@ -1160,8 +1160,9 @@ button.mt-pl[disabled] { cursor: default; }
 .tr-pic svg { width: 54px !important; height: 54px !important; }
 #trRun.trs { padding: 0 !important; display: block !important; background: #2A1209 !important; overflow: hidden; }
 #trRun.trs[hidden] { display: none !important; }
-.trs-bg { position: absolute; inset: 0; background-repeat: no-repeat; background-size: auto 100%; background-position: 0% 50%; animation: trsPan 40s ease-in-out infinite alternate; }
-@keyframes trsPan { from { background-position: 0% 50%; } to { background-position: 100% 50%; } }
+.trs-bg { position: absolute; inset: 0; overflow: hidden; background: #2A1209; }
+.trs-bg img { position: absolute; left: 0; top: 0; height: 100%; width: auto; max-width: none; will-change: transform; transform: translate3d(0,0,0); animation: trsPan 40s ease-in-out infinite alternate; }
+@keyframes trsPan { from { transform: translate3d(0,0,0); } to { transform: translate3d(var(--dx, 0px),0,0); } }
 .trs-top { position: absolute; left: 0; right: 0; top: 0; padding: 14px 12px 26px; text-align: center; background: linear-gradient(rgba(20,8,4,.75), rgba(20,8,4,0)); }
 .trs-t { font-family: 'Luckiest Guy', 'Lilita One', sans-serif; font-size: 26px; color: #FFC93C; text-shadow: 0 3px 0 #2A1209, 0 0 8px rgba(0,0,0,.5); line-height: 1.05; }
 .trs-sub { font-weight: 900; font-size: 14px; color: #fff; text-shadow: 0 2px 0 #2A1209; margin-top: 4px; }
@@ -5706,9 +5707,13 @@ startTraining = (orig => function (i) {
   const o = offers[i], en0 = S.en, f0 = S.form; orig(i);
   if (!o || S.en >= en0) return;
   TR_CUR = { o, en: en0 - S.en, f: Math.max(0, f0 - S.form) };
+  // 12. Okt.: Schwenk per transform auf einem <img> (GPU) statt background-position – vorher ruckelig auf dem Handy
   const bg = document.getElementById('trsBg');
-  bg.style.backgroundImage = `url(img/train/${TR_SCENE[o.n] || o.ic}.jpg), url(img/train/platz.jpg)`;
-  bg.style.animation = 'none'; void bg.offsetWidth; bg.style.animation = '';
+  let im = bg.querySelector('img'); if (!im) { im = document.createElement('img'); im.alt = ''; bg.appendChild(im); }
+  const fit = () => { const dx = Math.max(0, im.offsetWidth - bg.clientWidth); im.style.setProperty('--dx', -dx + 'px'); im.style.animation = 'none'; void im.offsetWidth; im.style.animation = ''; };
+  im.onload = fit; im.onerror = () => { if (!/platz\.jpg$/.test(im.src)) im.src = 'img/train/platz.jpg'; };
+  const src = `img/train/${TR_SCENE[o.n] || o.ic}.jpg`;
+  if (im.getAttribute('src') !== src) im.src = src; else fit();
   document.getElementById('trsSub').innerHTML = `+${o.st} ${o.attr} · +${fmt(o.xp)} XP`;
   const c = document.getElementById('trCancel'); c.textContent = 'ABBRECHEN'; c.dataset.sure = '';
   document.getElementById('trSkip').onclick = () => { const k = trSkipCost(); if (!TR_CUR || S.tb < k) return; S.tb -= k; syncGlobal(); finish(o); };
