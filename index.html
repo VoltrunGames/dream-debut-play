@@ -5950,6 +5950,32 @@ abShowRun = (orig => function () {
 })(abShowRun);
 abRender = (orig => function () { const x = orig.apply(this, arguments); const a = document.getElementById('arbeit'); if (a) a.classList.toggle('ab-rest', abTab === 'rest'); return x; })(abRender);
 
+// ---------- 13. Okt.: gemalte Wappen (img/crest: Rahmen f_*, Innenmaske m_*, Symbole s_*, Band) ----------
+CREST.symbols.splice(0, CREST.symbols.length, 'Ball', 'Stern', 'Blitz', 'Krone', 'Adler', 'Ohne', 'Löwe', 'Wolf', 'Burg', 'Schuhe');
+const CREST_F = ['schild', 'klassisch', 'rund', 'raute', 'spitz'];
+const CREST_S = { 0: 'ball', 1: 'stern', 2: 'blitz', 3: 'krone', 4: 'adler', 6: 'loewe', 7: 'wolf', 8: 'burg', 9: 'schuhe' };
+crestSVG = function (c) {
+  const id = 'cw' + (crestUid++), f = CREST_F[c.shape] || 'schild', c1 = c.c1, c2 = c.c2;
+  let pat = '';
+  switch (c.pattern) {
+    case 1: pat = [12, 36, 60, 84].map(x => `<rect x="${x}" y="0" width="12" height="120" fill="${c2}"/>`).join(''); break;
+    case 2: pat = `<rect x="50" y="0" width="50" height="120" fill="${c2}"/>`; break;
+    case 3: pat = `<path d="M-10 20 L30 -10 L110 90 L70 130 Z" fill="${c2}"/>`; break;
+    case 4: pat = `<rect x="0" y="44" width="100" height="26" fill="${c2}"/>`; break;
+    case 5: pat = `<rect x="50" y="0" width="50" height="58" fill="${c2}"/><rect x="0" y="58" width="50" height="62" fill="${c2}"/>`; break;
+  }
+  const s = CREST_S[c.symbol], short = (c.short || '').toUpperCase().slice(0, 3);
+  return `<svg viewBox="-4 0 108 124" role="img" aria-label="Wappen ${short}">
+    <defs><mask id="${id}" maskUnits="userSpaceOnUse" x="0" y="0" width="100" height="120"><image href="img/crest/m_${f}.png" x="0" y="0" width="100" height="120"/></mask>
+      <radialGradient id="${id}g" cx="50%" cy="35%" r="70%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#000" stop-opacity=".18"/></radialGradient></defs>
+    <g mask="url(#${id})"><rect x="0" y="0" width="100" height="120" fill="${c1}"/>${pat}<rect x="0" y="0" width="100" height="120" fill="url(#${id}g)"/></g>
+    <image href="img/crest/f_${f}.png" x="0" y="0" width="100" height="120"/>
+    ${s ? `<image href="img/crest/s_${s}.png" x="24" y="${short ? 26 : 34}" width="52" height="52"/>` : ''}
+    ${short ? `<image href="img/crest/band.png" x="-4" y="86" width="108" height="30" preserveAspectRatio="none"/>
+    <text x="50" y="106" text-anchor="middle" font-family="Lilita One, Arial Rounded MT Bold, sans-serif" font-size="15" letter-spacing="1.5" fill="#3A1A08">${short}</text>` : ''}
+  </svg>`;
+};
+
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
 
