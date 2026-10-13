@@ -1162,7 +1162,7 @@ button.mt-pl[disabled] { cursor: default; }
 .hf-row[data-hf], .hf-row[data-fr] { cursor: pointer; }
 .hf-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0 4px; } .hf-tabs button { height: 34px; border-radius: 10px; border: 3px solid #2A1209; background: var(--t4); color: #F6E7C8; font: 900 13px Nunito, sans-serif; } .hf-tabs button.on { background: #FFC93C; color: #2A1209; }
 .hf-n { background: #E53935; color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
-.hf-inv { grid-template-columns: 26px 1fr 34px !important; } .hf-inv button { height: 26px; border-radius: 8px; border: 2px solid #2A1209; background: #3B2414; color: #fff; }
+.hf-inv { grid-template-columns: 26px 1fr 34px 34px !important; } .hf-inv button[data-inva] { background: #2E9E55; } .hf-inv button { height: 26px; border-radius: 8px; border: 2px solid #2A1209; background: #3B2414; color: #fff; }
 .op-top { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; } .op-top > img { width: 96px; height: 128px; object-fit: cover; border-radius: 12px; border: 3px solid #2A1209; background: #8fd14f; } .op-top h3 { margin: 0 0 4px; text-align: left; }
 .op-tags { display: flex; gap: 4px; flex-wrap: wrap; } .op-tags span { background: #FFC93C; color: #2A1209; border-radius: 6px; padding: 1px 6px; font-weight: 900; font-size: 11px; }
 .op-top .hf-card { margin: 6px 0 0; gap: 4px; } .op-top .hf-card b { font-size: 14px; }
@@ -5866,6 +5866,7 @@ async function clPush(force) {
       catch (e) { if (e.status === 409 || /duplicate|unique/i.test(e.message)) { if (!CL.nameTaken) { CL.nameTaken = true; setTimeout(() => clRename('Dein Name „' + PLAYER.name + '“ ist schon vergeben. Bitte such dir einen neuen aus.'), 500); } } else throw e; }
     }
     CL.state = 'ok'; CL.err = '';
+    try { await clClubSync(); } catch (e) { CL.clubErr = e.message; }
   } catch (e) { CL.state = 'offline'; CL.err = e.message || String(e); }
 }
 async function clPull(always) {
@@ -6035,7 +6036,7 @@ HF_CARD = async function (x) {
   else if (fr.inc) btn = `<button type="button" class="sd-pb two" id="opAcc">✔ Anfrage annehmen</button>`;
   else if (fr.out) btn = `<button type="button" class="sd-pb two" disabled>Anfrage gesendet</button>`;
   else btn = `<button type="button" class="sd-pb two" id="opDel">✖ Freund entfernen</button>`;
-  const canInv = !me && typeof CLUB !== 'undefined' && CLUB && CLUB.name && !p.club_name;
+  const canInv = !me && typeof CLUB !== 'undefined' && CLUB && CLUB.oid && p.club_name !== CLUB.name;
   ddPop(`<div class="op-top">${p.hero ? `<img src="${p.hero}" alt="">` : p.avatar ? `<img src="${p.avatar}" alt="">` : ''}
       <div><h3>${hfEsc(p.name)}</h3><div class="op-tags"><span>${p.pos}</span><span>Lv ${p.level}</span>${fr && fr.st === 'freund' ? '<span>Freund</span>' : ''}</div>
       <div class="hf-card"><div><small>Ruhm</small><b>${fmt(p.ruhm)}</b></div><div><small>Stärke</small><b>${fmt(p.staerke)}</b></div>
@@ -6067,15 +6068,69 @@ HF_OPEN = function () {
     try { await clFriendsLoad(); } catch (e) {}
     if (!document.getElementById('hfL')) return;
     info.textContent = CL_FR.list.length || CL_FR.inv.length ? 'Deine Freunde & Anfragen' : 'Noch keine Freunde – such Spieler über die Rangliste und schick eine Anfrage.';
-    let h = CL_FR.inv.map((i, k) => `<div class="hf-row hf-inv"><b>🏟️</b><span>${hfEsc(i.from.n)} lädt dich in „${hfEsc(i.club)}“ ein</span><button type="button" data-inv="${k}">✖</button></div>`).join('');
+    let h = CL_FR.inv.map((i, k) => `<div class="hf-row hf-inv"><b>🏟️</b><span>${hfEsc(i.from.n)} lädt dich in „${hfEsc(i.club)}“ ein</span><button type="button" data-inva="${k}">✔</button><button type="button" data-inv="${k}">✖</button></div>`).join('');
     const L = CL_FR.list.slice().sort((a, b) => (b.inc - a.inc) || (b.r - a.r));
     h += L.map((f, k) => `<div class="hf-row" data-fr="${k}"><b>${f.inc ? '❗' : f.out ? '⏳' : '🤝'}</b><span>${hfEsc(f.n)}</span><small>${f.inc ? 'möchte dein Freund sein' : f.out ? 'Anfrage gesendet' : 'Lv ' + f.L + ' · ' + f.pos}</small><em>${f.st === 'freund' ? fmt(f.r) : ''}</em></div>`).join('');
     box.innerHTML = h;
     box.onclick = async e => {
+      const ia = e.target.closest('[data-inva]'); if (ia) { e.stopPropagation(); ia.disabled = true; clJoinClub(CL_FR.inv[+ia.dataset.inva]); return; }
       const iv = e.target.closest('[data-inv]'); if (iv) { e.stopPropagation(); await clFriendAct(CL_FR.inv[+iv.dataset.inv].from.id, 'invdel'); t2.onclick(); return; }
       const r = e.target.closest('[data-fr]'); if (r) { e.stopPropagation(); HF_CARD(L[+r.dataset.fr]); }
     };
   };
 };
+
+// ---------- 13. Okt.: Online-Vereine (Gründer meldet Verein an, Einladung annehmen = beitreten, echte Mitspieler im Kader) ----------
+const clClubSnap = () => ({ crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null });
+async function clClubSync() {
+  if (CL.state !== 'ok' || typeof CLUB === 'undefined') return;
+  const uid = CL.auth.uid; let last = ''; try { last = localStorage.getItem('dd_cloud_club') || ''; } catch (e) {}
+  if (!CLUB) { if (last) { await clReq('/rest/v1/club_members?user_id=eq.' + uid, { method: 'DELETE' }); try { localStorage.removeItem('dd_cloud_club'); } catch (e) {} } return; }
+  if (!CLUB.oid && CLUB.founder && !CLUB.oidTaken) {
+    try {
+      const r = await clReq('/rest/v1/clubs?select=id', { method: 'POST', headers: { Prefer: 'return=representation' }, body: JSON.stringify({ name: CLUB.name, created_by: uid, ausbau: clClubSnap() }) });
+      CLUB.oid = r[0].id;
+      await clReq('/rest/v1/club_members?user_id=eq.' + uid, { method: 'DELETE' });
+      await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: uid, rolle: 'kapitaen' }) });
+      saveClub();
+    } catch (e) { if (e.status === 409 || /duplicate|unique/i.test(e.message)) { CLUB.oidTaken = true; saveClub(); } else throw e; }
+  }
+  if (!CLUB.oid) return;
+  if (last !== CLUB.oid) { try { localStorage.setItem('dd_cloud_club', CLUB.oid); } catch (e) {} }
+  const [club] = await clReq('/rest/v1/clubs?select=*&id=eq.' + CLUB.oid);
+  if (!club) { delete CLUB.oid; saveClub(); return; }
+  const mem = await clReq('/rest/v1/club_members?select=user_id,rolle&club_id=eq.' + CLUB.oid);
+  const mine = mem.find(m => m.user_id === uid);
+  if (!mine) { await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: uid, rolle: CLUB.founder ? 'kapitaen' : 'spieler' }) }).catch(() => {}); }
+  const role = mine ? mine.rolle : (CLUB.founder ? 'kapitaen' : 'spieler');
+  if (role === 'kapitaen') await clReq('/rest/v1/clubs?id=eq.' + CLUB.oid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ ausbau: clClubSnap() }) });
+  else if (club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; }
+  // Kader: ich + echte Mitspieler + Bots auffüllen
+  const ids = mem.map(m => m.user_id).filter(i => i !== uid);
+  const pr = ids.length ? await clReq('/rest/v1/profiles?select=id,name,pos,level,avatar,updated_at&id=in.(' + ids.join(',') + ')') : [];
+  const R = { kapitaen: 'KAPITÄN', vize: 'VIZE' };
+  const meK = CLUB.kader.find(m => m.me) || makeKader(0)[0]; meK.role = R[role] || '';
+  const real = pr.map(p => ({ name: p.name, pos: p.pos, lvl: p.level, av: p.avatar || 'img/avatar.png', online: Date.now() - Date.parse(p.updated_at) < 600000, role: R[(mem.find(m => m.user_id === p.id) || {}).rolle] || '', oid: p.id }));
+  const total = Math.max(CLUB.kader.length, 1 + real.length), bots = CLUB.kader.filter(m => m.bot).concat(makeKader(0).filter(m => m.bot));
+  const k = [meK, ...real]; for (const b of bots) { if (k.length >= total) break; if (!k.includes(b)) k.push(b); }
+  CLUB.kader = k; saveClub();
+  try { if (!document.getElementById('verein').hidden && VC.view === 'club') vrClubUI(); if (typeof applyClubBonus === 'function') applyClubBonus(); } catch (e) {}
+}
+async function clJoinClub(inv) {
+  try {
+    const [club] = await clReq('/rest/v1/clubs?select=*&name=eq.' + encodeURIComponent(inv.club));
+    if (!club) { openCloud('Den Verein „' + inv.club + '“ gibt es online nicht mehr.'); return; }
+    const uid = CL.auth.uid;
+    await clReq('/rest/v1/club_members?user_id=eq.' + uid, { method: 'DELETE' });
+    await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: club.id, user_id: uid, rolle: 'spieler' }) });
+    await clReq('/rest/v1/club_invites?to_id=eq.' + uid + '&club_name=eq.' + encodeURIComponent(inv.club), { method: 'DELETE' });
+    const a = club.ausbau || {};
+    CLUB = { name: club.name, crest: a.crest || randomCrest(shortOf(club.name)), league: a.league || 'Pfützenliga', place: a.place || 10, kader: makeKader(0), founder: false, oid: club.id };
+    if (a.build) CLUB.build = a.build;
+    ddPopClose(); show('verein');
+    finishClub('Willkommen beim ' + club.name + '!', (inv.from && inv.from.n ? hfEsc(inv.from.n) + ' hat dich eingeladen. ' : '') + 'Ligaspiele sind um 12 und 20 Uhr.');
+    await clClubSync(); await clPush(true); await clFriendsLoad();
+  } catch (e) { openCloud('Beitreten fehlgeschlagen: ' + e.message); }
+}
 
 </script>
