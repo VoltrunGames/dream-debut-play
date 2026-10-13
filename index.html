@@ -5762,4 +5762,109 @@ document.getElementById('trCancel').onclick = () => {
   show = (orig => function (id) { const r = orig.apply(this, arguments); upd(); return r; })(show);
   setInterval(upd, 1000); upd();
 })();
+
+// ---------- Cloud (Supabase): anonymes Konto, Spielstand-Sicherung, Profil, Konto sichern / auf anderem Gerät anmelden ----------
+// Nur in der Handy-Version (handy.build.py). Ohne Netz (z. B. Claude-Artifact) läuft alles lokal weiter.
+const SB_URL = 'https://ciptucrctxxzedmdapnw.supabase.co', SB_KEY = 'sb_publishable_W2kuOxxLhnT9bbIwxEh6OA_FjkaG_Ft';
+const CL = { auth: null, last: 0, hash: '', state: 'aus', err: '' };
+try { CL.auth = JSON.parse(localStorage.getItem('dd_cloud_auth') || 'null'); CL.last = +localStorage.getItem('dd_cloud_ts') || 0; } catch (e) {}
+const clSaveAuth = a => { CL.auth = a; try { a ? localStorage.setItem('dd_cloud_auth', JSON.stringify(a)) : localStorage.removeItem('dd_cloud_auth'); } catch (e) {} };
+async function clReq(path, opt = {}, auth = true) {
+  const h = { apikey: SB_KEY, 'Content-Type': 'application/json', ...(opt.headers || {}) };
+  if (auth && CL.auth) h.Authorization = 'Bearer ' + CL.auth.access_token;
+  const r = await fetch(SB_URL + path, { ...opt, headers: h });
+  const t = await r.text(); let j = null; try { j = t ? JSON.parse(t) : null; } catch (e) {}
+  if (!r.ok) { const m = (j && (j.msg || j.message || j.error_description || j.error)) || ('HTTP ' + r.status); const e = new Error(m); e.status = r.status; throw e; }
+  return j;
+}
+const clKeep = j => ({ access_token: j.access_token, refresh_token: j.refresh_token, exp: Date.now() + (j.expires_in || 3600) * 1000, uid: j.user && j.user.id, email: j.user && j.user.email || null, anon: !!(j.user && j.user.is_anonymous) });
+async function clEnsure() {
+  if (CL.auth && CL.auth.exp - Date.now() > 60000) return CL.auth;
+  if (CL.auth && CL.auth.refresh_token) {
+    try { clSaveAuth(clKeep(await clReq('/auth/v1/token?grant_type=refresh_token', { method: 'POST', body: JSON.stringify({ refresh_token: CL.auth.refresh_token }) }, false))); return CL.auth; }
+    catch (e) { if (e.status !== 400 && e.status !== 401) throw e; }
+  }
+  clSaveAuth(clKeep(await clReq('/auth/v1/signup', { method: 'POST', body: '{}' }, false)));   // anonym
+  return CL.auth;
+}
+function clCollect() { const d = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (/^dd_/.test(k) && !/^dd_cloud/.test(k)) d[k] = localStorage.getItem(k); } return d; }
+function clHash(d) { let h = 0; const s = JSON.stringify(d); for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) | 0; return h + ':' + s.length; }
+function clApply(d, ts) {
+  if (CL.applying) return; CL.applying = true;
+  // Spielstand vom Server übernehmen: Spiel darf währenddessen nichts mehr schreiben, dann neu laden
+  const orig = Storage.prototype.setItem;
+  Object.keys(localStorage).filter(k => /^dd_/.test(k) && !/^dd_cloud/.test(k)).forEach(k => localStorage.removeItem(k));
+  Object.entries(d).forEach(([k, v]) => orig.call(localStorage, k, v));
+  orig.call(localStorage, 'dd_cloud_ts', String(Math.max(ts || 0, Date.now())));
+  Storage.prototype.setItem = function (k, v) { if (/^dd_/.test(k)) return; return orig.call(this, k, v); };
+  try { sessionStorage.setItem('dd_cloud_loaded', '1'); } catch (e) {}
+  location.reload();
+}
+async function clPush(force) {
+  if (CL.applying) return;
+  try {
+    await clEnsure();
+    const d = clCollect(), h = clHash(d);
+    if (!force && h === CL.hash) { CL.state = 'ok'; return; }
+    const now = new Date().toISOString();
+    await clReq('/rest/v1/saves?on_conflict=user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: CL.auth.uid, data: d, updated_at: now }) });
+    CL.hash = h; CL.last = Date.now(); try { localStorage.setItem('dd_cloud_ts', String(CL.last)); } catch (e) {}
+    if (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.name && PLAYER.name.length >= 2) {
+      let ruhm = 0, st = 0; try { ruhm = duState().r; } catch (e) {} try { st = posPower(); } catch (e) {}
+      await clReq('/rest/v1/profiles?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
+        body: JSON.stringify({ id: CL.auth.uid, name: String(PLAYER.name).slice(0, 20), pos: myPos(), level: S.level, ruhm: Math.round(ruhm), staerke: Math.round(st), look: PLAYER.look || null, updated_at: now }) });
+    }
+    CL.state = 'ok'; CL.err = '';
+  } catch (e) { CL.state = 'offline'; CL.err = e.message || String(e); }
+}
+async function clPull(always) {
+  await clEnsure();
+  const r = await clReq('/rest/v1/saves?select=data,updated_at&user_id=eq.' + CL.auth.uid);
+  const row = r && r[0]; if (!row) return false;
+  if (always || Date.parse(row.updated_at) > CL.last + 5000) { clApply(row.data, Date.parse(row.updated_at)); return true; }
+  return false;
+}
+async function clStart() {
+  let fresh = false; try { fresh = sessionStorage.getItem('dd_cloud_loaded') === '1'; sessionStorage.removeItem('dd_cloud_loaded'); } catch (e) {}
+  if (CL.applying) return;
+  try { if (!fresh && CL.auth && await clPull(false)) return; } catch (e) { CL.state = 'offline'; CL.err = e.message; }
+  await clPush(true);
+  setInterval(() => clPush(false), 30000);
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') clPush(false); });
+}
+// Einstellungen-Knopf: Cloud-Status, Konto sichern (E-Mail + Passwort), auf anderem Gerät anmelden
+function clAgo() { if (!CL.last) return 'noch nie'; const s = Math.round((Date.now() - CL.last) / 1000); return s < 60 ? 'vor ' + s + ' s' : s < 3600 ? 'vor ' + Math.round(s / 60) + ' min' : 'vor ' + Math.round(s / 3600) + ' h'; }
+function openCloud(msg) {
+  const a = CL.auth, on = CL.state === 'ok';
+  const acc = a && !a.anon && a.email ? `<p class="dd-p">Konto: <b>${a.email}</b></p>` :
+    `<p class="dd-p"><b>Konto sichern</b> – damit du deinen Spieler auf einem anderen Handy wiederfindest:</p>
+     <input id="clMail" type="email" placeholder="E-Mail" autocomplete="email" style="width:100%;margin:4px 0;padding:8px;border-radius:8px;border:2px solid #2A1209;font:inherit">
+     <input id="clPw" type="password" placeholder="Passwort (min. 6 Zeichen)" autocomplete="new-password" style="width:100%;margin:4px 0;padding:8px;border-radius:8px;border:2px solid #2A1209;font:inherit">
+     <div class="sd-pop-btns"><button type="button" class="sd-pb" id="clLink">Sichern</button><button type="button" class="sd-pb two" id="clLogin">Anmelden</button></div>
+     <p class="dd-p" style="font-size:12px">„Anmelden“ = Spieler von einem anderen Gerät holen (der Spielstand hier wird ersetzt).</p>`;
+  ddPop(`<h3>Einstellungen</h3>
+    <p class="dd-p">☁️ Online-Speicher: <b style="color:${on ? '#8FD14F' : '#FF9A8A'}">${on ? 'verbunden' : 'offline'}</b> · zuletzt gespeichert ${clAgo()}</p>
+    ${CL.err && !on ? `<p class="dd-p" style="font-size:12px">${CL.err}</p>` : ''}
+    ${msg ? `<p class="dd-p"><b>${msg}</b></p>` : ''}
+    ${acc}
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="clNow">Jetzt speichern</button><button type="button" class="sd-pb" data-close>Schließen</button></div>`);
+  const $ = id => document.getElementById(id);
+  $('clNow').onclick = async () => { await clPush(true); openCloud(CL.state === 'ok' ? 'Gespeichert!' : 'Keine Verbindung.'); };
+  if ($('clLink')) $('clLink').onclick = async () => {
+    const email = $('clMail').value.trim(), password = $('clPw').value;
+    if (!/.+@.+\..+/.test(email) || password.length < 6) return openCloud('Bitte gültige E-Mail und mind. 6 Zeichen Passwort.');
+    try { await clEnsure(); const u = await clReq('/auth/v1/user', { method: 'PUT', body: JSON.stringify({ email, password }) });
+      openCloud(u && u.email ? 'Konto gesichert!' : 'Fast fertig: Bitte den Link in der E-Mail bestätigen.'); }
+    catch (e) { openCloud('Fehler: ' + e.message); }
+  };
+  if ($('clLogin')) $('clLogin').onclick = async () => {
+    const email = $('clMail').value.trim(), password = $('clPw').value;
+    try { clSaveAuth(clKeep(await clReq('/auth/v1/token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) }, false)));
+      if (!(await clPull(true))) openCloud('Angemeldet – aber für dieses Konto gibt es noch keinen Spielstand.'); }
+    catch (e) { openCloud('Anmelden fehlgeschlagen: ' + e.message); }
+  };
+}
+document.querySelectorAll('[aria-label="Einstellungen"]').forEach(b => { b.removeAttribute('data-soon'); b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openCloud(); }, true); });
+if (typeof fetch === 'function') setTimeout(() => clStart().catch(e => { CL.state = 'offline'; CL.err = e.message; }), 1500);
+
 </script>
