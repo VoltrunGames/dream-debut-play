@@ -1300,6 +1300,7 @@ button.mt-pl[disabled] { cursor: default; }
 .mt-bench .mt-pl i { width: 28px; height: 28px; }
 .mt-pl.bot i img { filter: saturate(.6); }
 .tr-curs div { font-size: 19px; letter-spacing: 0; gap: 6px; }
+.du-ball, .mt-ball { font-size: 0 !important; width: 22px; height: 22px; background: url(img/crest/s_ball.png) center / contain no-repeat; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -5791,7 +5792,7 @@ const IC_SIG = [['rx="9" ry="4"', 'ic_gold'], ['M6 3h12l4 6', 'ic_tb'], ['M12 7.
 const IC_EMO = { '🪙': 'ic_gold', '💪': 'ic_form', '⚡': 'ic_energie', '⚽': 'ic_tb', '🎁': 'ic_tagesbonus', '💰': 'ic_geldsack', '🔨': 'ic_schmied', '🎒': 'ic_tasche',
   '🏆': 'ic_pokal', '📺': 'ic_werbung', '🔄': 'ic_wuerfel', '🎡': 'ic_gluecksrad', '🏛': 'ic_ruhmeshalle', '⚔': 'ic_duell', '💼': 'ic_nebenjob', '🏨': 'ic_hotel',
   '💤': 'ic_schlafen', '🥇': 'ic_erfolge', '🏟': 'ic_stadion', '📋': 'ic_aufgaben', '👟': 'ic_schuh', '🏊': 'ic_wellness', '🏠': 'ic_vereinsheim',
-  '🌭': 'ic_job_wurst', '🧹': 'ic_job_platzwart', '📰': 'ic_job_zeitung', '🧺': 'ic_job_trikots', '🎟': 'ic_job_karten', '🧃': 'ic_job_kisten', '🌙': 'ic_nacht', '🔥': 'ic_kombo', '✨': 'ic_geniestreich', '⭐': 'ic_mvp' };
+  '🌭': 'ic_job_wurst', '🧹': 'ic_job_platzwart', '📰': 'ic_job_zeitung', '🧺': 'ic_job_trikots', '🎟': 'ic_job_karten', '🧃': 'ic_job_kisten', '🌙': 'ic_nacht', '🔥': 'ic_kombo', '✨': 'ic_geniestreich', '⭐': 'ic_mvp', '🔷': 'ic_xp', '🧪': 'ic_trank', '🟣': 'ic_schatz' };
 const IC_RE = new RegExp('(' + Object.keys(IC_EMO).join('|') + ')️?', 'g');
 function icSet(sv, n) { sv.setAttribute('viewBox', '0 0 24 24'); sv.innerHTML = `<image href="${ICP(n)}" x="0" y="0" width="24" height="24"/>`; sv.dataset.ic = n; }
 function icSvg(sv) {
@@ -5806,7 +5807,7 @@ function icSvg(sv) {
   if (n) icSet(sv, n);
 }
 function icText(t) {
-  const p = t.parentElement; if (!p || p.closest('svg, script, style, textarea, input, option, .du-ball, .emo-off')) return;
+  const p = t.parentElement; if (!p || p.closest('svg, script, style, textarea, input, option, .du-ball, .mt-ball, .emo-off')) return;
   const v = t.nodeValue; IC_RE.lastIndex = 0; if (!IC_RE.test(v)) return;
   const f = document.createDocumentFragment(); let last = 0; IC_RE.lastIndex = 0; let m;
   while ((m = IC_RE.exec(v))) { if (m.index > last) f.appendChild(document.createTextNode(v.slice(last, m.index)));
@@ -5979,6 +5980,9 @@ crestSVG = function (c) {
     <text x="50" y="106" text-anchor="middle" font-family="Fredoka, Arial Rounded MT Bold, sans-serif" font-size="15" letter-spacing="1.5" fill="#3A1A08">${short}</text>` : ''}
   </svg>`;
 };
+
+// 13. Okt.: „Verein suchen“-Symbol = gemalte Lupe
+(() => { const v = document.querySelector('.vr-big-ic2'); if (v) v.innerHTML = '<img src="img/icons/ic_suche.png" alt="" style="width:62px;height:62px">'; })();
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
