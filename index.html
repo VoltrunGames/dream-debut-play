@@ -1159,7 +1159,15 @@ button.mt-pl[disabled] { cursor: default; }
 .emo { height: 1.2em; width: auto; vertical-align: -0.25em; display: inline-block; margin: 0 1px; }
 .tr-pic svg { width: 54px !important; height: 54px !important; }
 .hf-q { width: 100%; box-sizing: border-box; margin: 2px 0 4px; padding: 8px 10px; border-radius: 10px; border: 3px solid #2A1209; font: 700 14px Nunito, sans-serif; background: #FFF6E3; color: #2A1209; }
-.hf-row[data-hf] { cursor: pointer; }
+.hf-row[data-hf], .hf-row[data-fr] { cursor: pointer; }
+.hf-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 2px 0 4px; } .hf-tabs button { height: 34px; border-radius: 10px; border: 3px solid #2A1209; background: var(--t4); color: #F6E7C8; font: 900 13px Nunito, sans-serif; } .hf-tabs button.on { background: #FFC93C; color: #2A1209; }
+.hf-n { background: #E53935; color: #fff; border-radius: 999px; padding: 0 6px; font-size: 11px; }
+.hf-inv { grid-template-columns: 26px 1fr 34px !important; } .hf-inv button { height: 26px; border-radius: 8px; border: 2px solid #2A1209; background: #3B2414; color: #fff; }
+.op-top { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; } .op-top > img { width: 96px; height: 128px; object-fit: cover; border-radius: 12px; border: 3px solid #2A1209; background: #8fd14f; } .op-top h3 { margin: 0 0 4px; text-align: left; }
+.op-tags { display: flex; gap: 4px; flex-wrap: wrap; } .op-tags span { background: #FFC93C; color: #2A1209; border-radius: 6px; padding: 1px 6px; font-weight: 900; font-size: 11px; }
+.op-top .hf-card { margin: 6px 0 0; gap: 4px; } .op-top .hf-card b { font-size: 14px; }
+.op-bio { font-style: normal; background: rgba(0,0,0,.22); border-radius: 8px; padding: 6px 8px; margin: 6px 0; min-height: 18px; word-break: break-word; }
+.op-ats { display: flex; flex-direction: column; gap: 3px; margin-bottom: 6px; } .op-at { display: grid; grid-template-columns: 88px 1fr 46px; gap: 6px; align-items: center; font-size: 12px; font-weight: 800; } .op-at i { height: 10px; border-radius: 999px; background: rgba(0,0,0,.35); overflow: hidden; } .op-at i b { display: block; height: 100%; background: #8FD14F; } .op-at em { font-style: normal; text-align: right; color: #FFC93C; }
 .hf-card { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; } .hf-card div { background: rgba(0,0,0,.22); border-radius: 8px; padding: 6px 8px; } .hf-card small { display: block; font-size: 10px; opacity: .7; } .hf-card b { font-size: 16px; }
 #trRun.trs { padding: 0 !important; display: block !important; background: #2A1209 !important; overflow: hidden; }
 #trRun.trs[hidden] { display: none !important; }
@@ -5767,7 +5775,7 @@ document.getElementById('trCancel').onclick = () => {
 })();
 
 // ---------- 13. Okt.: Ruhmeshalle mit Spielersuche (offline Bots, online echte Spieler über HOF_SRC aus cloud.js) ----------
-var HOF_SRC = null;   // cloud.js setzt { top(me), search(q) } → Promise<[{n,r,L,pos,st,id,rank}]>
+var HOF_SRC = null, HF_CARD = null, HF_OPEN = null;   // cloud.js: HF_CARD(x) = Online-Profil, HF_OPEN() = nach dem Öffnen (Freunde-Tab)   // cloud.js setzt { top(me), search(q) } → Promise<[{n,r,L,pos,st,id,rank}]>
 const hfEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 function hfMe() { const D = duState(); let st = 0; try { st = posPower(); } catch (e) {} return { n: PLAYER ? PLAYER.name : 'Du', me: true, r: D.r, L: S.level, pos: myPos(), st }; }
 function hfBotAll() { const me = hfMe(); const all = hofList().map(b => ({ n: b.n, r: botRuhm(b), L: botLvl(b), pos: b.pos, st: Math.round(me.st * (0.5 + b.f * 0.6)) })).concat([me]).sort((a, b) => b.r - a.r); all.forEach((x, i) => x.rank = i + 1); return all; }
@@ -5803,8 +5811,8 @@ openHof = function () {
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" onclick="openDuel()">Zum Duell</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
   const q = document.getElementById('hfQ'); let tm;
   q.oninput = () => { clearTimeout(tm); tm = setTimeout(() => hfFill(q.value.trim()), 300); };
-  document.getElementById('hfL').onclick = e => { const r = e.target.closest('[data-hf]'); if (r) { const x = HF_LIST[+r.dataset.hf]; if (x && !x.me) hfCard(x); } };
-  hfFill('');
+  document.getElementById('hfL').onclick = e => { const r = e.target.closest('[data-hf]'); if (r) { const x = HF_LIST[+r.dataset.hf]; if (x && HF_CARD && x.id) HF_CARD(x); else if (x && !x.me) hfCard(x); } };
+  hfFill(''); if (HF_OPEN) HF_OPEN();
 };
 
 // ---------- Cloud (Supabase): anonymes Konto, Spielstand-Sicherung, Profil, Konto sichern / auf anderem Gerät anmelden ----------
@@ -5854,9 +5862,8 @@ async function clPush(force) {
     await clReq('/rest/v1/saves?on_conflict=user_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ user_id: CL.auth.uid, data: d, updated_at: now }) });
     CL.hash = h; CL.last = Date.now(); try { localStorage.setItem('dd_cloud_ts', String(CL.last)); } catch (e) {}
     if (typeof PLAYER !== 'undefined' && PLAYER && PLAYER.name && PLAYER.name.length >= 2) {
-      let ruhm = 0, st = 0; try { ruhm = duState().r; } catch (e) {} try { st = posPower(); } catch (e) {}
-      await clReq('/rest/v1/profiles?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' },
-        body: JSON.stringify({ id: CL.auth.uid, name: String(PLAYER.name).slice(0, 20), pos: myPos(), level: S.level, ruhm: Math.round(ruhm), staerke: Math.round(st), look: PLAYER.look || null, updated_at: now }) });
+      try { await clReq('/rest/v1/profiles?on_conflict=id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify(await clProfileBody(now)) }); CL.nameTaken = false; }
+      catch (e) { if (e.status === 409 || /duplicate|unique/i.test(e.message)) { if (!CL.nameTaken) { CL.nameTaken = true; setTimeout(() => clRename('Dein Name „' + PLAYER.name + '“ ist schon vergeben. Bitte such dir einen neuen aus.'), 500); } } else throw e; }
     }
     CL.state = 'ok'; CL.err = '';
   } catch (e) { CL.state = 'offline'; CL.err = e.message || String(e); }
@@ -5941,6 +5948,134 @@ HOF_SRC = {
     const rows = await clReq('/rest/v1/profiles?' + CL_SEL + '&name=ilike.' + encodeURIComponent('*' + s + '*') + '&order=ruhm.desc&limit=8');
     return rows.map(p => clProf(p, 0));
   }
+};
+
+// ---------- 13. Okt.: eindeutige Namen, Online-Profil (Stats, Beschreibung), Freunde, Vereinseinladungen ----------
+const clBio = () => { try { return localStorage.getItem('dd_bio') || ''; } catch (e) { return ''; } };
+function clHeroJpg() {
+  const src = PLAYER && PLAYER.img && PLAYER.img.hero; if (!src) return Promise.resolve(null);
+  if (CL.heroSrc === src) return Promise.resolve(CL.heroJ);
+  return new Promise(res => { const im = new Image(); im.onload = () => { try { const c = document.createElement('canvas'); c.width = 208; c.height = 276; const g = c.getContext('2d'); g.fillStyle = '#8fd14f'; g.fillRect(0, 0, 208, 276); g.drawImage(im, 0, 0, 208, 276); CL.heroJ = c.toDataURL('image/jpeg', .78); CL.heroSrc = src; res(CL.heroJ); } catch (e) { res(null); } }; im.onerror = () => res(null); im.src = src; });
+}
+async function clProfileBody(now) {
+  let ruhm = 0, st = 0; try { ruhm = duState().r; } catch (e) {} try { st = posPower(); } catch (e) {}
+  const attrs = {}; try { ATTR.forEach(a => { attrs[a.n] = { v: Math.round(attrEff(a.n)), star: !!a.star }; }); } catch (e) {}
+  return { id: CL.auth.uid, name: String(PLAYER.name).slice(0, 20), pos: myPos(), level: S.level, ruhm: Math.round(ruhm), staerke: Math.round(st), look: PLAYER.look || null,
+    bio: clBio().slice(0, 160), attrs, avatar: (PLAYER.img && PLAYER.img.avatar) || null, hero: await clHeroJpg(), club_name: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || null, updated_at: now };
+}
+const clLike = n => encodeURIComponent(n.replace(/[%_\\*,()]/g, c => '\\' + c));
+async function clNameFree(n) {
+  await clEnsure();
+  const r = await clReq('/rest/v1/profiles?select=id&name=ilike.' + clLike(n) + '&limit=1');
+  return !r.length || r[0].id === CL.auth.uid;
+}
+// Name bei der Erstellung prüfen (nur online)
+(() => {
+  const b = document.getElementById('crFwd'); if (!b) return; let ok = '';
+  b.addEventListener('click', e => {
+    if (CR.edit || CR.step < 3 || CL.state !== 'ok') return;
+    const n = document.getElementById('crName').value.trim(); if (n.length < 3 || ok === n) return;
+    e.stopImmediatePropagation(); e.preventDefault();
+    clNameFree(n).then(free => { if (free) { ok = n; b.click(); } else { document.getElementById('crErr').textContent = 'Der Name „' + n + '“ ist schon vergeben.'; } })
+      .catch(() => { ok = n; b.click(); });
+  }, true);
+})();
+// Name ändern (Knopf im Profil + automatisch bei Doppel-Namen)
+function clRename(msg) {
+  ddPop(`<h3>Name ändern</h3>${msg ? `<p class="dd-p">${hfEsc(msg)}</p>` : ''}
+    <input id="clNm" class="hf-q" maxlength="18" value="${hfEsc(PLAYER ? PLAYER.name : '')}" autocomplete="off"><p class="dd-p" id="clNmErr" style="color:#FF9A8A"></p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Abbrechen</button><button type="button" class="sd-pb" id="clNmOk">Speichern</button></div>`);
+  document.getElementById('clNmOk').onclick = async () => {
+    const n = document.getElementById('clNm').value.trim(), er = document.getElementById('clNmErr');
+    if (n.length < 3) { er.textContent = 'Mindestens 3 Zeichen.'; return; }
+    try { if (!(await clNameFree(n))) { er.textContent = '„' + n + '“ ist schon vergeben.'; return; } } catch (e) { er.textContent = 'Keine Verbindung.'; return; }
+    PLAYER.name = n; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {}
+    try { applyPlayer(); } catch (e) {}
+    CL.nameTaken = false; await clPush(true); ddPopClose();
+  };
+}
+document.querySelectorAll('.pr-wide').forEach(b => { if (b.textContent.includes('Name ändern')) { b.removeAttribute('data-soon'); b.addEventListener('click', e => { e.preventDefault(); e.stopImmediatePropagation(); if (CL.state === 'ok') clRename(); else openCloud('Name ändern geht nur online.'); }, true); } });
+
+// Freunde + Einladungen
+const CL_FR = { list: [], inv: [], n: 0 };
+async function clFriendsLoad() {
+  if (CL.state !== 'ok') return CL_FR;
+  const uid = CL.auth.uid;
+  const [fr, inv] = await Promise.all([clReq('/rest/v1/friends?select=a,b,status&or=(a.eq.' + uid + ',b.eq.' + uid + ')'), clReq('/rest/v1/club_invites?select=from_id,to_id,club_name&to_id=eq.' + uid)]);
+  const ids = [...new Set(fr.map(f => f.a === uid ? f.b : f.a).concat(inv.map(i => i.from_id)))];
+  const pr = ids.length ? await clReq('/rest/v1/profiles?select=id,name,pos,level,ruhm,staerke&id=in.(' + ids.join(',') + ')') : [];
+  const P = Object.fromEntries(pr.map(p => [p.id, clProf(p, 0)]));
+  CL_FR.list = fr.map(f => { const o = f.a === uid ? f.b : f.a; return { ...(P[o] || { id: o, n: '?', r: 0, L: 0, pos: '' }), st: f.status, inc: f.b === uid && f.status === 'offen', out: f.a === uid && f.status === 'offen' }; });
+  CL_FR.inv = inv.map(i => ({ from: P[i.from_id] || { id: i.from_id, n: '?' }, club: i.club_name }));
+  CL_FR.n = CL_FR.list.filter(f => f.inc).length + CL_FR.inv.length;
+  const r = document.getElementById('ftRank'); if (r) { let d = r.querySelector('.mn-badge'); if (CL_FR.n) { if (!d) { r.insertAdjacentHTML('beforeend', '<span class="mn-badge"></span>'); d = r.querySelector('.mn-badge'); } d.textContent = CL_FR.n; } else if (d) d.remove(); }
+  return CL_FR;
+}
+setInterval(() => clFriendsLoad().catch(() => {}), 60000); setTimeout(() => clFriendsLoad().catch(() => {}), 5000);
+async function clFriendAct(id, act) {
+  const uid = CL.auth.uid;
+  if (act === 'send') await clReq('/rest/v1/friends', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ a: uid, b: id }) });
+  if (act === 'accept') await clReq('/rest/v1/friends?a=eq.' + id + '&b=eq.' + uid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ status: 'freund' }) });
+  if (act === 'del') await clReq('/rest/v1/friends?or=(and(a.eq.' + uid + ',b.eq.' + id + '),and(a.eq.' + id + ',b.eq.' + uid + '))', { method: 'DELETE' });
+  if (act === 'invite') await clReq('/rest/v1/club_invites?on_conflict=from_id,to_id', { method: 'POST', headers: { Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ from_id: uid, to_id: id, club_name: CLUB.name }) });
+  if (act === 'invdel') await clReq('/rest/v1/club_invites?from_id=eq.' + id + '&to_id=eq.' + uid, { method: 'DELETE' });
+  await clFriendsLoad();
+}
+// Online-Profil
+HF_CARD = async function (x) {
+  ddPop('<h3>' + hfEsc(x.n) + '</h3><p class="dd-p">Lädt …</p>');
+  let p; try { p = (await clReq('/rest/v1/profiles?select=*&id=eq.' + x.id))[0]; await clFriendsLoad(); } catch (e) { p = null; }
+  if (!p) { hfCard(x); return; }
+  const me = p.id === CL.auth.uid, fr = CL_FR.list.find(f => f.id === p.id);
+  const at = p.attrs || {}, mx = Math.max(1, ...Object.values(at).map(a => a.v || 0));
+  const bars = Object.entries(at).map(([n, a]) => `<div class="op-at"><span>${a.star ? '★ ' : ''}${hfEsc(n)}</span><i><b style="width:${Math.round(100 * (a.v || 0) / mx)}%"></b></i><em>${fmt(a.v || 0)}</em></div>`).join('');
+  let btn = '';
+  if (me) btn = `<button type="button" class="sd-pb two" id="opBio">Beschreibung ändern</button>`;
+  else if (!fr) btn = `<button type="button" class="sd-pb two" id="opAdd">➕ Freundschaftsanfrage</button>`;
+  else if (fr.inc) btn = `<button type="button" class="sd-pb two" id="opAcc">✔ Anfrage annehmen</button>`;
+  else if (fr.out) btn = `<button type="button" class="sd-pb two" disabled>Anfrage gesendet</button>`;
+  else btn = `<button type="button" class="sd-pb two" id="opDel">✖ Freund entfernen</button>`;
+  const canInv = !me && typeof CLUB !== 'undefined' && CLUB && CLUB.name && !p.club_name;
+  ddPop(`<div class="op-top">${p.hero ? `<img src="${p.hero}" alt="">` : p.avatar ? `<img src="${p.avatar}" alt="">` : ''}
+      <div><h3>${hfEsc(p.name)}</h3><div class="op-tags"><span>${p.pos}</span><span>Lv ${p.level}</span>${fr && fr.st === 'freund' ? '<span>Freund</span>' : ''}</div>
+      <div class="hf-card"><div><small>Ruhm</small><b>${fmt(p.ruhm)}</b></div><div><small>Stärke</small><b>${fmt(p.staerke)}</b></div>
+      <div style="grid-column:span 2"><small>Verein</small><b>${p.club_name ? hfEsc(p.club_name) : 'vereinslos'}</b></div></div></div></div>
+    <p class="dd-p op-bio">${p.bio ? hfEsc(p.bio) : (me ? 'Noch keine Beschreibung.' : '<i>Keine Beschreibung.</i>')}</p>
+    ${bars ? `<div class="op-ats">${bars}</div>` : ''}
+    <div class="sd-pop-btns">${btn}${canInv ? `<button type="button" class="sd-pb two" id="opInv">🏟️ In Verein einladen</button>` : ''}</div>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="opBack">Zurück</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  const $ = id => document.getElementById(id), run = (id, act, done) => { if ($(id)) $(id).onclick = async () => { $(id).disabled = true; try { await clFriendAct(p.id, act); if (done) $(id).textContent = done; else HF_CARD(x); } catch (e) { $(id).textContent = 'Fehler'; } }; };
+  run('opAdd', 'send'); run('opAcc', 'accept'); run('opDel', 'del'); run('opInv', 'invite', 'Einladung gesendet');
+  $('opBack').onclick = () => openHof();
+  if ($('opBio')) $('opBio').onclick = () => {
+    ddPop(`<h3>Beschreibung</h3><textarea id="opTx" maxlength="160" class="hf-q" style="height:90px;resize:none">${hfEsc(clBio())}</textarea>
+      <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="opTxNo">Zurück</button><button type="button" class="sd-pb" id="opTxOk">Speichern</button></div>`);
+    $('opTxNo').onclick = () => HF_CARD(x);
+    $('opTxOk').onclick = async () => { try { localStorage.setItem('dd_bio', $('opTx').value.trim().slice(0, 160)); } catch (e) {} await clPush(true); HF_CARD(x); };
+  };
+};
+// Freunde-Tab in der Ruhmeshalle
+HF_OPEN = function () {
+  if (CL.state !== 'ok') return;
+  const info = document.getElementById('hfInfo'); if (!info) return;
+  info.insertAdjacentHTML('beforebegin', `<div class="hf-tabs"><button type="button" class="on" id="hfT1">Rangliste</button><button type="button" id="hfT2">Freunde${CL_FR.n ? ` <span class="hf-n">${CL_FR.n}</span>` : ''}</button></div>`);
+  const t1 = document.getElementById('hfT1'), t2 = document.getElementById('hfT2'), q = document.getElementById('hfQ');
+  t1.onclick = () => { t1.classList.add('on'); t2.classList.remove('on'); q.hidden = false; hfFill(q.value.trim()); };
+  t2.onclick = async () => {
+    t2.classList.add('on'); t1.classList.remove('on'); q.hidden = true;
+    const box = document.getElementById('hfL'); info.textContent = 'Lädt …';
+    try { await clFriendsLoad(); } catch (e) {}
+    if (!document.getElementById('hfL')) return;
+    info.textContent = CL_FR.list.length || CL_FR.inv.length ? 'Deine Freunde & Anfragen' : 'Noch keine Freunde – such Spieler über die Rangliste und schick eine Anfrage.';
+    let h = CL_FR.inv.map((i, k) => `<div class="hf-row hf-inv"><b>🏟️</b><span>${hfEsc(i.from.n)} lädt dich in „${hfEsc(i.club)}“ ein</span><button type="button" data-inv="${k}">✖</button></div>`).join('');
+    const L = CL_FR.list.slice().sort((a, b) => (b.inc - a.inc) || (b.r - a.r));
+    h += L.map((f, k) => `<div class="hf-row" data-fr="${k}"><b>${f.inc ? '❗' : f.out ? '⏳' : '🤝'}</b><span>${hfEsc(f.n)}</span><small>${f.inc ? 'möchte dein Freund sein' : f.out ? 'Anfrage gesendet' : 'Lv ' + f.L + ' · ' + f.pos}</small><em>${f.st === 'freund' ? fmt(f.r) : ''}</em></div>`).join('');
+    box.innerHTML = h;
+    box.onclick = async e => {
+      const iv = e.target.closest('[data-inv]'); if (iv) { e.stopPropagation(); await clFriendAct(CL_FR.inv[+iv.dataset.inv].from.id, 'invdel'); t2.onclick(); return; }
+      const r = e.target.closest('[data-fr]'); if (r) { e.stopPropagation(); HF_CARD(L[+r.dataset.fr]); }
+    };
+  };
 };
 
 </script>
