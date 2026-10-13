@@ -1219,7 +1219,7 @@ body { padding: 0 !important; gap: 0 !important; display: block !important; min-
 </style>
 <div class="bar"><strong style="color:#FFC93C;font-family:'Lilita One',sans-serif;font-size:18px;letter-spacing:1px">DREAM DEBUT · Klick-Test</strong></div>
 <div class="phone" id="phone">
-  <div class="screen" id="laden"><div style="width: 390px; height: 844px; position: relative; overflow: hidden; background: #10223A; font-family: 'Nunito', sans-serif">
+  <div class="screen" id="laden"><div style="width: 390px; height: 100%; position: relative; overflow: hidden; background: #10223A; font-family: 'Nunito', sans-serif">
 
   <div style="position: absolute; inset: 0px">
     <img class="dd-anim" src="img/laden.jpg" alt="Schiedsrichterin sprintet und zeigt auf den Elfmeterpunkt" style="position: absolute; left: -40px; top: 0px; width: 471px; height: 844px; object-fit: cover; transform-origin: 40% 45%; animation: ddKen 7s ease-out both">
@@ -1768,7 +1768,10 @@ function fit() {
   const vv = window.visualViewport, de = document.documentElement;
   const W = Math.min(vv ? vv.width : 1e9, de.clientWidth || 1e9, window.innerWidth);
   const H = Math.min(vv ? vv.height : 1e9, de.clientHeight || 1e9, window.innerHeight) - it - ib;
-  const s = Math.min(W / 390, H / 844);
+  // 13. Okt.: Höhe passt sich dem Handy an (18:9 … 21:9), Breite bleibt 390 – sehr kurze/lange Bildschirme bekommen Ränder
+  const ph = Math.round(Math.max(800, Math.min(960, H * 390 / W)));
+  p.style.height = ph + 'px';
+  const s = Math.min(W / 390, H / ph);
   p.style.left = (W / 2) + 'px'; p.style.top = (it + H / 2) + 'px';
   p.style.transform = `translate(-50%, -50%) scale(${s})`;
 }
