@@ -1197,6 +1197,18 @@ button.mt-pl[disabled] { cursor: default; }
 .ft-time { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 10px; font-weight: 900; color: #fff; text-shadow: 0 1px 0 #2A1209, 0 0 3px #2A1209; pointer-events: none; }
 .mn-q { font-family: 'Lilita One', sans-serif; font-size: 34px; color: #8FD14F; text-shadow: 0 3px 0 #2A1209; }
 .pr-fig { top: 30px; bottom: auto; width: 164px; }
+.pr-frame { background: #5DB0E8 url(img/bg/karte.jpg) center bottom / cover; }
+.pr-bg, .cr-bg { background: #2A1209 url(img/bg/kabine.jpg) center / cover; }
+.pr-bg::after, .cr-bg::after { background: rgba(26,10,4,.5); }
+.vr-bg { background-image: url(img/bg/vereinsheim.jpg); background-position: center; filter: brightness(.5); }
+.mt-bg { background-image: url(img/bg/tunnel.jpg); background-position: center; filter: brightness(.5); }
+.ab-bg { background-image: url(img/bg/hinterhof.jpg); background-position: center; filter: brightness(.5); }
+#arbeit.ab-rest .ab-bg { background-image: url(img/bg/wellness.jpg); }
+.du-pitch::before { content: ''; position: absolute; left: 50%; top: -69px; width: 418px; height: 307px; margin-left: -209px; background: url(img/bg/elfmeter.jpg) 0 0 / 100% 100%; }
+.du-goal { border-color: transparent; } .du-net, .du-spot { display: none; } .du-pitch::after { display: none; }
+#abRun.abs { background: #2A1209; align-items: flex-end; padding: 10px; overflow: hidden; }
+#abRun.abs .ab-run-in { position: relative; z-index: 1; max-width: none; gap: 4px; padding: 10px 12px; background: rgba(42,18,9,.88); }
+#abRun.abs .ab-run-ic { display: none; } #abRun.abs .ab-run-time { font-size: 26px; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -4757,6 +4769,7 @@ const MT_FACE = new Map();
 function mtFace(m) {
   if (m.me) return PLAYER ? PLAYER.img.avatar : '';
   if (m.av && m.av !== 'img/avatar.png') return m.av;
+  if (m.oid && !m.bot) return 'img/icons/ic_unbekannt.png';
   if (m.look && !m.bot) { const k = m.name + '|' + JSON.stringify(m.look); if (!MT_FACE.has(k)) MT_FACE.set(k, avatarFor(m.look)); return MT_FACE.get(k); }
   return '';
 }
@@ -5677,7 +5690,8 @@ const IC_CAT = { 'Spieler': 'ic_trikot', 'Sport': 'ic_training', 'Verein': 'ic_v
 const IC_SIG = [['rx="9" ry="4"', 'ic_gold'], ['M6 3h12l4 6', 'ic_tb'], ['M12 7.2l3 2.2', 'ic_tb'], ['M13 2L4 14h7', 'ic_energie']];
 const IC_EMO = { '🪙': 'ic_gold', '💪': 'ic_form', '⚡': 'ic_energie', '⚽': 'ic_tb', '🎁': 'ic_tagesbonus', '💰': 'ic_geldsack', '🔨': 'ic_schmied', '🎒': 'ic_tasche',
   '🏆': 'ic_pokal', '📺': 'ic_werbung', '🔄': 'ic_wuerfel', '🎡': 'ic_gluecksrad', '🏛': 'ic_ruhmeshalle', '⚔': 'ic_duell', '💼': 'ic_nebenjob', '🏨': 'ic_hotel',
-  '💤': 'ic_schlafen', '🥇': 'ic_erfolge', '🏟': 'ic_stadion', '📋': 'ic_aufgaben', '👟': 'ic_schuh', '🏊': 'ic_wellness', '🏠': 'ic_vereinsheim' };
+  '💤': 'ic_schlafen', '🥇': 'ic_erfolge', '🏟': 'ic_stadion', '📋': 'ic_aufgaben', '👟': 'ic_schuh', '🏊': 'ic_wellness', '🏠': 'ic_vereinsheim',
+  '🌭': 'ic_job_wurst', '🧹': 'ic_job_platzwart', '📰': 'ic_job_zeitung', '🧺': 'ic_job_trikots', '🎟': 'ic_job_karten', '🧃': 'ic_job_kisten', '🌙': 'ic_nacht', '🔥': 'ic_kombo', '✨': 'ic_geniestreich', '⭐': 'ic_mvp' };
 const IC_RE = new RegExp('(' + Object.keys(IC_EMO).join('|') + ')️?', 'g');
 function icSet(sv, n) { sv.setAttribute('viewBox', '0 0 24 24'); sv.innerHTML = `<image href="${ICP(n)}" x="0" y="0" width="24" height="24"/>`; sv.dataset.ic = n; }
 function icSvg(sv) {
@@ -5825,6 +5839,20 @@ openHof = function () {
   document.getElementById('hfL').onclick = e => { const r = e.target.closest('[data-hf]'); if (r) { const x = HF_LIST[+r.dataset.hf]; if (x && HF_CARD && x.id) HF_CARD(x); else if (x && !x.me) hfCard(x); } };
   hfFill(''); if (HF_OPEN) HF_OPEN();
 };
+
+// ---------- 13. Okt.: gemalte Hintergründe + Nebenjob-Szenen (wie Training: großes Bild, langsamer Schwenk) ----------
+const AB_SCENE = { 'Bratwurst wenden': 'bratwurst', 'Platzwart-Aushilfe': 'platzwart', 'Zeitungen austragen': 'zeitungen', 'Trikots waschen': 'trikots', 'Kartenverkauf': 'karten', 'Getränke schleppen': 'getraenke' };
+abShowRun = (orig => function () {
+  orig();
+  const r = document.getElementById('abRun'), J = S.job; if (!r || !J) return;
+  r.classList.add('abs');
+  let bg = document.getElementById('absBg');
+  if (!bg) { r.insertAdjacentHTML('afterbegin', '<div class="trs-bg" id="absBg"><img alt=""></div>'); bg = document.getElementById('absBg'); }
+  const im = bg.querySelector('img'), src = 'img/job/' + (J.kind === 'work' ? (AB_SCENE[J.n] || 'bratwurst') : J.kind === 'spa' ? 'wellness' : 'hotel') + '.jpg';
+  const fit = () => { const dx = Math.max(0, im.offsetWidth - bg.clientWidth); im.style.setProperty('--dx', -dx + 'px'); im.style.animation = 'none'; void im.offsetWidth; im.style.animation = ''; };
+  if (im.getAttribute('src') !== src) { im.onload = fit; im.src = src; } else if (!im.style.getPropertyValue('--dx') && im.complete) fit();
+})(abShowRun);
+abRender = (orig => function () { const x = orig.apply(this, arguments); const a = document.getElementById('arbeit'); if (a) a.classList.toggle('ab-rest', abTab === 'rest'); return x; })(abRender);
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
