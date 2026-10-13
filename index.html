@@ -1301,6 +1301,18 @@ button.mt-pl[disabled] { cursor: default; }
 .mt-pl.bot i img { filter: saturate(.6); }
 .tr-curs div { font-size: 19px; letter-spacing: 0; gap: 6px; }
 .du-ball, .mt-ball { font-size: 0 !important; width: 22px; height: 22px; background: url(img/crest/s_ball.png) center / contain no-repeat; }
+#gMenu svg, .tr-x svg, .cr-arrow svg, .vr-arrow svg, .pr-slot.empty svg { display: none !important; }
+#gMenu::after { content: ''; position: absolute; inset: 20px; background: url(img/icons/ic_menu.png) center / contain no-repeat; }
+.tr-x { position: relative; } .tr-x::after { content: ''; position: absolute; inset: 9px; background: url(img/icons/ic_close.png) center / contain no-repeat; }
+.cr-arrow, .vr-arrow { position: relative; font-size: 0 !important; background: none !important; box-shadow: none !important; border-radius: 0 !important; border-image: url(img/ui/d_btn_wood.png) 74 140 92 140 fill / 9px 14px 11px 14px stretch; }
+.cr-arrow::after, .vr-arrow::after { content: ''; position: absolute; inset: 8px 10px; background: url(img/icons/ic_pfeil.png) center / contain no-repeat; }
+#crPrev::after, .vr-arrow[data-d="-1"]::after { transform: scaleX(-1); }
+.pr-slot.empty::after { content: ''; width: 34px; height: 34px; background: url(img/icons/ic_plus.png) center / contain no-repeat; opacity: .55; }
+.cr-pcard svg { width: 40px !important; height: 40px !important; } .cr-pcard.on::after { content: '' !important; background: url(img/icons/ic_haken.png) center / 80% no-repeat #FFC93C !important; }
+.ab-card .chk { font-size: 0 !important; } .ab-card.sel .chk { background: url(img/icons/ic_haken.png) center / 70% no-repeat; }
+.cr-stage { background: url(img/bg/karte.jpg) center 85% / cover !important; border-image: none !important; border: 4px solid #2A1209 !important; border-radius: 16px !important; box-shadow: inset 0 0 0 3px var(--acc), 0 5px 0 #2A1209 !important; }
+.tr-port { background: url(img/bg/karte.jpg) 50% 62% / 260% auto !important; }
+.cr-sun { display: none !important; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -5375,14 +5387,18 @@ syncGlobal = (orig => function () {
 // S.wheel = { d: Tages-Schlüssel, n: heute schon gedreht }
 const WH_FREE = 1, WH_ADS = 2, WH_AD_SEC = 5;
 const whItem = rars => () => { const b = pick(Object.values(ITEMS_BASE).filter(it => rars.includes(it.rar) && it.cat !== 'gl' && (it.cat !== 'po' || it.pos === myPos()) && !it.kiosk)); if (!b) return; if (bagUsed() >= BAG_SIZE) { gold += Math.round(10 * GU(S.level)); return 'Tasche voll – stattdessen Gold'; } P.bag.push(itMake(b.id, S.level, myPos())); saveProfile(); renderProfile(); };
+const WH_GOLD = k => ({ ic: '🪙', t: 'Gold', col: '#FFC93C', v: () => Math.round(k * GU(S.level)), f: v => { gold += v; } });
+const WH_XP = { ic: '🔷', t: 'XP', col: '#5BB8FF', v: () => 100 * S.level, f: v => { const lv = S.level; S.xp += v; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); } };
+// 13. Okt.: gemaltes Rad hat 10 Felder (Feld 0 = oben) – kleines Gold und XP je zweimal, Gewichte wie vorher (Summe 100)
 const WH_SEG = [
-  { ic: '🪙', t: 'Gold', w: 24, col: '#FFC93C', v: () => Math.round(5 * GU(S.level)), f: v => { gold += v; } },
-  { ic: '🔷', t: 'XP', w: 18, col: '#5BB8FF', v: () => 100 * S.level, f: v => { const lv = S.level; S.xp += v; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); } },
+  { ...WH_GOLD(5), w: 12 }, { ...WH_XP, w: 9 },
   { ic: '🎁', t: 'Item', w: 10, col: '#9CA2AA', v: () => 1, f: () => giveItem(Math.random() < .5 ? 'grau' : 'selten') },
   { ic: '⚽', t: 'Traumbälle', w: 12, col: '#E0489A', v: () => 2, f: v => { S.tb += v; } },
-  { ic: '🪙', t: 'Gold', w: 15, col: '#FFC93C', v: () => Math.round(12 * GU(S.level)), f: v => { gold += v; } },
+  { ...WH_GOLD(12), w: 15 },
   { ic: '🧪', t: 'Trank', w: 12, col: '#8FD14F', v: () => 1, f: () => { if (bagUsed() >= BAG_SIZE) { gold += Math.round(6 * GU(S.level)); return 'Tasche voll – stattdessen Gold'; } potBagAdd(HAUPT[myPos()], 0); } },
+  { ...WH_GOLD(5), w: 12 },
   { ic: '💰', t: 'Viel Gold', w: 6, col: '#FF7A2F', v: () => Math.round(30 * GU(S.level)), f: v => { gold += v; } },
+  { ...WH_XP, w: 9 },
   { ic: '🟣', t: 'Top-Item', w: 3, col: '#B07CFF', v: () => 1, f: () => giveItem(Math.random() < .05 ? 'legendaer' : 'episch') },
 ];
 const whKey = () => kiDayKey() + '/' + (S.dbOff || 0);
@@ -5390,12 +5406,13 @@ function whState() { if (!S.wheel || S.wheel.d !== whKey()) S.wheel = { d: whKey
 const whFree = () => WH_FREE + (evOn('wheel') ? 1 : 0);
 const whFreeLeft = () => whState().n < whFree();
 let whAng = 0, whBusy = false;
-function whSvg() {
-  const n = WH_SEG.length, R = 100, seg = 360 / n, rad = a => (a - 90) * Math.PI / 180;
-  return `<svg viewBox="-110 -110 220 220" class="wh-svg" aria-hidden="true"><g id="whRot" style="transform:rotate(${whAng}deg)">${WH_SEG.map((g, i) => {
-    const a0 = i * seg, a1 = a0 + seg, x0 = R * Math.cos(rad(a0)), y0 = R * Math.sin(rad(a0)), x1 = R * Math.cos(rad(a1)), y1 = R * Math.sin(rad(a1)), am = rad(a0 + seg / 2);
-    return `<path d="M0 0L${x0.toFixed(1)} ${y0.toFixed(1)}A${R} ${R} 0 0 1 ${x1.toFixed(1)} ${y1.toFixed(1)}z" fill="${g.col}" stroke="#2A1209" stroke-width="3"/><text x="${(66 * Math.cos(am)).toFixed(1)}" y="${(66 * Math.sin(am)).toFixed(1)}" font-size="26" text-anchor="middle" dominant-baseline="central">${g.ic}</text>`;
-  }).join('')}<circle r="18" fill="#FFF6E3" stroke="#2A1209" stroke-width="4"/></g><path d="M-12 -112L12 -112L0 -88z" fill="#D83A34" stroke="#2A1209" stroke-width="3" stroke-linejoin="round"/></svg>`;
+function whSvg() {   // 13. Okt.: gemaltes Rad (img/ui/wheel.png, Feld 0 oben mittig) + gemalter Zeiger, Symbole als Bilder
+  const n = WH_SEG.length, seg = 360 / n, rad = a => (a - 90) * Math.PI / 180, IC = { '🪙': 'ic_gold', '🔷': 'ic_xp', '🎁': 'ic_tagesbonus', '⚽': 'ic_tb', '🧪': 'ic_trank', '💰': 'ic_geldsack', '🟣': 'ic_schatz' };
+  return `<svg viewBox="-110 -122 220 232" class="wh-svg" aria-hidden="true"><g id="whRot" style="transform:rotate(${whAng}deg)">
+    <image href="img/ui/wheel.png" x="-104" y="-104" width="208" height="208" transform="rotate(${seg / 2})"/>${WH_SEG.map((g, i) => {
+    const am = rad(i * seg + seg / 2), x = 60 * Math.cos(am), y = 60 * Math.sin(am);
+    return `<image href="img/icons/${IC[g.ic] || 'ic_gold'}.png" x="${(x - 17).toFixed(1)}" y="${(y - 17).toFixed(1)}" width="34" height="34" transform="rotate(${(i * seg + seg / 2).toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)})"/>`;
+  }).join('')}</g><image href="img/ui/wheel_ptr.png" x="-16" y="-122" width="32" height="40"/></svg>`;
 }
 function openWheel() {
   const W = whState(), adsLeft = Math.max(0, whFree() + WH_ADS - W.n);
@@ -5983,6 +6000,14 @@ crestSVG = function (c) {
 
 // 13. Okt.: „Verein suchen“-Symbol = gemalte Lupe
 (() => { const v = document.querySelector('.vr-big-ic2'); if (v) v.innerHTML = '<img src="img/icons/ic_suche.png" alt="" style="width:62px;height:62px">'; })();
+
+// ---------- 13. Okt.: gemalte Bedien-Symbole (17_ui_symbole) + Positions-Symbole (18_positionen) ----------
+(() => {
+  try { [['TW', 'tw'], ['AB', 'ab'], ['MF', 'mf'], ['ST', 'st']].forEach(([id, k]) => { const p = POSITIONS.find(x => x.id === id); if (p) p.ic = `<image href="img/icons/ic_pos_${k}.png" x="0" y="0" width="24" height="24"/>`; }); } catch (e) {}
+  document.querySelectorAll('#crPos .cr-pcard').forEach(c => { const p = POSITIONS.find(x => x.id === c.dataset.pos), sv = c.querySelector('svg'); if (p && sv) { sv.setAttribute('viewBox', '0 0 24 24'); sv.innerHTML = p.ic; } });
+  const r = document.getElementById('crRand'); if (r) { const sv = r.querySelector('svg'); if (sv) sv.outerHTML = '<img src="img/icons/ic_wuerfel2.png" alt="" style="width:22px;height:22px;vertical-align:-5px">'; }
+  const h = document.getElementById('ftHelp'); if (h) h.innerHTML = '<img src="img/icons/ic_hilfe.png" alt="" style="width:34px;height:34px">';
+})();
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
