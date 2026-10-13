@@ -5962,7 +5962,7 @@ async function clProfileBody(now) {
   let ruhm = 0, st = 0; try { ruhm = duState().r; } catch (e) {} try { st = posPower(); } catch (e) {}
   const attrs = {}; try { ATTR.forEach(a => { attrs[a.n] = { v: Math.round(attrEff(a.n)), star: !!a.star }; }); } catch (e) {}
   return { id: CL.auth.uid, name: String(PLAYER.name).slice(0, 20), pos: myPos(), level: S.level, ruhm: Math.round(ruhm), staerke: Math.round(st), look: PLAYER.look || null,
-    bio: clBio().slice(0, 160), attrs, avatar: (PLAYER.img && PLAYER.img.avatar) || null, hero: await clHeroJpg(), club_name: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || null, updated_at: now };
+    bio: clBio().slice(0, 160), attrs, avatar: (PLAYER.img && PLAYER.img.avatar) || null, hero: await clHeroJpg(), club_name: (typeof CLUB !== 'undefined' && CLUB && CLUB.name) || null, meld: S.meld || 0, updated_at: now };
 }
 const clLike = n => encodeURIComponent(n.replace(/[%_\\*,()]/g, c => '\\' + c));
 async function clNameFree(n) {
@@ -6081,7 +6081,7 @@ HF_OPEN = function () {
 };
 
 // ---------- 13. Okt.: Online-Vereine (Gründer meldet Verein an, Einladung annehmen = beitreten, echte Mitspieler im Kader) ----------
-const clClubSnap = () => ({ crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null });
+const clClubSnap = () => ({ crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null, liga: CLUB.liga ? { start: CLUB.liga.start, teams: CLUB.liga.teams, opps: CLUB.liga.opps, lvl0: CLUB.liga.lvl0, league: CLUB.league, cur: { day: CLUB.liga.day, tab: CLUB.liga.tab } } : null });
 async function clClubSync() {
   if (CL.state !== 'ok' || typeof CLUB === 'undefined') return;
   const uid = CL.auth.uid; let last = ''; try { last = localStorage.getItem('dd_cloud_club') || ''; } catch (e) {}
@@ -6104,7 +6104,8 @@ async function clClubSync() {
   if (!mine) { await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: uid, rolle: CLUB.founder ? 'kapitaen' : 'spieler' }) }).catch(() => {}); }
   const role = mine ? mine.rolle : (CLUB.founder ? 'kapitaen' : 'spieler');
   if (role === 'kapitaen') await clReq('/rest/v1/clubs?id=eq.' + CLUB.oid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ ausbau: clClubSnap() }) });
-  else if (club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; }
+  else if (club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; if (a.liga) await clLgAdopt(a.liga); }
+  if (role === 'kapitaen') CLUB.ligaOk = CLUB.liga ? CLUB.liga.start : 0;
   // Kader: ich + echte Mitspieler + Bots auffüllen
   const ids = mem.map(m => m.user_id).filter(i => i !== uid);
   const pr = ids.length ? await clReq('/rest/v1/profiles?select=id,name,pos,level,avatar,updated_at&id=in.(' + ids.join(',') + ')') : [];
@@ -6132,5 +6133,76 @@ async function clJoinClub(inv) {
     await clClubSync(); await clPush(true); await clFriendsLoad();
   } catch (e) { openCloud('Beitreten fehlgeschlagen: ' + e.message); }
 }
+
+// ---------- 13. Okt.: Gemeinsame Vereinsspiele – wer zuerst nach Anpfiff online ist, berechnet das Spiel, alle anderen übernehmen genau dieses Ergebnis ----------
+const CL_LG = { busy: false, shared: null, lastA: null };
+async function clLgAdopt(b) {
+  if (!b || !b.start || !b.teams) return;
+  if (CLUB.liga && CLUB.liga.start === b.start && CLUB.ligaOk === b.start) return;
+  const tab = {}; b.teams.forEach(t => tab[t.name] = { sp: 0, s: 0, u: 0, n: 0, tf: 0, tg: 0, pts: 0, prev: 0 });
+  const old = CLUB.liga && CLUB.liga.start === b.start ? CLUB.liga : null;
+  if (b.league) CLUB.league = b.league;
+  const L = old || { v: 2, day: 0, teams: b.teams, tab, opps: b.opps, start: b.start, extra: 0, tactic: 'bal', last: null, unseen: [], hist: [], lvl0: b.lvl0 };
+  L.teams = b.teams; L.opps = b.opps; L.lvl0 = b.lvl0; L.extra = 0;
+  if (!old) {
+    let row = null; try { row = (await clReq('/rest/v1/club_matches?select=day,tab&club_id=eq.' + CLUB.oid + '&season=eq.' + b.start + '&order=day.desc&limit=1'))[0]; } catch (e) {}
+    const cur = b.cur || { day: 0, tab };
+    if (row && row.day >= cur.day) { L.day = row.day; L.tab = row.tab; } else { L.day = cur.day; L.tab = cur.tab || tab; }
+  }
+  CLUB.liga = L; CLUB.ligaOk = b.start; saveClub();
+}
+// Spielverlauf der Simulation mitschneiden (für die Spieler-Statistik aller Mitglieder)
+simCore = (orig => function (A, B, o) { const all = A.on.concat(A.bench), r = orig(A, B, o); if (!o.quiet) CL_LG.lastA = all; return r; })(simCore);
+mtSimulate = (orig => function () { if (CL_LG.shared) return JSON.parse(JSON.stringify(CL_LG.shared)); return orig(); })(mtSimulate);
+mtCatchUp = (orig => function () {
+  if (typeof CLUB !== 'undefined' && CLUB && CLUB.oid) { clLeagueTick(); return 0; }   // Online-Verein: nie allein rechnen
+  return orig();
+})(mtCatchUp);
+const clMatchQ = (season, day) => '/rest/v1/club_matches?select=*&club_id=eq.' + CLUB.oid + '&season=eq.' + season + '&day=eq.' + day;
+function clApplyRow(row, slot) {
+  const R = row.res, uid = CL.auth.uid, my = (R.players || []).find(p => p.oid === uid), mins = my ? my.mins : 0;
+  const myB = '<b>' + (PLAYER ? PLAYER.name : 'Du') + '</b>';
+  const ev = (R.ev || []).map(e => ({ ...e, c: ((e.c || '').replace(/\bme\b/g, '').trim() + (e.h && e.h.includes(myB) ? ' me' : '')).trim() }));
+  CL_LG.shared = { day: row.day, home: R.home, opp: R.opp, g: R.g, ev, mom: R.mom, poss: R.poss,
+    me: { goals: my ? my.g : 0, assists: my ? my.a : 0, chances: my ? my.sh : 0, rate: my && mins ? my.r : 0, motm: R.motm === uid, mins, fac: mins ? Math.max(.25, mins / 90) : .25 } };
+  MT_SLOT = slot; let r; try { r = mtPlayDay(); } finally { MT_SLOT = null; CL_LG.shared = null; }
+  CLUB.liga.tab = row.tab; return r;
+}
+async function clWriteDay(day, slot, season) {
+  const uid = CL.auth.uid, ids = CLUB.kader.filter(m => m.oid).map(m => m.oid);
+  let meld = {}; try { if (ids.length) (await clReq('/rest/v1/profiles?select=id,meld&id=in.(' + ids.join(',') + ')')).forEach(p => meld[p.id] = +p.meld || 0); } catch (e) {}
+  const off = CLUB.kader.filter(m => m.oid && !m.bot && meld[m.oid] !== slot); off.forEach(m => { m.bot = true; m._n = m.name; m.name = 'Ersatz-Bot'; });   // nicht gemeldet → Bot spielt
+  CL_LG.lastA = null; MT_SLOT = slot; let r;
+  try { r = mtPlayDay(); } finally { MT_SLOT = null; off.forEach(m => { m.bot = false; m.name = m._n; delete m._n; }); }
+  const all = CL_LG.lastA || [], played = all.filter(p => p.played || p.mins > 0);
+  const best = played.slice().sort((a, b) => a.r - b.r)[0];
+  const oidOf = p => p.me ? uid : (p.m && p.m.oid && !off.includes(p.m)) ? p.m.oid : null;
+  const res = { home: r.home, opp: r.opp, g: r.g, ev: r.ev, mom: r.mom, poss: r.poss, motm: best ? oidOf(best) : null,
+    players: played.map(p => ({ oid: oidOf(p), name: p.name, g: p.g, a: p.a, sh: p.sh, mins: p.mins, r: +Math.max(1, Math.min(6, p.r)).toFixed(1) })) };
+  const ins = await clReq('/rest/v1/club_matches?on_conflict=club_id,season,day', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+    body: JSON.stringify({ club_id: CLUB.oid, season, day, res, tab: CLUB.liga.tab }) });
+  if (!ins || !ins.length) { const w = (await clReq(clMatchQ(season, day)))[0]; if (w) CLUB.liga.tab = w.tab; }   // jemand war schneller: dessen Tabelle gilt
+  return r;
+}
+async function clLeagueTick() {
+  if (CL_LG.busy || CL.state !== 'ok' || !CLUB || !CLUB.oid || !CLUB.liga) return;
+  CL_LG.busy = true;
+  try {
+    if (CLUB.ligaOk !== CLUB.liga.start) { await clClubSync(); if (!CLUB.liga || CLUB.ligaOk !== CLUB.liga.start) return; }
+    const L = CLUB.liga, season = L.start, slots = mtSlotTimes(L.start, Date.now()), target = Math.min(MT_DAYS, slots.length), done = [];
+    while (L.day < target) {
+      const d = L.day + 1, slot = slots[L.day], row = (await clReq(clMatchQ(season, d)))[0];
+      done.push(row ? clApplyRow(row, slot) : await clWriteDay(d, slot, season));
+    }
+    if (done.length) {
+      L.unseen = (L.unseen || []).concat(done.map(r => ({ day: r.day, opp: r.opp, home: r.home, g: r.g, gold: r.gold, xp: r.xp, off: r.off }))).slice(-6);
+      saveClub(); syncGlobal(); try { renderAttrs(); } catch (e) {}
+      if (!document.getElementById('spieltag').hidden) { mtRenderPre(); mtAwayPopup(); }
+    }
+  } catch (e) { CL.lgErr = e.message; } finally { CL_LG.busy = false; }
+}
+setInterval(() => clLeagueTick(), 60000);
+// Meldung sofort an den Server, damit der Rechner des Spiels sie sieht
+document.getElementById('mtGo').addEventListener('click', () => setTimeout(() => clPush(true), 200));
 
 </script>
