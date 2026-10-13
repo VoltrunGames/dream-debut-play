@@ -5635,7 +5635,7 @@ function openAch() {
   const cup = '<svg width="34" height="34" viewBox="0 0 24 24" stroke="#2A1209" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"><path d="M7 4h10v5a5 5 0 0 1-10 0z" fill="#FFC93C"/><path d="M7 6H4c0 3 1.5 4.5 3.5 4.5M17 6h3c0 3-1.5 4.5-3.5 4.5" fill="none"/><path d="M12 14v3M8 20h8l-1-3H9z" fill="#C98B06"/></svg>';
   grid.insertAdjacentHTML('beforeend', `<div class="mn-row"><div class="mn-tiles"><button type="button" class="mn-tile" id="mnDuel" aria-label="Duell">${sw}<span>Duell</span></button><button type="button" class="mn-tile" id="mnHof" aria-label="Ruhmeshalle">${hall}<span>Ruhmes­halle</span></button><button type="button" class="mn-tile" id="mnCup" aria-label="Pokal">${cup}<span>Pokal</span></button></div><div class="mn-cat" title="Arena">${sw}<span>Arena</span></div></div>`);
   const on = (id, f) => document.getElementById(id).onclick = e => { e.preventDefault(); e.stopPropagation(); if (S.tut) return; f(); };
-  on('mnDuel', openDuel); on('mnHof', openHof); on('mnCup', openCup);
+  on('mnDuel', () => openDuel()); on('mnHof', () => openHof()); on('mnCup', () => openCup());
   const badge = (el, on2, txt) => { if (!el) return; let b = el.querySelector('.mn-badge'); if (on2 && !b) el.insertAdjacentHTML('beforeend', `<span class="mn-badge mn-badge-y">${txt || '!'}</span>`); else if (!on2 && b) b.remove(); };
   syncGlobal = (orig => function () { orig(); try { if (!PLAYER) return; badge(document.getElementById('mnAch'), achAny()); badge(document.getElementById('mnDuel'), duState().next <= Date.now() && duState().n < DU_MAX); const C = CLUB && CLUB.liga ? cupState() : null; badge(document.getElementById('mnCup'), !!C && C.res.length > (C.seen || 0)); } catch (e) {} })(syncGlobal);
   syncGlobal();
