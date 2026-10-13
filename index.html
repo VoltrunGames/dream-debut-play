@@ -1158,6 +1158,9 @@ button.mt-pl[disabled] { cursor: default; }
 .wh-ad em { font-style: normal; font-weight: 900; font-size: 30px; color: #FFC93C; }
 .emo { height: 1.2em; width: auto; vertical-align: -0.25em; display: inline-block; margin: 0 1px; }
 .tr-pic svg { width: 54px !important; height: 54px !important; }
+.hf-q { width: 100%; box-sizing: border-box; margin: 2px 0 4px; padding: 8px 10px; border-radius: 10px; border: 3px solid #2A1209; font: 700 14px Nunito, sans-serif; background: #FFF6E3; color: #2A1209; }
+.hf-row[data-hf] { cursor: pointer; }
+.hf-card { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin: 8px 0; } .hf-card div { background: rgba(0,0,0,.22); border-radius: 8px; padding: 6px 8px; } .hf-card small { display: block; font-size: 10px; opacity: .7; } .hf-card b { font-size: 16px; }
 #trRun.trs { padding: 0 !important; display: block !important; background: #2A1209 !important; overflow: hidden; }
 #trRun.trs[hidden] { display: none !important; }
 .trs-bg { position: absolute; inset: 0; overflow: hidden; background: #2A1209; }
@@ -5763,6 +5766,47 @@ document.getElementById('trCancel').onclick = () => {
   setInterval(upd, 1000); upd();
 })();
 
+// ---------- 13. Okt.: Ruhmeshalle mit Spielersuche (offline Bots, online echte Spieler über HOF_SRC aus cloud.js) ----------
+var HOF_SRC = null;   // cloud.js setzt { top(me), search(q) } → Promise<[{n,r,L,pos,st,id,rank}]>
+const hfEsc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function hfMe() { const D = duState(); let st = 0; try { st = posPower(); } catch (e) {} return { n: PLAYER ? PLAYER.name : 'Du', me: true, r: D.r, L: S.level, pos: myPos(), st }; }
+function hfBotAll() { const me = hfMe(); const all = hofList().map(b => ({ n: b.n, r: botRuhm(b), L: botLvl(b), pos: b.pos, st: Math.round(me.st * (0.5 + b.f * 0.6)) })).concat([me]).sort((a, b) => b.r - a.r); all.forEach((x, i) => x.rank = i + 1); return all; }
+function hfAround(all) { const k = all.findIndex(x => x.me), show = new Set([0, 1, 2]); for (let i = Math.max(0, k - 3); i <= Math.min(all.length - 1, k + 3); i++) show.add(i); return [...show].sort((a, b) => a - b).map(i => all[i]); }
+function hfRows(list) {
+  let last = 0, h = '';
+  list.forEach((x, i) => { if (x.rank > last + 1 && i) h += '<div class="hf-gap">…</div>'; last = x.rank;
+    h += `<div class="hf-row${x.me ? ' me' : ''}" data-hf="${i}"><b>${x.rank ? x.rank + '.' : ''}</b><span>${hfEsc(x.n)}</span><small>Lv ${x.L} · ${x.pos}</small><em>${fmt(x.r)}</em></div>`; });
+  return h || '<p class="dd-p" style="text-align:center">Niemand gefunden.</p>';
+}
+let HF_LIST = [], HF_T = 0;
+async function hfFill(q) {
+  const box = document.getElementById('hfL'), info = document.getElementById('hfInfo'); if (!box) return;
+  const t = ++HF_T; let list = null, online = false;
+  if (HOF_SRC) { try { list = q ? await HOF_SRC.search(q) : await HOF_SRC.top(hfMe()); online = !!list; } catch (e) { list = null; } }
+  if (!list) { const all = hfBotAll(); list = q ? all.filter(x => x.n.toLowerCase().includes(q.toLowerCase())).slice(0, 8) : hfAround(all); }
+  if (t !== HF_T || !document.getElementById('hfL')) return;
+  HF_LIST = list; box.innerHTML = hfRows(list);
+  if (info) info.textContent = q ? `Suche: „${q}“` : online ? 'Echte Spieler · Rangliste nach Ruhm aus Duellen' : 'Rangliste nach Ruhm aus Duellen';
+}
+function hfCard(x) {
+  ddPop(`<h3>${hfEsc(x.n)}</h3>
+    <div class="hf-card"><div><small>Position</small><b>${x.pos}</b></div><div><small>Level</small><b>${x.L}</b></div>
+    <div><small>Ruhm</small><b>${fmt(x.r)}</b></div><div><small>Stärke</small><b>${x.st ? fmt(x.st) : '?'}</b></div>
+    ${x.rank ? `<div><small>Platz</small><b>${x.rank}.</b></div>` : ''}${x.club ? `<div><small>Verein</small><b>${hfEsc(x.club)}</b></div>` : ''}</div>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="hfBack">Zurück</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  document.getElementById('hfBack').onclick = () => openHof();
+}
+openHof = function () {
+  ddPop(`<h3>🏛️ Ruhmeshalle</h3><p class="dd-p" id="hfInfo">Lädt …</p>
+    <input id="hfQ" class="hf-q" type="search" placeholder="🔍 Spieler suchen …" autocomplete="off" maxlength="20">
+    <div class="hf-list" id="hfL"></div>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" onclick="openDuel()">Zum Duell</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  const q = document.getElementById('hfQ'); let tm;
+  q.oninput = () => { clearTimeout(tm); tm = setTimeout(() => hfFill(q.value.trim()), 300); };
+  document.getElementById('hfL').onclick = e => { const r = e.target.closest('[data-hf]'); if (r) { const x = HF_LIST[+r.dataset.hf]; if (x && !x.me) hfCard(x); } };
+  hfFill('');
+};
+
 // ---------- Cloud (Supabase): anonymes Konto, Spielstand-Sicherung, Profil, Konto sichern / auf anderem Gerät anmelden ----------
 // Nur in der Handy-Version (handy.build.py). Ohne Netz (z. B. Claude-Artifact) läuft alles lokal weiter.
 const SB_URL = 'https://ciptucrctxxzedmdapnw.supabase.co', SB_KEY = 'sb_publishable_W2kuOxxLhnT9bbIwxEh6OA_FjkaG_Ft';
@@ -5866,5 +5910,37 @@ function openCloud(msg) {
 }
 document.querySelectorAll('[aria-label="Einstellungen"]').forEach(b => { b.removeAttribute('data-soon'); b.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openCloud(); }, true); });
 if (typeof fetch === 'function') setTimeout(() => clStart().catch(e => { CL.state = 'offline'; CL.err = e.message; }), 1500);
+// Ruhmeshalle + Spielersuche mit echten Spielern (profiles)
+async function clCount(q) {
+  await clEnsure();
+  const r = await fetch(SB_URL + '/rest/v1/profiles?select=id&' + q, { method: 'HEAD', headers: { apikey: SB_KEY, Authorization: 'Bearer ' + CL.auth.access_token, Prefer: 'count=exact' } });
+  const cr = r.headers.get('content-range') || ''; return +(cr.split('/')[1] || 0);
+}
+const clProf = (p, rank) => ({ id: p.id, n: p.name, r: p.ruhm, L: p.level, pos: p.pos, st: p.staerke, rank, me: CL.auth && p.id === CL.auth.uid });
+const CL_SEL = 'select=id,name,pos,level,ruhm,staerke';
+HOF_SRC = {
+  async top(me) {
+    if (CL.state !== 'ok') return null;
+    await clPush(false);
+    const R = Math.round(me.r), uid = CL.auth.uid;
+    const above = await clCount('ruhm=gt.' + R), myRank = above + 1;
+    const [top, up, down] = await Promise.all([
+      clReq('/rest/v1/profiles?' + CL_SEL + '&order=ruhm.desc&limit=3'),
+      clReq('/rest/v1/profiles?' + CL_SEL + '&ruhm=gt.' + R + '&order=ruhm.asc&limit=3'),
+      clReq('/rest/v1/profiles?' + CL_SEL + '&ruhm=lte.' + R + '&id=neq.' + uid + '&order=ruhm.desc&limit=3')]);
+    const out = new Map();
+    top.forEach((p, i) => out.set(p.id, clProf(p, i + 1)));
+    up.forEach((p, i) => { if (!out.has(p.id)) out.set(p.id, clProf(p, myRank - 1 - i)); });
+    out.set(uid, { ...me, id: uid, rank: myRank, me: true });
+    down.forEach((p, i) => { if (!out.has(p.id)) out.set(p.id, clProf(p, myRank + 1 + i)); });
+    return [...out.values()].sort((a, b) => a.rank - b.rank);
+  },
+  async search(q) {
+    if (CL.state !== 'ok') return null;
+    const s = q.replace(/[%*,()]/g, '');
+    const rows = await clReq('/rest/v1/profiles?' + CL_SEL + '&name=ilike.' + encodeURIComponent('*' + s + '*') + '&order=ruhm.desc&limit=8');
+    return rows.map(p => clProf(p, 0));
+  }
+};
 
 </script>
