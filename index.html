@@ -1316,6 +1316,24 @@ button.mt-pl[disabled] { cursor: default; }
 .g-foot .mn-sq { height: 58px !important; min-height: 0 !important; box-sizing: border-box; align-self: center; }
 .g-foot .mn-sq > svg { width: 32px !important; height: 32px !important; }
 .mn-round { background: url(img/ui/d_rnd_leather.png) center / 100% 100% no-repeat !important; }
+.g-foot.mn-bar { border-image: url(img/ui/d_bar_top.png) 60 150 fill / 100% 26px stretch !important; padding: 7px 10px 7px !important; align-items: center !important; }
+.g-foot .mn-sq { height: 62px !important; }
+.g-foot .mn-sq > svg, .g-foot .mn-sq > img { width: 36px !important; height: 36px !important; }
+.mt-pl { touch-action: none; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+.mt-pl img { -webkit-user-drag: none; pointer-events: none; }
+.mt-pl.drag { opacity: .35; }
+.mt-pl.over i { box-shadow: 0 0 0 4px #FFC93C, 0 2px 0 #2A1209 !important; transform: scale(1.18); }
+.mt-ghost { position: fixed; left: 0; top: 0; z-index: 9999; pointer-events: none; filter: drop-shadow(0 6px 8px rgba(0,0,0,.55)); }
+.mt-ghost i { display: block; width: 100% !important; height: 100% !important; border-radius: 50%; overflow: hidden; border: 3px solid #FFC93C; background: #3A2518; box-sizing: border-box; }
+.mt-ghost img { width: 100%; height: 100%; object-fit: cover; }
+.mt-tip { position: fixed; z-index: 9998; min-width: 132px; pointer-events: none; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s;
+  background: #241710; color: #F7ECD9; border: 3px solid #2A1209; border-radius: 12px; box-shadow: inset 0 0 0 2px #E8B23A, 0 4px 0 #2A1209; padding: 7px 10px; font-family: 'Fredoka', sans-serif; }
+.mt-tip.on { opacity: 1; transform: none; }
+.mt-tip b { display: block; font-family: 'Titan One', 'Fredoka', sans-serif; font-weight: 400; font-size: 15px; color: #FFC93C; }
+.mt-tip small { display: block; font-size: 11px; color: #BFA27F; margin-bottom: 4px; }
+.mt-tip div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 600; }
+.mt-tip em { font-style: normal; color: #FFF6E3; }
+.sd-pb.du-ch { flex: 1; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -4683,7 +4701,7 @@ function memberSta(m) { return m.me ? attrEff('Ausdauer') : 10 + 2 * memberLvl(m
 function memberIns(m) { return m.me ? attrEff('Instinkt') : 10 + 1.5 * memberLvl(m); }
 mtLineup = function () {
   const K = (CLUB.kader || []).filter(m => !m.bench), slots = { TW: [], AB: [], MF: [], ST: [] }, rest = [];
-  K.forEach(m => { const p = MT_FORM[m.pos] && slots[m.pos].length < MT_FORM[m.pos].length ? m.pos : null; if (p) slots[p].push(m); else rest.push(m); });
+  K.forEach(m => { const q = m.lp || m.pos, p = MT_FORM[q] && slots[q].length < MT_FORM[q].length ? q : null; if (p) slots[p].push(m); else rest.push(m); });   // 14. Okt.: m.lp = vom Kapitän gezogene Position
   Object.keys(slots).forEach(p => { while (slots[p].length < MT_FORM[p].length && rest.length) slots[p].push(rest.shift()); });
   const out = []; Object.keys(slots).forEach(p => slots[p].forEach((m, i) => out.push({ m, p, xy: MT_FORM[p][i] })));
   return out;
@@ -4850,7 +4868,7 @@ mtPlayDay = (orig => function () {
 mtRenderPre = (orig => function () {
   orig();
   const L = CLUB.liga, ch = document.getElementById('mtChance');
-  if (L.day < MT_DAYS && ch) { const c = mtWinChance(); ch.innerHTML = `Sieg <b>${c.w} %</b> · Remis ${c.d} % · <span class="mt-form">💪 Form ${S.form} %</span>`; }
+  if (L.day < MT_DAYS && ch) { const c = mtWinChance(); ch.innerHTML = `<span class="mt-form">💪 Form ${S.form} %</span>`; }   // 14. Okt.: Sieg-/Remis-Chance entfernt (Nutzer)
   const place = mtPlace(), cost = document.getElementById('mtCost');
   if (L.day >= MT_DAYS && place >= 17 && cost) cost.textContent = `Platz ${place}: Abstieg in die ${MT_LEAGUES[Math.max(0, MT_LEAGUES.indexOf(CLUB.league) - 1)]}`;
   const go = document.getElementById('mtGo'); go.classList.remove('warm');
@@ -4891,18 +4909,13 @@ function mtFace(m) {
 }
 mtLineupHTML = function () {
   const L = CLUB.liga, cap = isCaptain(), lu = mtLineup(), bench = CLUB.kader.filter(m => m.bench);
-  const chip = (m, p, xy, b) => `<button type="button" class="mt-pl${m.me ? ' me' : ''}${m.bot ? ' bot' : ''}${mtSel === m ? ' sel' : ''}" data-k="${CLUB.kader.indexOf(m)}" ${xy ? `style="left:${xy[0]}%;top:${xy[1]}%"` : ''}${cap ? '' : ' disabled'}><i>${mtFace(m) ? `<img src="${mtFace(m)}" alt="">` : p}</i><span>${mtNick(m)}</span></button>`;
+  if (L && L.tactic && L.tactic !== 'bal') { L.tactic = 'bal'; saveClub(); }
+  const chip = (m, p, xy, b) => `<button type="button" class="mt-pl${m.me ? ' me' : ''}${m.bot ? ' bot' : ''}${mtSel === m ? ' sel' : ''}" data-k="${CLUB.kader.indexOf(m)}" ${xy ? `style="left:${xy[0]}%;top:${xy[1]}%"` : ''}><i>${mtFace(m) ? `<img src="${mtFace(m)}" alt="">` : p}</i><span>${mtNick(m)}</span></button>`;
   return `<div class="mt-pitch"><div class="box t"></div><div class="box b"></div>${lu.map(({ m, p, xy }) => chip(m, p, xy)).join('')}</div>
     <div class="mt-bench"><span>BANK</span>${bench.map(m => chip(m, m.pos)).join('')}</div>
-    <span class="mt-tacl">${cap ? (mtSel ? 'TAUSCHEN MIT…' : 'TAKTIK') : 'NUR KAPITÄN'}</span><div class="mt-tac" role="group" aria-label="Taktik">${Object.entries(MT_TAC).map(([k, t]) => `<button type="button" data-tac="${k}" class="${(L.tactic || 'bal') === k ? 'on' : ''}"${cap ? '' : ' disabled'}>${t.n}</button>`).join('')}</div>`;
+`;   // 14. Okt.: Taktik (defensiv/normal/offensiv) entfernt – es wird immer „normal“ gespielt
 };
-document.getElementById('mtBox').addEventListener('click', e => {
-  const b = e.target.closest('.mt-pl[data-k]'); if (!b || !isCaptain()) return;
-  const m = CLUB.kader[+b.dataset.k];
-  if (!mtSel) { mtSel = m; mtRenderPre(); return; }
-  if (mtSel !== m && mtSel.bench !== m.bench) { const t = mtSel.bench; mtSel.bench = m.bench; m.bench = t; const i = CLUB.kader.indexOf(mtSel), j = CLUB.kader.indexOf(m); CLUB.kader[i] = m; CLUB.kader[j] = mtSel; saveClub(); }
-  mtSel = null; mtRenderPre();
-}, true);
+// 14. Okt.: alter Tipp-zum-Tauschen-Handler ersetzt durch Ziehen (Block „Aufstellung ziehen“ am Ende)
 
 // ---------- Tränke (Kiosk): +% auf einen Wert, 3 Tage, max. 3 gleichzeitig ----------
 const POT_SIZES = [{ n: 'Klein', rar: 'grau', pct: 5, h: 6 }, { n: 'Mittel', rar: 'selten', pct: 15, h: 15 }, { n: 'Groß', rar: 'episch', pct: 25, h: 35 }];
@@ -6012,6 +6025,111 @@ crestSVG = function (c) {
   const h = document.getElementById('ftHelp'); if (h) h.innerHTML = '<img src="img/icons/ic_hilfe.png" alt="" style="width:34px;height:34px">';
 })();
 
+// ---------- 14. Okt.: Aufstellung ziehen (Kapitän), Werte beim Halten/Hover, Antippen = Profil; Elfmeter-Herausforderung aus jedem Profil ----------
+(() => {
+  const box = document.getElementById('mtBox'); if (!box) return;
+  const POSN = { TW: 'Torwart', AB: 'Abwehr', MF: 'Mittelfeld', ST: 'Sturm' };
+  const memOf = el => CLUB && CLUB.kader[+el.dataset.k];
+  const slotOf = m => { const x = mtLineup().find(y => y.m === m); return x ? x.p : null; };
+  const rnd = v => Math.round(v || 0);
+  let tip = null;
+  function tipShow(el) {
+    const m = memOf(el); if (!m) return;
+    if (!tip) { tip = document.createElement('div'); tip.className = 'mt-tip'; document.body.appendChild(tip); }
+    const p = slotOf(m), pl = p && p !== m.pos ? ` · spielt ${p}` : '';
+    tip.innerHTML = `<b>${hfEsc(mtNick(m))}</b><small>${POSN[m.pos] || m.pos}${pl}${m.role ? ' · ' + hfEsc(m.role) : ''}${m.bench ? ' · Bank' : ''}</small>
+      <div><span>Level</span><em>${rnd(memberLvl(m))}</em></div><div><span>Stärke</span><em>${fmt(rnd(memberStr(m)))}</em></div>
+      <div><span>Ausdauer</span><em>${fmt(rnd(memberSta(m)))}</em></div><div><span>Instinkt</span><em>${fmt(rnd(memberIns(m)))}</em></div>`;
+    const r = el.getBoundingClientRect(), tw = tip.offsetWidth, th = tip.offsetHeight;
+    let x = r.left + r.width / 2 - tw / 2, y = r.top - th - 8; if (y < 4) y = r.bottom + 8;
+    x = Math.max(4, Math.min(innerWidth - tw - 4, x));
+    tip.style.left = x + 'px'; tip.style.top = y + 'px'; tip.classList.add('on');
+  }
+  const tipHide = () => { if (tip) tip.classList.remove('on'); };
+  // Tauschen: Feld↔Feld (Positionen tauschen), Bank↔Feld (rein/raus), Bank↔Bank (Reihenfolge)
+  function swap(a, b) {
+    if (!a || !b || a === b) return;
+    const pa = slotOf(a), pb = slotOf(b);
+    if (!a.bench && !b.bench) { a.lp = pb; b.lp = pa; }
+    else if (a.bench !== b.bench) { const inn = a.bench ? a : b, out = a.bench ? b : a, po = slotOf(out); inn.bench = false; out.bench = true; inn.lp = po; delete out.lp; }
+    const i = CLUB.kader.indexOf(a), j = CLUB.kader.indexOf(b); CLUB.kader[i] = b; CLUB.kader[j] = a;
+    saveClub(); mtRenderPre();
+  }
+  let D = null;   // { el, m, x0, y0, t, ghost, drag, tip, id }
+  const hit = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest('#mtBox .mt-pl[data-k]'); };
+  box.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.mt-pl[data-k]'); if (!el || (e.pointerType === 'mouse' && e.button)) return;
+    D = { el, m: memOf(el), x0: e.clientX, y0: e.clientY, id: e.pointerId, drag: false, tip: false };
+    if (e.pointerType !== 'mouse') D.t = setTimeout(() => { if (D && !D.drag) { D.tip = true; tipShow(el); } }, 380);
+  });
+  addEventListener('pointermove', e => {
+    if (!D || e.pointerId !== D.id) return;
+    const dx = e.clientX - D.x0, dy = e.clientY - D.y0;
+    if (!D.drag && Math.hypot(dx, dy) > 8 && isCaptain()) {
+      clearTimeout(D.t); tipHide(); D.drag = true;
+      const r = D.el.getBoundingClientRect(), g = D.el.querySelector('i').cloneNode(true);
+      D.ghost = document.createElement('div'); D.ghost.className = 'mt-ghost'; D.ghost.appendChild(g);
+      const sz = D.el.querySelector('i').getBoundingClientRect().width * 1.35; D.ghost.style.width = D.ghost.style.height = sz + 'px'; D.sz = sz;
+      document.body.appendChild(D.ghost); D.el.classList.add('drag');
+    }
+    if (D.drag) {
+      e.preventDefault();
+      D.ghost.style.transform = `translate(${e.clientX - D.sz / 2}px, ${e.clientY - D.sz / 2}px)`;
+      const t = hit(e.clientX, e.clientY);
+      box.querySelectorAll('.mt-pl.over').forEach(x => x !== t && x.classList.remove('over'));
+      if (t && t !== D.el) t.classList.add('over');
+    } else if (!D.tip && Math.hypot(dx, dy) > 8) clearTimeout(D.t);
+  }, { passive: false });
+  const end = (e, cancel) => {
+    if (!D || e.pointerId !== D.id) return;
+    clearTimeout(D.t); const d = D; D = null;
+    box.querySelectorAll('.mt-pl.over, .mt-pl.drag').forEach(x => x.classList.remove('over', 'drag'));
+    if (d.drag) { d.ghost.remove(); if (!cancel) swap(d.m, (t => t && memOf(t))(hit(e.clientX, e.clientY))); MT_NOCLICK = Date.now(); return; }
+    if (d.tip) { tipHide(); MT_NOCLICK = Date.now(); return; }
+  };
+  addEventListener('pointerup', e => end(e, false));
+  addEventListener('pointercancel', e => end(e, true));
+  let MT_NOCLICK = 0;
+  box.addEventListener('click', e => {
+    const el = e.target.closest('.mt-pl[data-k]'); if (!el) return;
+    e.stopPropagation(); e.preventDefault();
+    if (Date.now() - MT_NOCLICK < 500) return;
+    tipHide(); mtProfile(memOf(el));
+  }, true);
+  box.addEventListener('pointerover', e => { if (e.pointerType !== 'mouse' || D) return; const el = e.target.closest('.mt-pl[data-k]'); if (el) tipShow(el); });
+  box.addEventListener('pointerout', e => { if (e.pointerType !== 'mouse') return; const el = e.target.closest('.mt-pl[data-k]'); if (el && !el.contains(e.relatedTarget)) tipHide(); });
+  box.addEventListener('contextmenu', e => { if (e.target.closest('.mt-pl')) e.preventDefault(); });
+  show = (o => function (id) { tipHide(); return o.apply(this, arguments); })(show);
+})();
+// Profil eines Mitspielers aus der Aufstellung
+function mtProfile(m) {
+  if (!m) return;
+  if (m.me) { show('profil'); return; }
+  const meS = memberStr(CLUB.kader.find(k => k.me) || { me: true }) || 1;
+  const x = { n: mtNick(m), pos: m.pos, L: Math.round(memberLvl(m)), st: Math.round(memberStr(m)), f: memberStr(m) / meS, club: CLUB.name, av: mtFace(m), back: () => ddPopClose(), bot: !!m.bot };
+  if (m.oid && !m.bot && typeof HF_CARD === 'function') { x.id = m.oid; HF_CARD(x); } else hfCard(x);
+}
+// Duell gegen einen bestimmten Spieler (Stärke im Verhältnis zu dir)
+duAvatar = (o => b => b.av && b.av.indexOf('ic_unbekannt') < 0 ? b.av : o(b))(duAvatar);
+function duChallenge(x) {
+  const D = duState(), left = Math.max(0, D.next - Date.now()), back = x.back || (() => openHof());
+  const msg = t => { ddPop(`<h3>⚽ Elfmeter-Duell</h3><p class="dd-p">${t}</p><div class="sd-pop-btns"><button type="button" class="sd-pb two" id="duBk">Zurück</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`); document.getElementById('duBk').onclick = () => x.id && typeof HF_CARD === 'function' ? HF_CARD(x) : hfCard(x); };
+  if (D.n >= DU_MAX) return msg('Für heute hast du alle 10 Duelle gespielt. Morgen geht es weiter!');
+  if (left) return msg(`Du musst noch kurz verschnaufen. Nächstes Duell in <b>${fmtHMS(left / 1000 * 3600000 / JOB_H)}</b>.`);
+  const me = duMine() || 1, f = Math.min(3, Math.max(.3, x.f || (x.st ? x.st / me : 1)));
+  duFight({ n: x.n, f, pos: x.pos, av: x.av });
+}
+hfCard = function (x) {
+  const own = x.n === (PLAYER && PLAYER.name);
+  ddPop(`<div class="op-top">${x.av ? `<img src="${x.av}" alt="">` : ''}<div><h3>${hfEsc(x.n)}</h3><div class="op-tags"><span>${x.pos}</span><span>Lv ${x.L}</span>${x.bot ? '<span>Bot</span>' : ''}</div>
+    <div class="hf-card">${x.r != null ? `<div><small>Ruhm</small><b>${fmt(x.r)}</b></div>` : ''}<div><small>Stärke</small><b>${x.st ? fmt(x.st) : '?'}</b></div>
+    ${x.rank ? `<div><small>Platz</small><b>${x.rank}.</b></div>` : ''}${x.club ? `<div style="grid-column:span 2"><small>Verein</small><b>${hfEsc(x.club)}</b></div>` : ''}</div></div></div>
+    ${own ? '' : `<div class="sd-pop-btns"><button type="button" class="sd-pb du-ch" id="hfDuel">Zum Elfmeter herausfordern</button></div>`}
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="hfBack">Zurück</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  document.getElementById('hfBack').onclick = x.back || (() => openHof());
+  if (document.getElementById('hfDuel')) document.getElementById('hfDuel').onclick = () => duChallenge(x);
+};
+
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
 
@@ -6243,11 +6361,13 @@ HF_CARD = async function (x) {
       <div style="grid-column:span 2"><small>Verein</small><b>${p.club_name ? hfEsc(p.club_name) : 'vereinslos'}</b></div></div></div></div>
     <p class="dd-p op-bio">${p.bio ? hfEsc(p.bio) : (me ? 'Noch keine Beschreibung.' : '<i>Keine Beschreibung.</i>')}</p>
     ${bars ? `<div class="op-ats">${bars}</div>` : ''}
+    ${me ? '' : `<div class="sd-pop-btns"><button type="button" class="sd-pb du-ch" id="opDuel">Zum Elfmeter herausfordern</button></div>`}
     <div class="sd-pop-btns">${btn}${canInv ? `<button type="button" class="sd-pb two" id="opInv">🏟️ In Verein einladen</button>` : ''}</div>
     <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="opBack">Zurück</button><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
   const $ = id => document.getElementById(id), run = (id, act, done) => { if ($(id)) $(id).onclick = async () => { $(id).disabled = true; try { await clFriendAct(p.id, act); if (done) $(id).textContent = done; else HF_CARD(x); } catch (e) { $(id).textContent = 'Fehler'; } }; };
   run('opAdd', 'send'); run('opAcc', 'accept'); run('opDel', 'del'); run('opInv', 'invite', 'Einladung gesendet');
-  $('opBack').onclick = () => openHof();
+  $('opBack').onclick = x.back || (() => openHof());
+  if ($('opDuel')) $('opDuel').onclick = () => duChallenge(Object.assign({}, x, { n: p.name, pos: p.pos, st: p.staerke, av: p.avatar || x.av }));
   if ($('opBio')) $('opBio').onclick = () => {
     ddPop(`<h3>Beschreibung</h3><textarea id="opTx" maxlength="160" class="hf-q" style="height:90px;resize:none">${hfEsc(clBio())}</textarea>
       <div class="sd-pop-btns"><button type="button" class="sd-pb two" id="opTxNo">Zurück</button><button type="button" class="sd-pb" id="opTxOk">Speichern</button></div>`);
