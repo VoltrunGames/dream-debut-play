@@ -1334,6 +1334,17 @@ button.mt-pl[disabled] { cursor: default; }
 .mt-tip div { display: flex; justify-content: space-between; gap: 12px; font-size: 13px; font-weight: 600; }
 .mt-tip em { font-style: normal; color: #FFF6E3; }
 .sd-pb.du-ch { flex: 1; }
+#shMe, #kiMe, #shNew, #kiNew, #shBagBtn, #kiBagBtn { display: none !important; }
+#shop .ki, #kiosk .ki { touch-action: none; }
+.ki .ki-grid { transition: transform .28s cubic-bezier(.2,.8,.2,1); transform: translateY(calc(-1 * var(--bagH, 0px))); }
+.ki .ki-grid::before { content: ''; position: absolute; left: 50%; top: -13px; width: 46px; height: 5px; margin-left: -23px; border-radius: 3px; background: rgba(255,246,227,.75); box-shadow: 0 1px 0 #2A1209; pointer-events: none; }
+.ki.bag-open .ki-grid::before { display: none; }
+.ki .sb-panel:not([hidden]) { animation: sbUp .28s cubic-bezier(.2,.8,.2,1); }
+@keyframes sbUp { from { transform: translateY(105%); } to { transform: none; } }
+#phone#phone .g-foot .ft-n { display: none !important; }
+#phone#phone .g-foot .ft-m { display: flex !important; }
+#tut { display: none !important; }
+#crNumMinus::after { transform: scaleX(-1); }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -6130,6 +6141,47 @@ hfCard = function (x) {
   document.getElementById('hfBack').onclick = x.back || (() => openHof());
   if (document.getElementById('hfDuel')) document.getElementById('hfDuel').onclick = () => duChallenge(x);
 };
+
+// ---------- 14. Okt.: Läden ohne Ausrüstungsleiste / Neue Ware / Rucksack-Knopf – Rucksack per Wischen nach oben (Ware rutscht hoch) ----------
+(() => {
+  [['#shop .ki', 'shBag'], ['#kiosk .ki', 'kiBag']].forEach(([sel, id]) => {
+    const ki = document.querySelector(sel), panel = document.getElementById(id + 'Panel'), btn = document.getElementById(id + 'Btn');
+    if (!ki || !panel || !btn) return;
+    const isOpen = () => !panel.hidden;
+    const sync = () => { ki.classList.toggle('bag-open', isOpen()); ki.style.setProperty('--bagH', (isOpen() ? panel.offsetHeight + 12 : 0) + 'px'); };
+    const open = () => { if (!isOpen()) btn.click(); sync(); };
+    const close = () => { if (isOpen()) { panel.hidden = true; } sync(); };
+    new MutationObserver(sync).observe(panel, { attributes: true, attributeFilter: ['hidden'] });
+    let st = null;
+    ki.addEventListener('pointerdown', e => {
+      if (e.target.closest('.sd-pop, .sb-cell[data-n], .sb-x')) { st = null; return; }
+      st = { y: e.clientY, id: e.pointerId, done: false };
+    });
+    ki.addEventListener('pointermove', e => {
+      if (!st || st.done || e.pointerId !== st.id) return;
+      const dy = e.clientY - st.y;
+      if (dy < -40 && !isOpen()) { st.done = true; open(); ki._noClick = Date.now(); }
+      else if (dy > 40 && isOpen()) { st.done = true; close(); ki._noClick = Date.now(); }
+    });
+    const end = () => { st = null; };
+    ki.addEventListener('pointerup', end); ki.addEventListener('pointercancel', end);
+    // nach einem Wisch kein versehentliches Antippen einer Ware
+    ki.addEventListener('click', e => { if (Date.now() - (ki._noClick || 0) < 400) { e.stopPropagation(); e.preventDefault(); } }, true);
+    // Maus/Trackpad: nach unten scrollen = Rucksack auf, nach oben = zu
+    let wt = 0;
+    ki.addEventListener('wheel', e => { if (e.target.closest('.sd-pop')) return; const n = Date.now(); if (n - wt < 400) return; if (e.deltaY > 15) { wt = n; open(); } else if (e.deltaY < -15) { wt = n; close(); } }, { passive: true });
+    show = (o => function (s) { if (isOpen()) close(); return o.apply(this, arguments); })(show);
+  });
+})();
+
+// ---------- 14. Okt.: Tutorial komplett entfernt (Nutzer: zu buggy) ----------
+(() => {
+  const off = () => { const el = document.getElementById('tut'); if (el) el.hidden = true; };
+  tutStep = off; tutShow = off;
+  if (typeof S !== 'undefined' && S.tut) { S.tut = 0; S.tutGift = 1; try { syncGlobal(); } catch (e) {} }
+  newCareer = (o => function () { const r = o.apply(this, arguments); S.tut = 0; S.tutGift = 1; try { syncGlobal(); } catch (e) {} off(); return r; })(newCareer);
+  off();
+})();
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
