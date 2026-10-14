@@ -2473,7 +2473,8 @@ const FIG = (() => {
     ready = (async () => {
       kit = await (await fetch('kit/kit.json')).json();
       const jobs = [];
-      for (let n = 1; n <= 10; n++) {
+      for (const n of Object.keys(kit.figures).map(Number)) {
+        jobs.push(loadImg(`kit/iris_${String(n).padStart(2, '0')}.png`).then(i => imgs[`iris_${n}`] = i).catch(() => {}));
         const p = String(n).padStart(2, '0');
         for (const k of ['head', 'hair', 'brows', 'eyes', 'nose', 'mouth', 'clip']) jobs.push(loadImg(`kit/${k}_${p}.png`).then(i => imgs[`${k}_${n}`] = i));
         for (const sd of ['l', 'r']) jobs.push(loadImg(`kit/ear_${p}_${sd}.png`).then(i => imgs[`ear_${n}_${sd}`] = i).catch(() => {}));
@@ -2695,10 +2696,11 @@ const FIG = (() => {
   }
   let EARS = [];
   function draw(cv, st) {
+    st = Object.assign({}, st, { hair: st.hair <= 10 ? st.hair : st.hair >= 12 ? st.hair - 1 : 0, ears: st.ears === 11 ? 13 : st.ears });
     // Hautfarbe: Hautbilder für diesen Durchgang gegen umgefärbte tauschen
     const swap = {};
     if (st.skin && st.skin !== '#f49c6c') {
-      for (const k of Object.keys(imgs)) if (/^(head|ear|neck|nose)_/.test(k)) { const c = skinImg(k, st.skin); if (c) { swap[k] = imgs[k]; imgs[k] = c; } }
+      for (const k of Object.keys(imgs)) if (/^(head|ear|neck|nose|eyes|mouth)_/.test(k)) { const c = skinImg(k, st.skin); if (c) { swap[k] = imgs[k]; imgs[k] = c; } }
     }
     try { return draw0(cv, st); } finally { for (const k in swap) imgs[k] = swap[k]; }
   }
@@ -2737,13 +2739,18 @@ const FIG = (() => {
       pc.setTransform(t.s, 0, 0, t.s, t.tx, t.ty);
       pc.drawImage(imgs[`${part}_${st[part]}`], sf.offsets[part][0], sf.offsets[part][1]);
       pc.setTransform(1, 0, 0, 1, 0, 0);
+      if (part === 'eyes' && st.eyeColor && imgs[`iris_${st.eyes}`]) {   // Augenfarbe: Iris-Ebene eingefärbt darüber
+        const q = off(), qc = q.getContext('2d'); qc.setTransform(t.s, 0, 0, t.s, t.tx, t.ty);
+        qc.drawImage(imgs[`iris_${st.eyes}`], sf.offsets.eyes[0], sf.offsets.eyes[1]); qc.setTransform(1, 0, 0, 1, 0, 0);
+        tint(q, st.eyeColor); pc.drawImage(q, 0, 0);
+      }
       if (part === 'brows') tint(p, st.hairColor);
       pc.globalCompositeOperation = 'destination-in'; pc.drawImage(imgs[`clip_${h}`], 0, 0); pc.drawImage(imgs[`head_${h}`], fig.offsets.head[0], fig.offsets.head[1]);
       ctx.drawImage(p, 0, 0);
     }
     drawBeard(ctx, h, L, st);
     drawRings(ctx, EARS, st.ring || 1);
-    if (st.hair <= 10) {
+    if (kit.figures[st.hair]) {
       // Haare gehören zu Kopf st.hair. Zeilenweise umrechnen: Scheitel→Scheitel, Brauen→Brauen,
       // jede Zeile auf die Gesichtsbreite des Zielkopfes skaliert (so passen Seiten, Koteletten, Zöpfe).
       const sf = kit.figures[st.hair], tf = kit.figures[h];
@@ -2756,12 +2763,20 @@ const FIG = (() => {
       const limS = chinY(st.hair) - 15, limT = chinY(h) - 15, R = [], eyS = sf.anchors.eyes.y;
       for (let Y = 0; Y < H; Y++) {
         const y = Math.round(Y < tTop ? sTop - (tTop - Y) / kyU : sTop + (Y - tTop) / ky); if (y < yS0 || y >= yS1) continue;
-        const ys = Math.max(y, sTop + 12), Yt = Math.round(tTop + (ys - sTop) * ky);
+        const ys = Math.max(y, sTop + (st.hair > 10 ? 50 : 12)), Yt = Math.round(tTop + (ys - sTop) * ky);
         const [sl, sr] = pr(PS, ys, limS), [tl, tr] = pr(PT, Yt, limT);
         R.push({ Y, y, r: Math.max(.7, Math.min(2.4, (tr - tl) / Math.max(20, sr - sl))), sc: (sl + sr) / 2, tc: (tl + tr) / 2, sl, sr, tl, tr });
       }
       const p = off(), pc = p.getContext('2d'), mS = sf.anchors.mouth.y; let fz = null;
-      R.forEach((o, i) => { let a = 0, n = 0; for (let j = Math.max(0, i - 12); j <= Math.min(R.length - 1, i + 12); j++) { a += R[j].r; n++; } const r = a / n;
+      if (st.hair > 10) {
+        const sm = (i, k) => { let a = 0, n = 0; for (let j = Math.max(0, i - 16); j <= Math.min(R.length - 1, i + 16); j++) { a += R[j][k]; n++; } return a / n; };
+        let iF = R.findIndex(o => o.y > mS); if (iF < 1) iF = iF === 0 ? 1 : R.length;
+        const P2 = R.map((o, i) => { const q = Math.min(i, iF - 1); return { sl: sm(q, 'sl'), sr: sm(q, 'sr'), tl: sm(q, 'tl'), tr: sm(q, 'tr') }; });
+        R.forEach((o, i) => { const { sl, sr, tl, tr } = P2[i], a = Math.max(1, Math.round(sl)), b = Math.min(W - 1, Math.round(sr));
+          pc.drawImage(src, 0, o.y, a, 1, tl - sl, o.Y, a, 1);
+          if (b > a) pc.drawImage(src, a, o.y, b - a, 1, tl + (a - sl) * (tr - tl) / Math.max(1, sr - sl), o.Y, (b - a) * (tr - tl) / Math.max(1, sr - sl), 1);
+          pc.drawImage(src, b, o.y, W - b, 1, b + (tr - sr), o.Y, W - b, 1); });
+      } else R.forEach((o, i) => { let a = 0, n = 0; for (let j = Math.max(0, i - 12); j <= Math.min(R.length - 1, i + 12); j++) { a += R[j].r; n++; } const r = a / n;
         if (o.y <= eyS) { pc.drawImage(src, 0, o.y, W, 1, o.tc - o.sc * r, o.Y, W * r, 1); return; }
         // unterhalb der Augen: linke/rechte Hälfte folgen der Wange (Koteletten, Strähnen, Zöpfe)
         // ab Mundhöhe hängen Strähnen gerade weiter (Versatz einfrieren), sonst knicken sie am Kinn
@@ -6691,6 +6706,28 @@ mtSeedLook = (o => function (name) {
   const L = o(name); let h = 7; for (const ch of String(name)) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   L.skin = CR_SKIN[h % CR_SKIN.length]; return L;
 })(mtSeedLook);
+
+// ---------- 14. Okt. 22 Uhr: Figuren Serie 2 (weiblich) + Augenfarbe ----------
+// Zähler: Kopf/Brauen/Augen/Mund 14, Haare 15 (11 = ohne), Ohren 11 (11 = Figur 13). Umrechnung in FIG.draw.
+const CR_EYE = ['', '#3d7fc4', '#3f9a5a', '#7c8a96', '#8a6a2a', '#2a1d17', '#4fb3c8', '#a8742c'];
+(() => {
+  const N = { head: 14, brows: 14, eyes: 14, mouth: 14, hair: 15, ears: 11 };
+  CR_SLOTS.forEach(s => { if (N[s.key]) s.count = N[s.key]; });
+  const hairRow = document.getElementById('crHair') && document.getElementById('crHair').closest('.cr-colors');
+  if (hairRow && !document.getElementById('crEye')) {
+    hairRow.insertAdjacentHTML('afterend', `<div class="cr-colors"><span>AUGEN</span><div class="cr-sw" id="crEye">${CR_EYE.map(c => `<button type="button" data-c="${c}" style="background:${c || '#6b3f22'}" aria-label="Augenfarbe ${c || 'original'}"></button>`).join('')}</div></div>`);
+    document.getElementById('crEye').onclick = e => { const b = e.target.closest('button'); if (!b) return; CR.st.eyeColor = b.dataset.c; crUI(); crRender(); };
+  }
+})();
+crUI = (o => function () {
+  const r = o.apply(this, arguments);
+  document.querySelectorAll('#crEye button').forEach(b => b.setAttribute('aria-pressed', b.dataset.c === (CR.st.eyeColor || '')));
+  return r;
+})(crUI);
+(() => {
+  const b = document.getElementById('crRand'); if (!b) return; const o = b.onclick;
+  b.onclick = () => { o(); CR.st.eyeColor = Math.random() < .5 ? '' : CR_EYE[1 + Math.floor(Math.random() * (CR_EYE.length - 1))]; crUI(); crRender(); };
+})();
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
