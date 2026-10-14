@@ -6054,6 +6054,7 @@ crestSVG = function (c) {
     else if (a.bench !== b.bench) { const inn = a.bench ? a : b, out = a.bench ? b : a, po = slotOf(out); inn.bench = false; out.bench = true; inn.lp = po; delete out.lp; }
     const i = CLUB.kader.indexOf(a), j = CLUB.kader.indexOf(b); CLUB.kader[i] = b; CLUB.kader[j] = a;
     saveClub(); mtRenderPre();
+    if (CLUB.oid && typeof clPush === 'function') clPush(true).catch(() => {});   // Online-Verein: sofort für alle hochladen
   }
   let D = null;   // { el, m, x0, y0, t, ghost, drag, tip, id }
   const hit = (x, y) => { const e = document.elementFromPoint(x, y); return e && e.closest('#mtBox .mt-pl[data-k]'); };
@@ -6401,7 +6402,27 @@ HF_OPEN = function () {
 };
 
 // ---------- 13. Okt.: Online-Vereine (Gründer meldet Verein an, Einladung annehmen = beitreten, echte Mitspieler im Kader) ----------
-const clClubSnap = () => ({ crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null, liga: CLUB.liga ? { start: CLUB.liga.start, teams: CLUB.liga.teams, opps: CLUB.liga.opps, lvl0: CLUB.liga.lvl0, league: CLUB.league, cur: { day: CLUB.liga.day, tab: CLUB.liga.tab } } : null });
+// 14. Okt.: Aufstellung (Reihenfolge, Bank, gezogene Position, Bots) liegt beim Verein auf dem Server → bei allen Mitgliedern gleich
+const clKaderSnap = () => (CLUB.kader || []).map(m => ({ u: m.me ? (CL.auth && CL.auth.uid) : (!m.bot || m._n) && m.oid ? m.oid : null, n: m.bot && !m._n ? m.name : null, pos: m.pos, bench: !!m.bench, lp: m.lp || null, bot: !!m.bot && !m._n }));
+function clBuildKader(base, meK, real, uid) {
+  const byU = new Map(real.map(r => [r.oid, r])), used = new Set(), k = [], BN = ['Kalle', 'Hugo', 'Rudi', 'Egon', 'Fritz', 'Otto', 'Bodo', 'Udo', 'Gustav', 'Heinz', 'Willi', 'Jupp', 'Manni', 'Kurt', 'Ede'];
+  const put = (m, e) => { m.bench = !!e.bench; if (e.lp) m.lp = e.lp; else delete m.lp; k.push(m); used.add(m); };
+  for (const e of base || []) {
+    if (e.u && e.u === uid) { if (!used.has(meK)) put(meK, e); continue; }
+    if (e.u && byU.has(e.u) && !used.has(byU.get(e.u))) { put(byU.get(e.u), e); continue; }
+    const n = e.bot && e.n ? e.n : 'Bot ' + (BN.find(x => !k.some(m => m.name === 'Bot ' + x)) || 'Ersatz');
+    put({ bot: true, name: n, pos: e.pos, lvl: 5 }, e);
+  }
+  // wer noch fehlt (neu im Verein / ich), ersetzt zuerst einen Bot auf dem Feld, sonst auf der Bank, sonst hinten dran
+  for (const m of [meK, ...real]) {
+    if (used.has(m)) continue;
+    const i = k.findIndex(x => x.bot && !x.bench), j = i >= 0 ? i : k.findIndex(x => x.bot);
+    if (j >= 0) { m.bench = k[j].bench; if (k[j].lp) m.lp = k[j].lp; else delete m.lp; k[j] = m; } else { m.bench = false; k.push(m); }
+    used.add(m);
+  }
+  return k;
+}
+const clClubSnap = () => ({ kader: clKaderSnap(), crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null, liga: CLUB.liga ? { start: CLUB.liga.start, teams: CLUB.liga.teams, opps: CLUB.liga.opps, lvl0: CLUB.liga.lvl0, league: CLUB.league, cur: { day: CLUB.liga.day, tab: CLUB.liga.tab } } : null });
 async function clClubSync() {
   if (CL.state !== 'ok' || typeof CLUB === 'undefined') return;
   const uid = CL.auth.uid; let last = ''; try { last = localStorage.getItem('dd_cloud_club') || ''; } catch (e) {}
@@ -6423,8 +6444,7 @@ async function clClubSync() {
   const mine = mem.find(m => m.user_id === uid);
   if (!mine) { await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: uid, rolle: CLUB.founder ? 'kapitaen' : 'spieler' }) }).catch(() => {}); }
   const role = mine ? mine.rolle : (CLUB.founder ? 'kapitaen' : 'spieler');
-  if (role === 'kapitaen') await clReq('/rest/v1/clubs?id=eq.' + CLUB.oid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ ausbau: clClubSnap() }) });
-  else if (club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; if (a.liga) await clLgAdopt(a.liga); }
+  if (role !== 'kapitaen' && club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; if (a.liga) await clLgAdopt(a.liga); }
   if (role === 'kapitaen') CLUB.ligaOk = CLUB.liga ? CLUB.liga.start : 0;
   // Kader: ich + echte Mitspieler + Bots auffüllen
   const ids = mem.map(m => m.user_id).filter(i => i !== uid);
@@ -6432,9 +6452,13 @@ async function clClubSync() {
   const R = { kapitaen: 'KAPITÄN', vize: 'VIZE' };
   const meK = CLUB.kader.find(m => m.me) || makeKader(0)[0]; meK.role = R[role] || '';
   const real = pr.map(p => ({ name: p.name, pos: p.pos, lvl: p.level, av: p.avatar || 'img/avatar.png', online: Date.now() - Date.parse(p.updated_at) < 600000, role: R[(mem.find(m => m.user_id === p.id) || {}).rolle] || '', oid: p.id }));
-  const total = Math.max(CLUB.kader.length, 1 + real.length), bots = CLUB.kader.filter(m => m.bot).concat(makeKader(0).filter(m => m.bot));
-  const k = [meK, ...real]; for (const b of bots) { if (k.length >= total) break; if (!k.includes(b)) k.push(b); }
-  CLUB.kader = k; saveClub();
+  // Basis-Aufstellung: Kapitän = seine eigene, alle anderen = die vom Server (falls schon da)
+  const srvK = club.ausbau && Array.isArray(club.ausbau.kader) && club.ausbau.kader.length ? club.ausbau.kader : null;
+  const base = role === 'kapitaen' || !srvK ? clKaderSnap() : srvK;
+  const before = JSON.stringify(clKaderSnap());
+  CLUB.kader = clBuildKader(base, meK, real, uid); saveClub();
+  if (role === 'kapitaen') await clReq('/rest/v1/clubs?id=eq.' + CLUB.oid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ ausbau: clClubSnap() }) });
+  try { if (before !== JSON.stringify(clKaderSnap()) && !document.getElementById('spieltag').hidden) mtRenderPre(); } catch (e) {}
   try { if (!document.getElementById('verein').hidden && VC.view === 'club') vrClubUI(); if (typeof applyClubBonus === 'function') applyClubBonus(); } catch (e) {}
 }
 async function clJoinClub(inv) {
