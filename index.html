@@ -1438,6 +1438,38 @@ button.mt-pl[disabled] { cursor: default; }
 .ch-in button { width: 52px; height: 44px; border-radius: 10px; border: 2px solid #2A1209; background: linear-gradient(#FFD95A, #F2B705); color: #2A1209; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #2A1209; }
 .mn-opt .mn-tiles .mn-tile svg { width: 34px; height: 34px; }
 
+/* Sprechblasen: nicht über dem Gesicht, saubere Spitze zum Verkäufer */
+#phone .ki-say { top: 29% !important; max-width: 40% !important; font-size: 12px; line-height: 1.25; padding: 8px 11px; z-index: 3; }
+#phone .ki-say::after, #phone .ki-say::before { display: block !important; content: '' !important; position: absolute; top: 14px; width: 0; height: 0; border: 9px solid transparent; transform: none !important; background: none !important; }
+#kiosk .ki-say { left: 10px !important; right: auto !important; }
+#kiosk .ki-say::before { right: -21px; border-left: 12px solid #2A1209; }
+#kiosk .ki-say::after { right: -15px; top: 15px !important; border-width: 8px; border-left: 10px solid #FFF6E3; }
+#shop .ki-say { left: 8px !important; right: auto !important; top: 30% !important; max-width: 34% !important; }
+#shop .ki-say::before { right: -21px; border-left: 12px solid #2A1209; }
+#shop .ki-say::after { right: -15px; top: 15px !important; border-width: 8px; border-left: 10px solid #FFF6E3; }
+.ki.bag-open .ki-say { display: none !important; }
+/* Stadion: Feld groß, Symbol-Leiste darunter (wie Gildenhalle) */
+#sdMain .sd-feed { display: none !important; }
+#sdMain .sd-stage { flex: 1 1 auto !important; min-height: 0; }
+.sd-bar { flex-shrink: 0; display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px; padding: 8px 8px 10px; }
+.sd-bar button { position: relative; height: 70px; border: 0; padding: 4px 0 2px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; cursor: pointer;
+  background: none; border-image: url(img/ui/d_slot.png) 40 fill / 10px stretch; color: #F7ECD9; font: 400 10.5px 'Fredoka', sans-serif; }
+.sd-bar img { width: 40px; height: 40px; object-fit: contain; filter: drop-shadow(0 2px 0 rgba(0,0,0,.45)); }
+.sd-bar button:active { transform: translateY(2px); }
+/* Vereinsheim: Knöpfe mit gemalten Symbolen, Gesichter mit Hintergrund */
+.vr-actions button { background: none !important; border: 0 !important; box-shadow: none !important; border-image: url(img/ui/d_slot.png) 40 fill / 10px stretch !important; color: #F7ECD9 !important; }
+.vr-actions .vr-aic { width: 34px; height: 34px; object-fit: contain; display: block; margin: 0 auto 2px; filter: drop-shadow(0 2px 0 rgba(0,0,0,.45)); }
+.vr-av.face { position: relative; width: 30px; height: 30px; flex-shrink: 0; border-radius: 50%; overflow: hidden; border: 2px solid #E8B23A; background: url(img/bg/karte.jpg) 50% 60% / 400% auto; box-shadow: 0 2px 0 #2A1209; }
+.vr-av.face img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.vr-av.face.bot { border-color: #8A6A44; } .vr-av.face.bot img { filter: saturate(.7); }
+.vr-av.face .on { position: absolute; right: 0; bottom: 0; width: 9px; height: 9px; border-radius: 50%; background: #8FD14F; border: 2px solid #2A1209; }
+.vr-m.tap { cursor: pointer; }
+/* sanftes Aufblinken */
+@keyframes ddBlink { 0%, 100% { filter: drop-shadow(0 0 0 rgba(255,215,90,0)); } 50% { filter: drop-shadow(0 0 9px rgba(255,215,90,.95)) brightness(1.18); } }
+.blink { animation: ddBlink 1.6s ease-in-out infinite !important; }
+.map-lbl.pin.blink { animation: ddBlink 1.6s ease-in-out infinite !important; }
+@media (prefers-reduced-motion: reduce) { .blink { animation: none !important; outline: 2px solid #FFD95A; } }
+
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
 body { padding: 0 !important; gap: 0 !important; display: block !important; min-height: 0 !important; }
@@ -2879,7 +2911,7 @@ const rnd = n => Math.floor(Math.random() * n);
 const VC = { view: 'start', crest: { shape: 0, pattern: 1, symbol: 0, c1: '#2E9E55', c2: '#F4F1E8', short: '' } };
 let CLUB = null;
 try { CLUB = JSON.parse(localStorage.getItem('dd_club') || 'null'); } catch (e) {}
-const saveClub = () => { try { localStorage.setItem('dd_club', JSON.stringify(CLUB)); } catch (e) {} };
+var saveClub = () => { try { localStorage.setItem('dd_club', JSON.stringify(CLUB)); } catch (e) {} };
 
 function randomCrest(short) { return { shape: rnd(5), pattern: rnd(6), symbol: rnd(5), c1: CREST.colors[rnd(10)], c2: CREST.colors[rnd(10)], short }; }
 function shortOf(name) {
@@ -5697,7 +5729,11 @@ function seasonRew(place, lg) {
   const m = 1 + LIGA_STEP * Math.max(0, MT_LEAGUES.indexOf(lg)), g = place === 1 ? 60 : place <= 3 ? 40 : place <= 8 ? 20 : place <= 16 ? 10 : 5;
   return { gold: Math.round(g * GU(S.level) * m), tb: place === 1 ? 10 : place <= 3 ? 5 : 2, item: place === 1 ? 'legendaer' : place <= 3 ? 'episch' : place <= 8 ? 'selten' : null };
 }
+function seWaitPop() {
+  ddPop(`<h3>Saison beendet</h3><p class="dd-p">Deine Belohnung ist abgeholt. Die neue Saison startet für alle im Verein, sobald euer Kapitän sie beginnt.</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`);
+}
 function seasonEndPop() {
+  if (CLUB && CLUB.liga && CLUB.liga.claimed === CLUB.liga.start) { if (CLUB.oid && !isCaptain()) { seWaitPop(); return; } mtNewSeason(); return; }
   const place = mtPlace(), lg = CLUB.league || 'Pfützenliga', R = seasonRew(place, lg), i = MT_LEAGUES.indexOf(lg);
   const move = place === 1 && i < MT_LEAGUES.length - 1 ? `<b style="color:#8FD14F">Aufstieg in die ${MT_LEAGUES[i + 1]}!</b>` : place >= 17 && i > 0 ? `<b style="color:#FF7A6E">Abstieg in die ${MT_LEAGUES[i - 1]}.</b>` : 'Ihr bleibt in der ' + lg + '.';
   ddPop(`<h3>${place === 1 ? '🏆 MEISTER!' : 'Saisonende'}</h3><p class="dd-p">${lg} · Platz <b>${place}</b> von 18<br>${move}</p>
@@ -5705,9 +5741,13 @@ function seasonEndPop() {
     <p class="dd-p" style="font-size:11px;opacity:.8">Je besser der Platz und je höher die Liga, desto mehr gibt es.</p>
     <div class="sd-pop-btns"><button type="button" class="sd-pb" id="seGo">Abholen & neue Saison</button></div>`);
   document.getElementById('seGo').onclick = () => {
+    if (CLUB.liga.claimed === CLUB.liga.start) { ddPopClose(); return; }   // 14. Okt.: nie doppelt abholen
     gold += R.gold; S.tb += R.tb; cntInc('seasons'); if (place === 1) cntInc('titles');
     if (R.item) giveItem(R.item);
-    ddPopClose(); syncGlobal(); mtNewSeason();
+    CLUB.liga.claimed = CLUB.liga.start; saveClub();
+    ddPopClose(); syncGlobal();
+    if (CLUB.oid && !isCaptain()) { seWaitPop(); return; }   // Online-Verein: die neue Saison startet der Kapitän (für alle gleich)
+    mtNewSeason();
   };
 }
 
@@ -5719,18 +5759,24 @@ function cupState() {
   if (!CLUB.cup || CLUB.cup.s !== L.start) CLUB.cup = { s: L.start, r: 0, out: false, res: [], seen: 0 };
   return CLUB.cup;
 }
+function cupRound(rr) {   // nur das Spiel ausrechnen (14. Okt.)
+  const L = CLUB.liga, T = L.teams.filter(t => !t.me), base = T.reduce((a, t) => a + t.str, 0) / T.length;
+  const opp = { name: pick(CUP_OPP), str: base * (1.05 + .08 * rr) * (1 + Math.random() * .1) };
+  const r = simCore(squadUs(), squadOpp({ str: opp.str * oppGrow() }), { tacA: 'bal', tacB: 'bal', homeA: Math.random() < .5, homePct: 3, quiet: true });
+  let [a, b] = r.g, pen = '';
+  if (a === b) { const w = Math.random() < .5 + (mtOurStr() / (opp.str * oppGrow()) - 1) * .5; pen = ' n. E.'; if (w) a += .1; else b += .1; }
+  return { opp: opp.name, g: [Math.floor(a), Math.floor(b)], pen, won: a > b };
+}
+function cupApply(C, x) {   // Ergebnis eintragen + eigene Belohnung (Gold hängt am eigenen Level)
+  const rew = x.won ? Math.round(8 * (C.r + 1) * GU(S.level) * ligaMul()) : 0;
+  C.res.push({ r: C.r, opp: x.opp, g: x.g, pen: x.pen, won: x.won, rew });
+  if (x.won) { gold += rew; C.r++; if (C.r === 4) { cntInc('cupW'); S.tb += 15; C.item = giveItem('legendaer'); } } else C.out = true;
+}
+var CUP_NET = null;   // cloud.js: Online-Verein holt/schreibt die Pokalspiele beim Server
 function cupPlay() {
   const C = cupState(), L = CLUB.liga; if (!C) return;
-  while (!C.out && C.r < 4 && L.day >= CUP_DAYS[C.r]) {
-    const T = L.teams.filter(t => !t.me), base = T.reduce((a, t) => a + t.str, 0) / T.length;
-    const opp = { name: pick(CUP_OPP), str: base * (1.05 + .08 * C.r) * (1 + Math.random() * .1) };
-    const r = simCore(squadUs(), squadOpp({ str: opp.str * oppGrow() }), { tacA: L.tactic || 'bal', tacB: 'bal', homeA: Math.random() < .5, homePct: 3, quiet: true });
-    let [a, b] = r.g, pen = '';
-    if (a === b) { const w = Math.random() < .5 + (mtOurStr() / (opp.str * oppGrow()) - 1) * .5; pen = w ? ' n. E.' : ' n. E.'; if (w) a += .1; else b += .1; }
-    const won = a > b, rew = won ? Math.round(8 * (C.r + 1) * GU(S.level) * ligaMul()) : 0;
-    C.res.push({ r: C.r, opp: opp.name, g: [Math.floor(a), Math.floor(b)], pen, won, rew });
-    if (won) { gold += rew; C.r++; if (C.r === 4) { cntInc('cupW'); S.tb += 15; C.item = giveItem('legendaer'); } } else C.out = true;
-  }
+  if (CLUB.oid && CUP_NET) { CUP_NET(); return; }
+  while (!C.out && C.r < 4 && L.day >= CUP_DAYS[C.r]) cupApply(C, cupRound(C.r));
   saveClub(); syncGlobal();
 }
 mtPlayDay = (orig => function () { const r = orig(); try { cupPlay(); } catch (e) {} return r; })(mtPlayDay);
@@ -5760,7 +5806,7 @@ function hofList() {
 }
 const hofDays = () => Math.max(0, (Date.now() - (S.born || Date.now())) / 86400000 + (S.dbOff || 0));
 const botRuhm = b => Math.round(b.r0 + b.g * 60 * hofDays());
-const botLvl = b => Math.max(1, Math.round(S.level * (0.55 + b.f * 0.45)));
+const botLvl = b => b && b.L ? b.L : Math.max(1, Math.round(S.level * (0.55 + b.f * 0.45)));   // 14. Okt.: echte Gegner haben ihr Level
 function hofRank() { const D = duState(); return hofList().filter(b => botRuhm(b) > D.r).length + 1; }
 function duOpps() {   // 3 Gegner mit ähnlichem Ruhm
   const D = duState(), L = hofList().slice().sort((a, b) => Math.abs(botRuhm(a) - D.r) - Math.abs(botRuhm(b) - D.r)).slice(0, 8);
@@ -6221,7 +6267,7 @@ function duChallenge(x) {
   if (D.n >= DU_MAX) return msg('Für heute hast du alle 10 Duelle gespielt. Morgen geht es weiter!');
   if (left) return msg(`Du musst noch kurz verschnaufen. Nächstes Duell in <b>${fmtHMS(left / 1000 * 3600000 / JOB_H)}</b>.`);
   const me = duMine() || 1, f = Math.min(3, Math.max(.3, x.f || (x.st ? x.st / me : 1)));
-  duFight({ n: x.n, f, pos: x.pos, av: x.av });
+  duFight({ n: x.n, f, pos: x.pos, av: x.av, id: x.id || null });
 }
 hfCard = function (x) {
   const own = x.n === (PLAYER && PLAYER.name);
@@ -6507,6 +6553,63 @@ hubQuestBtn = (o => function () {
   const s = document.querySelector('.map-swipe'); if (s) s.style.display = 'none';
   try { mapRender(); hubQuestBtn(); } catch (e) {}
 })();
+
+// ================== 14. Okt. 20:45: Stadion wie S&F-Gildenhalle, Vereinsheim-Symbole + Gesichter, Aufblinken ==================
+const ICI = (n, cls) => `<img src="img/icons/${n}.png" alt=""${cls ? ` class="${cls}"` : ''}>`;
+// ---------- Stadion: Chat unten weg, Symbol-Leiste unter dem Feld ----------
+(() => {
+  const main = document.getElementById('sdMain'); if (!main) return;
+  const feed = main.querySelector('.sd-feed'); if (feed) feed.style.display = 'none';
+  main.insertAdjacentHTML('beforeend', `<nav class="sd-bar" aria-label="Verein">
+    <button type="button" id="sdbMem" aria-label="Mitglieder">${ICI('ic_freunde')}<span>Mitglieder</span></button>
+    <button type="button" id="sdbLine" aria-label="Aufstellung">${ICI('ic_pfeife')}<span>Aufstellung</span></button>
+    <button type="button" id="sdbCash" aria-label="Spenden">${ICI('ic_geldsack')}<span>Spenden</span></button>
+    <button type="button" id="sdbCup" aria-label="Pokal">${ICI('ic_pokal')}<span>Pokal</span></button>
+    <button type="button" id="sdbChat" aria-label="Vereinschat">${ICI('ic_chat')}<span>Chat</span></button></nav>`);
+  const on = (id, f) => document.getElementById(id).onclick = e => { e.preventDefault(); f(); };
+  on('sdbMem', () => openVerein()); on('sdbLine', () => openSpieltag('auf')); on('sdbCash', () => document.getElementById('sdPay').click());
+  on('sdbCup', () => openCup()); on('sdbChat', () => openChat());
+})();
+// ---------- Vereinsheim: gemalte Symbole statt Strich-Icons, Chat geht, Gesichter mit Hintergrund ----------
+(() => {
+  const box = document.querySelector('.vr-actions'); if (!box) return;
+  const set = (b, ic) => { if (!b) return; const sv = b.querySelector('svg'); if (sv) sv.outerHTML = ICI(ic, 'vr-aic'); };
+  const bs = box.querySelectorAll('button');
+  set(document.getElementById('vrInvite'), 'ic_freunde'); set(box.querySelector('[data-go="spieltag"]'), 'ic_pfeife'); set(document.getElementById('vrLeave'), 'ic_abstieg');
+  const chat = [...bs].find(b => /Chat/.test(b.textContent)); if (chat) { set(chat, 'ic_chat'); chat.removeAttribute('data-soon'); chat.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openChat(); }, true); }
+})();
+vrClubUI = (o => function () {
+  const r = o.apply(this, arguments);
+  try {
+    const rows = document.querySelectorAll('#vrKader .vr-m');
+    CLUB.kader.forEach((m, i) => {
+      const row = rows[i]; if (!row) return; const av = row.querySelector('.vr-av'); if (!av) return;
+      const f = mtFace(m); av.className = 'vr-av face' + (m.bot ? ' bot' : '');
+      av.innerHTML = (f ? `<img src="${f}" alt="">` : '') + (m.online && !m.bot ? '<i class="on"></i>' : '');
+      row.dataset.k = i; row.classList.add('tap');
+    });
+    const kd = document.getElementById('vrKader');
+    if (kd && !kd.dataset.tap) { kd.dataset.tap = 1; kd.addEventListener('click', e => { const row = e.target.closest('.vr-m[data-k]'); if (row && CLUB) mtProfile(CLUB.kader[+row.dataset.k]); }); }
+  } catch (e) {}
+  return r;
+})(vrClubUI);
+// ---------- Aufblinken, wenn etwas fertig ist (Nebenjob/Erholen, Training, neue Chat-Nachricht) ----------
+finish = (o => function () { if (document.getElementById('training').hidden) S.trNew = 1; return o.apply(this, arguments); })(finish);
+show = (o => function (id) { if (id === 'training' && S.trNew) { S.trNew = 0; syncGlobal(); } if (id === 'arbeit') S._jobSeen = S.job && S.job.until; return o.apply(this, arguments); })(show);
+function blinkTick() {
+  if (!PLAYER) return;
+  const now = Date.now(), jobDone = !!(S.job && S.job.until && S.job.until <= now && S._jobSeen !== S.job.until), jobRest = jobDone && S.job.kind !== 'work';
+  const chat = !!document.querySelector('#ftChat .mn-badge'), train = !!S.trNew;
+  const tog = (el, on) => { if (el) el.classList.toggle('blink', !!on); };
+  tog(document.getElementById('ftChat'), chat && OV.cur !== 'ovChat');
+  tog(document.getElementById('gMenu'), (jobDone || train) && document.getElementById('menu').hidden);
+  tog(document.getElementById('sdbChat'), chat);
+  document.querySelectorAll('#mapSpots .map-lbl.pin').forEach(l => { const b = MAP.b[+l.dataset.i]; if (!b) return;
+    tog(l, (b.k === 'verein' && jobDone && !jobRest) || (b.k === 'spa' && jobRest) || (b.k === 'training' && train)); });
+  const tile = n => document.querySelector(`#menu .mn-tile[aria-label="${n}"]`);
+  tog(tile('Nebenjob'), jobDone && !jobRest); tog(tile('Wellness'), jobRest); tog(tile('Trainingsplatz'), train);
+}
+setInterval(blinkTick, 1000);
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
@@ -6800,7 +6903,7 @@ function clBuildKader(base, meK, real, uid) {
   }
   return k;
 }
-const clClubSnap = () => ({ kader: clKaderSnap(), crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CLUB.build || null, liga: CLUB.liga ? { start: CLUB.liga.start, teams: CLUB.liga.teams, opps: CLUB.liga.opps, lvl0: CLUB.liga.lvl0, league: CLUB.league, cur: { day: CLUB.liga.day, tab: CLUB.liga.tab } } : null });
+const clClubSnap = () => ({ kader: clKaderSnap(), crest: CLUB.crest, league: CLUB.league, place: CLUB.place, build: CL_NET.on ? undefined : CLUB.build || null, liga: CLUB.liga ? { start: CLUB.liga.start, teams: CLUB.liga.teams, opps: CLUB.liga.opps, lvl0: CLUB.liga.lvl0, league: CLUB.league, cur: { day: CLUB.liga.day, tab: CLUB.liga.tab } } : null });
 async function clClubSync() {
   if (CL.state !== 'ok' || typeof CLUB === 'undefined') return;
   const uid = CL.auth.uid; let last = ''; try { last = localStorage.getItem('dd_cloud_club') || ''; } catch (e) {}
@@ -6818,11 +6921,17 @@ async function clClubSync() {
   if (last !== CLUB.oid) { try { localStorage.setItem('dd_cloud_club', CLUB.oid); } catch (e) {} }
   const [club] = await clReq('/rest/v1/clubs?select=*&id=eq.' + CLUB.oid);
   if (!club) { delete CLUB.oid; saveClub(); return; }
-  const mem = await clReq('/rest/v1/club_members?select=user_id,rolle&club_id=eq.' + CLUB.oid);
+  const mem = await clReq('/rest/v1/club_members?select=*&club_id=eq.' + CLUB.oid);
   const mine = mem.find(m => m.user_id === uid);
   if (!mine) { await clReq('/rest/v1/club_members', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: uid, rolle: CLUB.founder ? 'kapitaen' : 'spieler' }) }).catch(() => {}); }
   const role = mine ? mine.rolle : (CLUB.founder ? 'kapitaen' : 'spieler');
-  if (role !== 'kapitaen' && club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build) CLUB.build = a.build; if (a.liga) await clLgAdopt(a.liga); }
+  // 14. Okt.: Kasse + Ausbau liegen auf dem Server (schema5) – alle sehen dieselben Zahlen
+  CL_NET.on = Object.prototype.hasOwnProperty.call(club, 'bau'); CL_NET.role = role;
+  if (CL_NET.on) {
+    if (club.bau == null && role === 'kapitaen') { try { clKasseAdopt((await clRpc({ op: 'init', d_gold: Math.round(CLUB.kasse || 0), d_tb: CLUB.kasseTb || 0, p_bau: CLUB.build || {}, p_job: CLUB.job || null }))[0]); } catch (e) {} }
+    else if (club.bau != null && !CL_NET.q.length && !CL_NET.busy) clKasseAdopt(club);
+  }
+  if (role !== 'kapitaen' && club.ausbau) { const a = club.ausbau; if (a.crest) CLUB.crest = a.crest; if (a.build && !CL_NET.on) CLUB.build = a.build; if (a.liga) await clLgAdopt(a.liga); }
   if (role === 'kapitaen') CLUB.ligaOk = CLUB.liga ? CLUB.liga.start : 0;
   // Kader: ich + echte Mitspieler + Bots auffüllen
   const ids = mem.map(m => m.user_id).filter(i => i !== uid);
@@ -6834,7 +6943,10 @@ async function clClubSync() {
   const srvK = club.ausbau && Array.isArray(club.ausbau.kader) && club.ausbau.kader.length ? club.ausbau.kader : null;
   const base = role === 'kapitaen' || !srvK ? clKaderSnap() : srvK;
   const before = JSON.stringify(clKaderSnap());
-  CLUB.kader = clBuildKader(base, meK, real, uid); saveClub();
+  CLUB.kader = clBuildKader(base, meK, real, uid);
+  if (CL_NET.on) CLUB.kader.forEach(k => { const row = k.me ? mine : k.oid ? mem.find(m => m.user_id === k.oid) : null; if (row && row.gespendet != null) k.don = { g: +row.gespendet || 0, tb: +row.gespendet_tb || 0 }; });
+  if (CL_NET.on && CL_NET.sh) { const me = CLUB.kader.find(k => k.me); CL_NET.sh.dg = me && me.don ? me.don.g : 0; CL_NET.sh.dt = me && me.don ? me.don.tb : 0; }
+  saveClub();
   if (role === 'kapitaen') await clReq('/rest/v1/clubs?id=eq.' + CLUB.oid, { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ ausbau: clClubSnap() }) });
   try { if (before !== JSON.stringify(clKaderSnap()) && !document.getElementById('spieltag').hidden) mtRenderPre(); } catch (e) {}
   try { if (!document.getElementById('verein').hidden && VC.view === 'club') vrClubUI(); if (typeof applyClubBonus === 'function') applyClubBonus(); } catch (e) {}
@@ -6973,5 +7085,112 @@ setInterval(async () => {
   let seen = 0; try { seen = +localStorage.getItem('dd_chat_seen') || 0; } catch (e) {}
   try { const r = await clReq('/rest/v1/club_chat?select=created_at,user_id&club_id=eq.' + CLUB.oid + '&created_at=gt.' + new Date(seen).toISOString() + '&limit=20'); chBadge(r.filter(x => x.user_id !== CL.auth.uid).length); } catch (e) {}
 }, 30000);
+
+// ================== 14. Okt.: Vereinskasse, Ausbau, Pokal und Duelle über den Server (schema5.sql) ==================
+const CL_NET = { on: false, role: '', sh: null, q: [], busy: false };
+const clRpc = body => clReq('/rest/v1/rpc/club_apply', { method: 'POST', body: JSON.stringify(Object.assign({ d_gold: 0, d_tb: 0, don_gold: 0, don_tb: 0, p_job: null, p_bau: null }, body)) });
+const clShot = () => { const me = (CLUB.kader || []).find(k => k.me), d = me && me.don || { g: 0, tb: 0 }; return { k: Math.round(CLUB.kasse || 0), t: CLUB.kasseTb || 0, job: CLUB.job ? CLUB.job.k + '|' + CLUB.job.until : '', build: JSON.stringify(CLUB.build || {}), dg: d.g, dt: d.tb }; };
+function clKasseAdopt(r) {
+  if (!r || !CLUB) return;
+  CLUB.kasse = +r.kasse_gold || 0; CLUB.kasseTb = +r.kasse_tb || 0; CLUB.build = r.bau || {}; CLUB.job = r.bau_job || null;
+  CL_NET.sh = clShot(); clSaveClubRaw();
+  try { if (!document.getElementById('stadion').hidden) sdRender(); } catch (e) {}
+}
+const clSaveClubRaw = saveClub;
+saveClub = function () {
+  const r = clSaveClubRaw.apply(this, arguments);
+  try {
+    if (!CL_NET.on || CL.state !== 'ok' || !CLUB || !CLUB.oid) return r;
+    const a = CL_NET.sh, b = clShot(); if (!a) { CL_NET.sh = b; return r; }
+    CL_NET.sh = b;
+    const dK = b.k - a.k, dT = b.t - a.t;
+    let op = null;
+    if (!a.job && b.job) op = { op: 'start', d_gold: Math.max(0, -dK), d_tb: Math.max(0, -dT), p_job: Object.assign({}, CLUB.job, { cost: Math.max(0, -dK), tb: Math.max(0, -dT) }) };
+    else if (a.job && !b.job) op = { op: a.build !== b.build ? 'finish' : 'cancel' };
+    else if (dK > 0 || dT > 0) op = { op: 'add', d_gold: Math.max(0, dK), d_tb: Math.max(0, dT), don_gold: Math.max(0, b.dg - a.dg), don_tb: Math.max(0, b.dt - a.dt) };
+    if (op) { CL_NET.q.push(op); clNetRun(); }
+  } catch (e) {}
+  return r;
+};
+async function clNetRun() {
+  if (CL_NET.busy) return; CL_NET.busy = true; let last = null;
+  try {
+    while (CL_NET.q.length) {
+      const op = CL_NET.q.shift();
+      try { last = (await clRpc(op))[0] || last; }
+      catch (e) {
+        CL_NET.q = []; last = null;
+        const msg = (e.message || '').replace(/^.*?:\s*/, '');
+        try { const [c] = await clReq('/rest/v1/clubs?select=kasse_gold,kasse_tb,bau,bau_job&id=eq.' + CLUB.oid); clKasseAdopt(c); } catch (x) {}
+        if (op.op !== 'finish') ddPop(`<h3>Vereinskasse</h3><p class="dd-p">${hfEsc(msg || 'Das hat nicht geklappt.')}</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`);
+      }
+    }
+    if (last) clKasseAdopt(last);
+  } finally { CL_NET.busy = false; }
+}
+// Bots spenden in Online-Vereinen kein Spielgeld in die gemeinsame Kasse
+sdBotDonate = (o => function () { if (CLUB && CLUB.oid && CL_NET.on) { try { sdBotSay(); } catch (e) {} return; } return o.apply(this, arguments); })(sdBotDonate);
+
+// ---------- Pokal: wer zuerst kommt, rechnet die Runde; alle anderen übernehmen sie ----------
+const CL_CUP = { busy: false };
+CUP_NET = async function () {
+  if (CL_CUP.busy || CL.state !== 'ok') return; CL_CUP.busy = true;
+  try {
+    const C = cupState(), L = CLUB.liga; if (!C) return;
+    while (!C.out && C.r < 4 && L.day >= CUP_DAYS[C.r]) {
+      const season = L.start + 1, day = C.r + 1;
+      let row = (await clReq(clMatchQ(season, day)))[0];
+      if (!row) {
+        const ins = await clReq('/rest/v1/club_matches?on_conflict=club_id,season,day', { method: 'POST', headers: { Prefer: 'resolution=ignore-duplicates,return=representation' },
+          body: JSON.stringify({ club_id: CLUB.oid, season, day, res: cupRound(C.r), tab: {} }) });
+        row = ins && ins.length ? ins[0] : (await clReq(clMatchQ(season, day)))[0];
+      }
+      if (!row || !row.res) break;
+      cupApply(C, row.res);
+    }
+    saveClub(); syncGlobal();
+  } catch (e) {} finally { CL_CUP.busy = false; }
+};
+
+// ---------- Duelle gegen echte Spieler: Gegner verliert/gewinnt Ruhm, sobald er online ist ----------
+let DUEL_POOL = [];
+async function clDuelPool() {
+  if (CL.state !== 'ok') return;
+  try {
+    const r = duState().r, me = duMine() || 1, sel = 'select=id,name,pos,level,ruhm,staerke,avatar';
+    const [up, dn] = await Promise.all([clReq('/rest/v1/profiles?' + sel + '&ruhm=gte.' + r + '&order=ruhm.asc&limit=6'), clReq('/rest/v1/profiles?' + sel + '&ruhm=lt.' + r + '&order=ruhm.desc&limit=6')]);
+    DUEL_POOL = up.concat(dn).filter(p => p.id !== CL.auth.uid).map(p => ({ n: p.name, id: p.id, pos: p.pos, L: p.level, r0: p.ruhm || 0, g: 0, f: Math.min(3, Math.max(.3, (p.staerke || me) / me)), av: p.avatar || '' }));
+  } catch (e) {}
+}
+duOpps = (o => function () { if (DUEL_POOL.length >= 3) return DUEL_POOL.slice().sort(() => Math.random() - .5).slice(0, 3); return o.apply(this, arguments); })(duOpps);
+openDuel = (o => function () { if (!DUEL_POOL.length) clDuelPool(); return o.apply(this, arguments); })(openDuel);
+duFight = (o => function (b) {
+  const D = duState(), r0 = D.r, w0 = D.w, n0 = D.n;
+  const res = o.apply(this, arguments);
+  try {
+    if (b && b.id && CL.state === 'ok' && D.n > n0) {
+      const win = D.w > w0, dr = D.r - r0, dDef = Math.max(-30, Math.min(30, -Math.round(dr * .6)));
+      clReq('/rest/v1/duels', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ defender: b.id, att_name: PLAYER ? PLAYER.name : 'Spieler', att_win: win, d_def: dDef }) }).catch(() => {});
+      DUEL_POOL = [];
+    }
+  } catch (e) {}
+  return res;
+})(duFight);
+async function clDuelInbox() {
+  if (CL.state !== 'ok' || !PLAYER) return;
+  try {
+    const L = await clReq('/rest/v1/duels?select=id,att_name,att_win,d_def&defender=eq.' + CL.auth.uid + '&applied=eq.false&order=created_at.asc&limit=30');
+    if (!L.length) return;
+    const D = duState(); let sum = 0; L.forEach(x => sum += x.d_def); D.r = Math.max(0, D.r + sum); syncGlobal();
+    await clReq('/rest/v1/duels?id=in.(' + L.map(x => x.id).join(',') + ')', { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ applied: true }) });
+    clPush(true).catch(() => {});
+    const rows = L.map(x => `<div class="hf-row"><span>${hfEsc(x.att_name || 'Jemand')}</span><small>${x.att_win ? 'hat gegen dich gewonnen' : 'hat gegen dich verloren'}</small><em style="color:${x.d_def >= 0 ? '#8FD14F' : '#FF7A6E'}">${x.d_def >= 0 ? '+' : ''}${x.d_def}</em></div>`).join('');
+    const show = () => { if (!document.getElementById('ddPop').hidden) { setTimeout(show, 4000); return; }
+      ddPop(`<h3>⚔️ Herausforderungen</h3><p class="dd-p">Während du weg warst, haben dich Spieler zum Elfmeter-Duell herausgefordert:</p><div class="hf-list">${rows}</div><p class="dd-p">Ruhm gesamt: <b>${sum >= 0 ? '+' : ''}${sum}</b></p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`); };
+    show();
+  } catch (e) {}
+}
+setTimeout(() => { clDuelInbox(); clDuelPool(); }, 6000);
+setInterval(() => { clDuelInbox(); }, 90000);
 
 </script>
