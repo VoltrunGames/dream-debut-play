@@ -1351,6 +1351,7 @@ button.mt-pl[disabled] { cursor: default; }
 #phone#phone .g-foot .mn-sq:not(#ftChat) { display: none !important; }
 #phone#phone .g-foot #ftChat { display: flex !important; grid-column: 1; }
 .g-foot #gMenu { grid-column: 5; }
+#phone#phone.on-menu .g-foot .mn-sq.ft-m:not(#ftRank) { display: flex !important; }
 #ftChat.on { filter: brightness(1.25); box-shadow: 0 0 0 3px #E8B23A !important; border-radius: 10px; }
 /* Gelände: Nadeln mit Symbolen */
 .map-lbl.pin { width: 54px; height: 54px; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; transform: translate(-50%, -78%) !important; cursor: pointer; }
@@ -6353,15 +6354,7 @@ function ftSync() { const c = document.getElementById('ftChat'); if (c) c.classL
     chat.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if (OV.cur === 'ovChat') ovClose(); else openChat(); }, true); }
 })();
 
-// ---------- Menü: neue Zeile „Optionen“ (Einstellungen, Hilfe, Chat) ----------
-(() => {
-  const grid = document.querySelector('#menu .mn-grid'); if (!grid) return;
-  const t = (id, lbl, ic, txt) => `<button type="button" class="mn-tile" id="${id}" aria-label="${lbl}"><svg width="34" height="34" viewBox="0 0 24 24"><image href="img/icons/${ic}.png" x="0" y="0" width="24" height="24"/></svg><span>${txt}</span></button>`;
-  grid.insertAdjacentHTML('beforeend', `<div class="mn-row mn-opt"><div class="mn-tiles">${t('mnSet', 'Einstellungen', 'ic_einstellungen', 'Einstel­lungen')}${t('mnHelp', 'Hilfe', 'ic_hilfe', 'Hilfe')}${t('mnChat', 'Vereinschat', 'ic_chat', 'Chat')}</div>
-    <div class="mn-cat"><svg width="28" height="28" viewBox="0 0 24 24"><image href="img/icons/ic_einstellungen.png" x="0" y="0" width="24" height="24"/></svg><span>Optionen</span></div></div>`);
-  const on = (id, fn) => document.getElementById(id).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('hub'); setTimeout(fn, 0); }, true);
-  on('mnSet', () => openSettings('set', 'game')); on('mnHelp', () => openSettings('help')); on('mnChat', () => openChat());
-})();
+// 14. Okt. 19 Uhr: Einstellungen/Hilfe/Chat sitzen bei offenem Menü in der Fußleiste (statt eigener Menü-Zeile)
 
 // ---------- Einstellungen + Hilfe & Support ----------
 const ST_IC = {
