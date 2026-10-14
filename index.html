@@ -1347,6 +1347,96 @@ button.mt-pl[disabled] { cursor: default; }
 #crNumMinus::after { transform: scaleX(-1); }
 .tr-port > img.tr-bust { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 9px) !important; object-fit: contain; object-position: 50% 100%; transform: none; }
 
+/* Fußleiste: nur Chat + Menü */
+#phone#phone .g-foot .mn-sq:not(#ftChat) { display: none !important; }
+#phone#phone .g-foot #ftChat { display: flex !important; grid-column: 1; }
+.g-foot #gMenu { grid-column: 5; }
+#ftChat.on { filter: brightness(1.25); box-shadow: 0 0 0 3px #E8B23A !important; border-radius: 10px; }
+/* Gelände: Nadeln mit Symbolen */
+.map-lbl.pin { width: 54px; height: 54px; padding: 0 !important; border: 0 !important; background: none !important; box-shadow: none !important; transform: translate(-50%, -78%) !important; cursor: pointer; }
+.map-lbl.pin::before { content: ''; position: absolute; inset: 1px; background: radial-gradient(circle at 50% 40%, #47301F, #241710); border: 3px solid #E8B23A; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); box-shadow: -2px 3px 0 #2A1209, -3px 5px 10px rgba(0,0,0,.45); }
+.map-lbl.pin i { position: absolute; inset: 9px; background: center / contain no-repeat; z-index: 1; filter: drop-shadow(0 1px 0 rgba(0,0,0,.5)); }
+.map-lbl.pin .dot { z-index: 2; right: -8px; top: -8px; }
+.map-lbl.pin:hover::before, .map-lbl.pin:focus-visible::before { border-color: #FFE27A; }
+.pin-btn { width: 50px !important; height: 50px !important; padding: 0 !important; border-radius: 50% !important; border: 3px solid #E8B23A !important; background: radial-gradient(circle at 50% 40%, #47301F, #241710) !important; box-shadow: 0 3px 0 #2A1209, 0 4px 10px rgba(0,0,0,.4) !important; font-size: 0 !important; }
+.pin-btn i { position: absolute; inset: 8px; background: center / contain no-repeat; }
+.pin-btn em { position: absolute; left: 50%; bottom: -9px; transform: translateX(-50%); font: 400 11px 'Fredoka', sans-serif; font-style: normal; background: #241710; color: #FFC93C; border: 2px solid #E8B23A; border-radius: 999px; padding: 0 6px; white-space: nowrap; }
+.pin-btn .dot { position: absolute; right: -6px; top: -6px; min-width: 20px; height: 20px; border-radius: 999px; border: 2px solid #2A1209; background: #FFC93C; color: #2A1209; font: 400 12px 'Fredoka', sans-serif; display: flex; align-items: center; justify-content: center; }
+#hubQ.pin-btn { position: absolute; left: 12px; top: 12px; }
+#mapTest.pin-btn { position: absolute; right: 12px; top: 12px; left: auto; }
+/* Einstellungen-Schalter */
+#phone.no-cmp .ki-cmp { display: none !important; }
+#phone.no-say .ki-say { display: none !important; }
+#phone.no-badges .mn-badge-y, #phone.no-badges .mn-tile .mn-badge { display: none !important; }
+#phone.no-anim .trs-bg img, #phone.no-anim .abs img, #phone.no-anim [class*="-bg"] img { animation: none !important; }
+#phone.rg .ki-cmp.up, #phone.rg .ki-diff.up { background: #2F8FE6 !important; color: #fff !important; }
+#phone.rg .ki-cmp.dn, #phone.rg .ki-diff.dn { background: #F28C28 !important; color: #2A1209 !important; }
+/* Overlay-Bildschirme */
+.ov { position: absolute; left: 0; right: 0; z-index: 15; overflow: hidden; display: flex; flex-direction: column; color: #F7ECD9; font-family: 'Fredoka', sans-serif;
+  background: linear-gradient(rgba(20,12,7,.82), rgba(20,12,7,.9)), url(img/ui/d_tex_holz.jpg) center / 260px; border-left: 6px solid #2A1A10; border-right: 6px solid #2A1A10; box-sizing: border-box; }
+.ov[hidden] { display: none !important; }
+.st-tabs { display: grid; grid-template-columns: 1fr 1fr; flex-shrink: 0; }
+.st-tabs button { height: 44px; border: 0; border-bottom: 3px solid #E8B23A; background: rgba(0,0,0,.25); color: #BFA27F; font: 400 16px 'Titan One', 'Fredoka', sans-serif; letter-spacing: .6px; text-transform: uppercase; cursor: pointer; }
+.st-tabs button.on { background: none; color: #FFC93C; border: 3px solid #E8B23A; border-bottom: 0; border-radius: 10px 10px 0 0; }
+.st-icons { display: grid; grid-template-columns: repeat(6, 1fr); padding: 10px 6px 6px; border-bottom: 2px solid rgba(232,178,58,.35); flex-shrink: 0; }
+.st-icons button { height: 44px; border: 0; background: none; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.st-icons svg { width: 34px; height: 34px; fill: none; stroke: #7FA4A8; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.st-icons button.on svg { stroke: #FFC93C; }
+.st-h { margin: 8px 0 2px; text-align: center; font: 400 22px 'Titan One', 'Fredoka', sans-serif; color: #FFC93C; letter-spacing: 1px; text-transform: uppercase; text-shadow: 0 2px 0 #2A1209; flex-shrink: 0; }
+.st-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 14px 12px; scrollbar-width: none; }
+.st-body::-webkit-scrollbar { display: none; }
+.st-body h4 { margin: 12px 0 6px; font: 400 15px 'Titan One', 'Fredoka', sans-serif; color: #F7ECD9; letter-spacing: .6px; text-transform: uppercase; }
+.st-chk { display: flex; align-items: center; gap: 10px; padding: 5px 0; cursor: pointer; }
+.st-chk input { position: absolute; opacity: 0; pointer-events: none; }
+.st-chk i { width: 26px; height: 26px; flex-shrink: 0; border-radius: 5px; border: 2px solid #5E4630; background: #1A0F08; box-shadow: inset 0 2px 3px rgba(0,0,0,.6); }
+.st-chk input:checked + i { background: url(img/icons/ic_haken.png) center / 120% no-repeat, #1A0F08; border-color: #E8B23A; }
+.st-chk span { font-size: 16px; color: #8FA9AC; line-height: 1.15; }
+.st-chk input:checked ~ span { color: #FFC93C; }
+.st-chk small { display: block; font-size: 11.5px; color: #BFA27F; }
+.st-sub { padding-left: 18px; } .st-sub.off { opacity: .45; pointer-events: none; }
+.st-row { display: flex; align-items: center; gap: 8px; } .st-row .st-chk { flex: 1; }
+.st-perm { font-size: 11.5px; text-align: right; color: #FF7A6E; line-height: 1.15; } .st-perm.ok { color: #8FD14F; }
+.st-mini, .st-ic { height: 34px; min-width: 34px; padding: 0 10px; border-radius: 9px; border: 2px solid #E8B23A; background: #2E1D13; color: #FFC93C; font: 400 13px 'Fredoka', sans-serif; cursor: pointer; }
+.st-rng { margin: 8px 0 10px; } .st-rng > div { display: flex; justify-content: space-between; margin-bottom: 4px; }
+.st-rng b { font: 400 15px 'Titan One', 'Fredoka', sans-serif; letter-spacing: .5px; text-transform: uppercase; } .st-rng em { font-style: normal; color: #FFC93C; }
+.st-rng input { -webkit-appearance: none; appearance: none; width: 100%; height: 18px; border-radius: 9px; border: 2px solid #2A1209; background: linear-gradient(#3A2518, #1A0F08); }
+.st-rng input::-webkit-slider-thumb { -webkit-appearance: none; width: 30px; height: 30px; border-radius: 50%; border: 3px solid #2A1209; background: radial-gradient(circle at 40% 35%, #FFE27A, #D99A0B); box-shadow: 0 2px 0 #2A1209; }
+.st-rng input::-moz-range-thumb { width: 26px; height: 26px; border-radius: 50%; border: 3px solid #2A1209; background: #F2B705; }
+.st-line { margin: 6px 0; font-size: 15px; } .st-line b { color: #FFC93C; font-weight: 400; }
+.st-note { margin: 8px 0; font-size: 12.5px; color: #BFA27F; line-height: 1.3; }
+.st-id { display: flex; align-items: center; gap: 6px; margin: 10px 0 4px; } .st-id span { font: 400 14px 'Titan One', 'Fredoka', sans-serif; text-transform: uppercase; }
+.st-id code { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; padding: 7px 8px; border-radius: 8px; border: 2px dashed #5E4630; background: #1A0F08; color: #FFC93C; font: 400 12px monospace; text-align: center; }
+.st-btns { display: flex; gap: 8px; margin: 8px 0; flex-wrap: wrap; }
+.st-btn { flex: 1; min-width: 120px; height: 42px; border-radius: 10px; border: 2px solid #E8B23A; background: linear-gradient(#3A2518, #241710); color: #FFC93C; font: 400 15px 'Titan One', 'Fredoka', sans-serif; letter-spacing: .5px; text-transform: uppercase; cursor: pointer; box-shadow: 0 3px 0 #2A1209; }
+.st-btn.two { color: #F7ECD9; border-color: #8A6A44; }
+.st-in { width: 100%; box-sizing: border-box; margin: 4px 0; padding: 10px; border-radius: 9px; border: 2px solid #5E4630; background: #FFF6E3; color: #2A1209; font: 500 15px 'Fredoka', sans-serif; }
+.st-lang { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 10px; margin-top: 8px; }
+.st-lang button { height: 40px; border: 0; border-radius: 6px; background: none; color: #FFC93C; font: 500 16px 'Fredoka', sans-serif; cursor: pointer; }
+.st-lang button.on { background: linear-gradient(#5A3B22, #3A2518); box-shadow: inset 0 0 0 2px #E8B23A; }
+.st-faq { display: flex; flex-direction: column; gap: 6px; margin-top: 6px; }
+.st-q { border: 2px solid #5E4630; border-radius: 10px; background: rgba(0,0,0,.25); } .st-q.on { border-color: #E8B23A; }
+.st-q button { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 9px 10px; border: 0; background: none; color: #F7ECD9; font: 500 15px 'Fredoka', sans-serif; text-align: left; cursor: pointer; }
+.st-q button b { color: #FFC93C; font-size: 20px; line-height: 1; }
+.st-q p { margin: 0; padding: 0 10px 10px; font-size: 13.5px; line-height: 1.35; color: #EBD8B8; }
+/* Vereinschat */
+.ch-none { flex: 1; display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; padding: 16px; }
+.ch-none p { margin: 0; font-size: 17px; }
+.ch-none .st-btn { flex: none; align-self: flex-start; padding: 0 18px; }
+.st-btn { white-space: nowrap; font-size: 14px; }
+.ch-head { flex-shrink: 0; padding: 10px 14px 8px; border-bottom: 2px solid rgba(232,178,58,.35); }
+.ch-head b { display: block; font: 400 18px 'Titan One', 'Fredoka', sans-serif; color: #FFC93C; letter-spacing: .5px; } .ch-head small { font-size: 12px; color: #BFA27F; }
+.ch-list { flex: 1; min-height: 0; overflow-y: auto; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px; scrollbar-width: none; }
+.ch-list::-webkit-scrollbar { display: none; }
+.ch-m { max-width: 82%; align-self: flex-start; } .ch-m.me { align-self: flex-end; text-align: right; }
+.ch-m small { display: block; font-size: 11px; color: #BFA27F; margin: 0 4px 2px; }
+.ch-m p { margin: 0; padding: 8px 11px; border-radius: 12px 12px 12px 3px; background: #3A2518; border: 2px solid #5E4630; font-size: 15px; line-height: 1.3; text-align: left; word-break: break-word; }
+.ch-m.me p { border-radius: 12px 12px 3px 12px; background: #5A3B22; border-color: #E8B23A; }
+.ch-empty { margin: auto 0 0; text-align: center; color: #BFA27F; font-size: 14px; }
+.ch-in { flex-shrink: 0; display: flex; gap: 8px; padding: 8px 10px 10px; border-top: 2px solid rgba(232,178,58,.35); }
+.ch-in input { flex: 1; min-width: 0; height: 44px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; border: 2px solid #5E4630; background: #FFF6E3; color: #2A1209; font: 500 15px 'Fredoka', sans-serif; }
+.ch-in button { width: 52px; height: 44px; border-radius: 10px; border: 2px solid #2A1209; background: linear-gradient(#FFD95A, #F2B705); color: #2A1209; font-size: 20px; cursor: pointer; box-shadow: 0 3px 0 #2A1209; }
+.mn-opt .mn-tiles .mn-tile svg { width: 34px; height: 34px; }
+
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
 body { padding: 0 !important; gap: 0 !important; display: block !important; min-height: 0 !important; }
@@ -6192,6 +6282,239 @@ applyPlayer = (o => function () {
 })(applyPlayer);
 try { applyPlayer(); } catch (e) {}
 
+// ================== 14. Okt. abends: Shakes-Stil – Gelände-Nadeln, Fußleiste Chat + Menü, Einstellungen, Vereinschat ==================
+// ---------- Einstellungen (pro Spieler, dd_set) ----------
+const SET_DEF = { cmp: 1, bagOpen: 0, say: 1, notif: 0, nJob: 1, nMatch: 1, nDaily: 1, invites: 1, friends: 1, bright: 100, anim: 1, wheelAnim: 1, rg: 0, badges: 1, vol: 50, sfx: 50, amb: 50, lang: 'de' };
+let SET = (() => { try { return Object.assign({}, SET_DEF, JSON.parse(localStorage.getItem('dd_set') || '{}')); } catch (e) { return Object.assign({}, SET_DEF); } })();
+function setApply() {
+  const ph = document.getElementById('phone'); if (!ph) return;
+  ph.style.filter = SET.bright < 100 ? `brightness(${SET.bright / 100})` : '';
+  ph.classList.toggle('no-cmp', !SET.cmp); ph.classList.toggle('no-anim', !SET.anim); ph.classList.toggle('rg', !!SET.rg);
+  ph.classList.toggle('no-say', !SET.say); ph.classList.toggle('no-badges', !SET.badges);
+}
+function setSave() { try { localStorage.setItem('dd_set', JSON.stringify(SET)); } catch (e) {} setApply(); }
+setApply();
+// Glücksrad ohne Animation
+whSpin = (o => function () {
+  if (SET.wheelAnim) return o.apply(this, arguments);
+  const st = window.setTimeout; window.setTimeout = (f, ms, ...a) => st(f, Math.min(ms || 0, 150), ...a);
+  try { o.apply(this, arguments); } finally { window.setTimeout = st; }
+  const g = document.getElementById('whRot'); if (g) g.style.transition = 'transform .15s';
+})(whSpin);
+// Rucksack im Laden gleich offen
+openShop = (o => function () { const r = o.apply(this, arguments); if (SET.bagOpen) setTimeout(() => { const p = document.getElementById('shBagPanel'); if (p && p.hidden) document.getElementById('shBagBtn').click(); }, 60); return r; })(openShop);
+openKiosk = (o => function () { const r = o.apply(this, arguments); if (SET.bagOpen) setTimeout(() => { const p = document.getElementById('kiBagPanel'); if (p && p.hidden) document.getElementById('kiBagBtn').click(); }, 60); return r; })(openKiosk);
+// Benachrichtigungen (nur wenn erlaubt und das Spiel im Hintergrund ist)
+const notifOk = () => typeof Notification !== 'undefined' && Notification.permission === 'granted';
+function ddNotify(t, b) { try { if (!SET.notif || !notifOk() || !document.hidden) return; new Notification(t, { body: b, icon: 'img/icons/ic_tb.png' }); } catch (e) {} }
+setInterval(() => {
+  if (!SET.notif || !PLAYER) return; const now = Date.now();
+  try {
+    if (SET.nJob && S.job && S.job.until && S.job.until <= now && S._nJob !== S.job.until) { S._nJob = S.job.until; ddNotify('Dream Debut', S.job.kind === 'work' ? 'Dein Nebenjob ist fertig – Gold abholen!' : 'Du bist erholt – Form wieder da!'); }
+    if (SET.nMatch && CLUB && CLUB.liga && typeof mtNextT === 'function') { const t = mtNextT(); if (t && t - now < 600000 && t > now && !mtMeld() && S._nMatch !== t) { S._nMatch = t; ddNotify('Anstoß in 10 Minuten', 'Melde dich zum Spiel, sonst spielt ein Ersatz-Bot.'); } }
+    if (SET.nDaily) { const { D, today } = dbState(); if (D.last !== today && S._nDaily !== today && new Date().getHours() >= 9) { S._nDaily = today; ddNotify('Tagesbonus wartet', 'Deine heutige Belohnung ist bereit.'); } }
+  } catch (e) {}
+}, 20000);
+
+// ---------- Overlay-Bildschirme zwischen Kopf- und Fußleiste (wie S&F) ----------
+const OV = { cur: null };
+function ovEl(id) {
+  let el = document.getElementById(id);
+  if (!el) { document.getElementById('phone').insertAdjacentHTML('beforeend', `<div class="ov" id="${id}" hidden></div>`); el = document.getElementById(id); }
+  return el;
+}
+function ovFit(el) {
+  const h = document.querySelector('.g-head'), f = document.querySelector('.g-foot');
+  el.style.top = (h && h.offsetParent ? h.offsetHeight : 100) + 'px'; el.style.bottom = (f && f.offsetParent ? f.offsetHeight : 84) + 'px';
+}
+function ovOpen(id) {
+  if (OV.cur && OV.cur !== id) ovClose();
+  const el = ovEl(id); ovFit(el); el.hidden = false; OV.cur = id;
+  document.getElementById('phone').classList.add('ov-on'); document.getElementById('phone').dataset.ov = id;
+  const gx = document.getElementById('gX'); if (gx) gx.style.visibility = 'visible';
+  return el;
+}
+function ovClose() {
+  if (!OV.cur) return; const el = document.getElementById(OV.cur); if (el) el.hidden = true;
+  if (OV.cur === 'ovChat' && CHAT.timer) { clearInterval(CHAT.timer); CHAT.timer = null; }
+  OV.cur = null; const ph = document.getElementById('phone'); ph.classList.remove('ov-on'); delete ph.dataset.ov;
+  const gx = document.getElementById('gX'); if (gx) gx.style.visibility = '';
+  ftSync();
+}
+show = (o => function () { ovClose(); return o.apply(this, arguments); })(show);
+document.addEventListener('click', e => { if (OV.cur && e.target.closest('#gX')) { e.preventDefault(); e.stopPropagation(); ovClose(); } }, true);
+
+// ---------- Fußleiste wie S&F: nur Chat + runder Menü-Knopf ----------
+function ftSync() { const c = document.getElementById('ftChat'); if (c) c.classList.toggle('on', OV.cur === 'ovChat'); }
+(() => {
+  const f = document.querySelector('.g-foot'); if (!f) return;
+  const chat = [...f.querySelectorAll('.ft-m')].find(b => b.getAttribute('aria-label') === 'Team-Chat');
+  if (chat) { chat.id = 'ftChat'; chat.removeAttribute('data-soon'); const bd = chat.querySelector('.mn-badge'); if (bd) bd.remove(); chat.setAttribute('aria-label', 'Vereinschat');
+    chat.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); if (OV.cur === 'ovChat') ovClose(); else openChat(); }, true); }
+})();
+
+// ---------- Menü: neue Zeile „Optionen“ (Einstellungen, Hilfe, Chat) ----------
+(() => {
+  const grid = document.querySelector('#menu .mn-grid'); if (!grid) return;
+  const t = (id, lbl, ic, txt) => `<button type="button" class="mn-tile" id="${id}" aria-label="${lbl}"><svg width="34" height="34" viewBox="0 0 24 24"><image href="img/icons/${ic}.png" x="0" y="0" width="24" height="24"/></svg><span>${txt}</span></button>`;
+  grid.insertAdjacentHTML('beforeend', `<div class="mn-row mn-opt"><div class="mn-tiles">${t('mnSet', 'Einstellungen', 'ic_einstellungen', 'Einstel­lungen')}${t('mnHelp', 'Hilfe', 'ic_hilfe', 'Hilfe')}${t('mnChat', 'Vereinschat', 'ic_chat', 'Chat')}</div>
+    <div class="mn-cat"><svg width="28" height="28" viewBox="0 0 24 24"><image href="img/icons/ic_einstellungen.png" x="0" y="0" width="24" height="24"/></svg><span>Optionen</span></div></div>`);
+  const on = (id, fn) => document.getElementById(id).addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); show('hub'); setTimeout(fn, 0); }, true);
+  on('mnSet', () => openSettings('set', 'game')); on('mnHelp', () => openSettings('help')); on('mnChat', () => openChat());
+})();
+
+// ---------- Einstellungen + Hilfe & Support ----------
+const ST_IC = {
+  game: '<path d="M6 9h12a4 4 0 0 1 4 4v1a3 3 0 0 1-5.4 1.8L15 14H9l-1.6 1.8A3 3 0 0 1 2 14v-1a4 4 0 0 1 4-4z"/><path d="M7 11v3M5.5 12.5h3M16 12h.01M18 13.5h.01"/>',
+  char: '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="10" r="3.5"/><path d="M5.5 19c1.5-3 4-4 6.5-4s5 1 6.5 4"/>',
+  view: '<rect x="2.5" y="4" width="19" height="13" rx="1.5"/><path d="M8 21h8M12 17v4"/>',
+  sound: '<path d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 8.5a5 5 0 0 1 0 7M19 6a8.5 8.5 0 0 1 0 12"/>',
+  acc: '<path d="M6 10V8a6 6 0 0 1 12 0v2"/><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M12 14.5v3"/>',
+  lang: '<circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2c3 3.5 3 16.5 0 20M12 2c-3 3.5-3 16.5 0 20"/>'
+};
+const ST_TABS = [['game', 'Gameplay'], ['char', 'Charakter'], ['view', 'Anzeige'], ['sound', 'Sound'], ['acc', 'Konto'], ['lang', 'Sprache']];
+let ST = { tab: 'set', sec: 'game', idShow: false, faq: -1 };
+const stChk = (k, lbl, sub) => `<label class="st-chk"><input type="checkbox" data-set="${k}"${SET[k] ? ' checked' : ''}><i></i><span>${lbl}${sub ? `<small>${sub}</small>` : ''}</span></label>`;
+const stRng = (k, lbl, min) => `<div class="st-rng"><div><b>${lbl}</b><em id="stv_${k}">${SET[k]} %</em></div><input type="range" min="${min || 0}" max="100" step="5" value="${SET[k]}" data-rng="${k}"></div>`;
+function stPlayerId() { try { if (typeof CL !== 'undefined' && CL.auth && CL.auth.uid) return CL.auth.uid; } catch (e) {} let id = ''; try { id = localStorage.getItem('dd_pid') || ''; if (!id) { id = 'L-' + Math.random().toString(36).slice(2, 10).toUpperCase(); localStorage.setItem('dd_pid', id); } } catch (e) { id = '–'; } return id; }
+function stSection(s) {
+  if (s === 'game') {
+    const perm = typeof Notification === 'undefined' ? 'nicht unterstützt' : Notification.permission === 'granted' ? 'erlaubt' : Notification.permission === 'denied' ? 'blockiert' : 'nicht erlaubt';
+    return `<h4>Allgemeines</h4>${stChk('cmp', 'Gegenstände vergleichen', '▲/▼ an der Ware im Laden')}${stChk('bagOpen', 'Rucksack im Laden gleich offen')}${stChk('say', 'Sprüche der Verkäufer anzeigen')}
+      <h4>Benachrichtigungen</h4><div class="st-row">${stChk('notif', 'Benachrichtigungen')}<span class="st-perm ${perm === 'erlaubt' ? 'ok' : ''}">Systemstatus:<br>${perm}</span>${perm !== 'erlaubt' && perm !== 'nicht unterstützt' ? '<button type="button" class="st-mini" id="stPerm">Erlauben</button>' : ''}</div>
+      <div class="st-sub${SET.notif ? '' : ' off'}">${stChk('nJob', 'Nebenjob / Erholen fertig')}${stChk('nMatch', 'Spiel-Erinnerung', '10 Min. vor Anstoß, wenn du nicht gemeldet bist')}${stChk('nDaily', 'Tagesbonus wartet')}</div>`;
+  }
+  if (s === 'char') {
+    const pos = PLAYER ? (POSITIONS.find(p => p.id === PLAYER.pos) || {}).n : '';
+    const id = stPlayerId(), canRename = typeof clRename === 'function';
+    return `<p class="st-line">Ausgewählter Charakter: <b>${PLAYER ? hfEsc(PLAYER.name) : '–'}</b> (${pos} · Level ${S.level})</p>
+      <p class="st-line">Verein: <b>${CLUB ? hfEsc(CLUB.name) : 'vereinslos'}</b>${CLUB ? ' · ' + CLUB.league : ''}</p>
+      <div class="st-id"><span>Spieler-ID</span><code>${ST.idShow ? id : '•'.repeat(12)}</code><button type="button" class="st-ic" id="stEye" aria-label="ID zeigen">${ST.idShow ? '🙈' : '👁'}</button><button type="button" class="st-ic" id="stCopy" aria-label="ID kopieren">⧉</button></div>
+      <h4>Einstellungen</h4>${stChk('invites', 'Vereinseinladungen empfangen')}${stChk('friends', 'Freundschaftsanfragen empfangen')}
+      <h4>Individualisierung</h4><div class="st-btns"><button type="button" class="st-btn" id="stLook">Aussehen ändern</button>${canRename ? '<button type="button" class="st-btn" id="stName">Name ändern</button>' : ''}</div>`;
+  }
+  if (s === 'view') return `${stRng('bright', 'Helligkeit', 50)}<h4>Darstellung</h4>${stChk('anim', 'Bewegte Hintergründe', 'Training, Nebenjob, Erholen')}${stChk('wheelAnim', 'Glücksrad-Animation')}${stChk('rg', 'Rot-Grün-Schwäche', 'Blau/Orange statt Grün/Rot bei besser/schlechter')}${stChk('badges', 'Hinweis-Punkte (!) im Menü')}`;
+  if (s === 'sound') return `${stRng('vol', 'Gesamtlautstärke')}${stRng('sfx', 'Effektlautstärke')}${stRng('amb', 'Umgebung / Stadion')}<p class="st-note">Das Spiel hat noch keine Töne. Die Regler gelten, sobald Sounds dazukommen.</p>`;
+  if (s === 'acc') return typeof SET_ACC !== 'undefined' && SET_ACC ? SET_ACC.html() : `<p class="st-line">Dein Spielstand liegt auf diesem Gerät.</p><p class="st-note">Online-Konto, Sichern per E-Mail und Anmelden auf einem anderen Handy gibt es in der Handy-Version.</p>`;
+  if (s === 'lang') return `<div class="st-lang">${[['de', 'Deutsch'], ['en', 'English'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'], ['tr', 'Türkçe'], ['nl', 'Nederlands'], ['cs', 'Čeština']].map(([k, n]) => `<button type="button" data-lang="${k}" class="${SET.lang === k ? 'on' : ''}">${n}</button>`).join('')}</div><p class="st-note" id="stLangN"></p>`;
+  return '';
+}
+const FAQ = [
+  ['Wie werde ich stärker?', 'Training kostet Energie und gibt XP und Werte. Mit Gold kaufst du im Profil zusätzliche Punkte. Ausrüstung aus Kiosk und Sportladen gibt Bonus – Werte mit ★ zählen für deine Position am meisten.'],
+  ['Woher kommt Energie?', 'Jeden Tag um 0 Uhr ist deine Energie wieder bei 100. Im Training kannst du mit Traumbällen +20 Energie kaufen (bis zu 10× am Tag).'],
+  ['Wie verdiene ich Gold?', 'Nebenjob im Vereinsheim (1–10 Stunden), Ligaspiele, Duelle, Glücksrad, Tagesbonus und Verkaufen im Laden: im Laden nach oben wischen, dann Gegenstände aus dem Rucksack antippen oder auf den Verkäufer ziehen.'],
+  ['Wie laufen die Ligaspiele?', 'Gespielt wird automatisch um 12 und 20 Uhr. Melde dich im Liga-Büro für das nächste Spiel, sonst spielt ein Ersatz-Bot für dich und du bekommst nichts. Nur der Erste steigt auf.'],
+  ['Was macht der Kapitän?', 'Er stellt die Aufstellung für den ganzen Verein: Spieler auf dem Platz oder von der Bank auf einen anderen ziehen. Finger halten zeigt die Werte, Antippen das Profil.'],
+  ['Was ist Form?', 'Form sinkt nach Spielen und Training. Wellness und Hotel bringen sie zurück. Mit voller Form spielst du stärker.'],
+  ['Wie funktionieren Duelle?', 'Im Menü unter Arena oder aus jedem Spielerprofil: 5 Elfmeter gegen den Gegner. Bis zu 10 Duelle am Tag, alle 10 Minuten eins. Siege bringen Ruhm, XP und Gold.']
+];
+function stHelp() {
+  return `<div class="st-faq">${FAQ.map(([q, a], i) => `<div class="st-q${ST.faq === i ? ' on' : ''}"><button type="button" data-faq="${i}"><span>${q}</span><b>${ST.faq === i ? '–' : '+'}</b></button>${ST.faq === i ? `<p>${a}</p>` : ''}</div>`).join('')}</div>
+    <div class="st-btns"><button type="button" class="st-btn" id="stBug">Problem melden</button><button type="button" class="st-btn" id="stReload">Spiel neu laden</button></div><p class="st-note" id="stBugN"></p>`;
+}
+function openSettings(tab, sec) {
+  if (tab) ST.tab = tab; if (sec) ST.sec = sec;
+  const el = ovOpen('ovSet'), cur = ST_TABS.find(t => t[0] === ST.sec) || ST_TABS[0];
+  el.innerHTML = `<div class="st-tabs"><button type="button" data-tab="set" class="${ST.tab === 'set' ? 'on' : ''}">Einstellungen</button><button type="button" data-tab="help" class="${ST.tab === 'help' ? 'on' : ''}">Hilfe &amp; Support</button></div>
+    ${ST.tab === 'set' ? `<div class="st-icons">${ST_TABS.map(([k, n]) => `<button type="button" data-sec="${k}" class="${ST.sec === k ? 'on' : ''}" aria-label="${n}"><svg viewBox="0 0 24 24">${ST_IC[k]}</svg></button>`).join('')}</div><h3 class="st-h">${cur[1]}</h3><div class="st-body">${stSection(ST.sec)}</div>`
+      : `<h3 class="st-h">Hilfe &amp; Support</h3><div class="st-body">${stHelp()}</div>`}`;
+  el.onclick = stClick; el.oninput = stInput; el.onchange = stChange;
+  if (ST.tab === 'set' && ST.sec === 'acc' && typeof SET_ACC !== 'undefined' && SET_ACC) SET_ACC.bind(() => openSettings());
+}
+function stClick(e) {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.dataset.tab) { ST.tab = b.dataset.tab; return openSettings(); }
+  if (b.dataset.sec) { ST.sec = b.dataset.sec; return openSettings(); }
+  if (b.dataset.faq) { const i = +b.dataset.faq; ST.faq = ST.faq === i ? -1 : i; return openSettings(); }
+  if (b.dataset.lang) { if (b.dataset.lang !== 'de') { const n = document.getElementById('stLangN'); if (n) n.textContent = 'Weitere Sprachen kommen später. Das Spiel ist im Moment nur auf Deutsch.'; } return; }
+  if (b.id === 'stPerm') { try { Notification.requestPermission().then(() => { if (Notification.permission === 'granted') { SET.notif = 1; setSave(); } openSettings(); }); } catch (x) {} return; }
+  if (b.id === 'stEye') { ST.idShow = !ST.idShow; return openSettings(); }
+  if (b.id === 'stCopy') { try { navigator.clipboard.writeText(stPlayerId()); b.textContent = '✓'; } catch (x) {} return; }
+  if (b.id === 'stLook') { ovClose(); openCreation(true); return; }
+  if (b.id === 'stName') { ovClose(); clRename(); return; }
+  if (b.id === 'stReload') { location.reload(); return; }
+  if (b.id === 'stBug') {
+    const info = `Dream Debut · ${new Date().toLocaleString('de-DE')} · ID ${stPlayerId()} · ${PLAYER ? PLAYER.name + ' Lv ' + S.level : '-'} · ${CLUB ? CLUB.name : 'kein Verein'} · ${navigator.userAgent}`;
+    const n = document.getElementById('stBugN');
+    try { navigator.clipboard.writeText(info).then(() => { n.textContent = 'Infos kopiert. Schick sie zusammen mit einer kurzen Beschreibung und einem Screenshot an das Voltrun-Team.'; }, () => { n.textContent = info; }); } catch (x) { n.textContent = info; }
+  }
+}
+function stInput(e) { const r = e.target.closest('[data-rng]'); if (!r) return; SET[r.dataset.rng] = +r.value; const v = document.getElementById('stv_' + r.dataset.rng); if (v) v.textContent = r.value + ' %'; setSave(); }
+function stChange(e) {
+  const c = e.target.closest('[data-set]'); if (!c) return; SET[c.dataset.set] = c.checked ? 1 : 0; setSave();
+  if (c.dataset.set === 'notif' && c.checked && typeof Notification !== 'undefined' && Notification.permission === 'default') { try { Notification.requestPermission().then(() => openSettings()); } catch (x) {} }
+  if (c.dataset.set === 'notif') openSettings();
+}
+// alte Knöpfe (Fußleiste/Menü) auf die neuen Bildschirme umbiegen
+document.addEventListener('click', e => {
+  const b = e.target.closest('#ftHelp, .g-foot [aria-label="Einstellungen"]'); if (!b) return;
+  e.preventDefault(); e.stopPropagation(); if (b.id === 'ftHelp') openSettings('help'); else openSettings('set', 'game');
+}, true);
+
+// ---------- Vereinschat ----------
+const CHAT = { list: [], timer: null, err: '' };
+var SET_ACC = null;   // cloud.js: Einstellungen › Konto
+var CHAT_SRC = null;   // cloud.js: { load(): Promise<[{n, t, ts, me}]>, send(text): Promise }
+const chLocalKey = () => 'dd_chat_' + (CLUB ? CLUB.name : '');
+const chLocal = () => { try { return JSON.parse(localStorage.getItem(chLocalKey()) || '[]'); } catch (e) { return []; } };
+const chTime = ts => { const d = new Date(ts), n = new Date(); return (d.toDateString() === n.toDateString() ? '' : d.getDate() + '.' + (d.getMonth() + 1) + '. ') + String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'); };
+async function chLoad() {
+  if (CHAT_SRC && CLUB && CLUB.oid) { try { CHAT.list = await CHAT_SRC.load(); CHAT.err = ''; } catch (e) { CHAT.err = 'Chat gerade nicht erreichbar.'; } }
+  else CHAT.list = chLocal();
+  chDraw();
+}
+function chDraw() {
+  const box = document.getElementById('chList'); if (!box) return;
+  const near = box.scrollHeight - box.scrollTop - box.clientHeight < 40;
+  box.innerHTML = (CHAT.list.length ? CHAT.list.map(m => `<div class="ch-m${m.me ? ' me' : ''}"><small>${m.me ? 'Du' : hfEsc(m.n)} · ${chTime(m.ts)}</small><p>${hfEsc(m.t)}</p></div>`).join('')
+    : '<p class="ch-empty">Noch keine Nachrichten. Schreib die erste!</p>') + (CHAT.err ? `<p class="ch-empty">${CHAT.err}</p>` : '');
+  if (near || !box.dataset.init) { box.scrollTop = box.scrollHeight; box.dataset.init = 1; }
+  try { localStorage.setItem('dd_chat_seen', String(Date.now())); } catch (e) {}
+  chBadge(0);
+}
+function chBadge(n) { const c = document.getElementById('ftChat'); if (!c) return; let b = c.querySelector('.mn-badge'); if (n > 0) { if (!b) { c.insertAdjacentHTML('beforeend', '<span class="mn-badge"></span>'); b = c.querySelector('.mn-badge'); } b.textContent = n > 9 ? '9+' : n; } else if (b) b.remove(); }
+function openChat() {
+  const el = ovOpen('ovChat'); ftSync();
+  if (!CLUB) {
+    el.innerHTML = `<div class="ch-none"><p>Vereinschat nicht verfügbar – du bist in keinem Verein.</p><button type="button" class="st-btn" id="chFind">Verein finden</button></div>`;
+    document.getElementById('chFind').onclick = () => { ovClose(); openVerein(); }; return;
+  }
+  const online = CHAT_SRC && CLUB.oid;
+  el.innerHTML = `<div class="ch-head"><b>${hfEsc(CLUB.name)}</b><small>${online ? 'Vereinschat' : 'Nur Bots im Verein – Nachrichten bleiben auf diesem Gerät'}</small></div>
+    <div class="ch-list" id="chList"></div>
+    <form class="ch-in" id="chForm"><input id="chTxt" maxlength="200" autocomplete="off" placeholder="Nachricht an den Verein …"><button type="submit" aria-label="Senden">➤</button></form>`;
+  document.getElementById('chForm').onsubmit = async ev => {
+    ev.preventDefault(); const inp = document.getElementById('chTxt'), t = inp.value.trim(); if (!t) return; inp.value = '';
+    if (online) { try { await CHAT_SRC.send(t); } catch (x) { CHAT.err = 'Senden fehlgeschlagen.'; } await chLoad(); }
+    else { const L = chLocal(); L.push({ n: PLAYER ? PLAYER.name : 'Du', t, ts: Date.now(), me: true }); try { localStorage.setItem(chLocalKey(), JSON.stringify(L.slice(-100))); } catch (x) {} CHAT.list = L; chDraw(); }
+  };
+  chLoad(); if (online) CHAT.timer = setInterval(chLoad, 5000);
+}
+
+// ---------- Gelände: Nadeln mit Symbolen statt Schrift ----------
+const MAP_IC = { training: 'ic_training', verein: 'ic_vereinsheim', liga: 'ic_liga', stadion: 'ic_stadion', kiosk: 'ic_kiosk', shop: 'ic_sportladen', spa: 'ic_wellness' };
+mapRender = (o => function () {
+  const r = o.apply(this, arguments);
+  document.querySelectorAll('#mapSpots .map-lbl').forEach(l => {
+    const b = MAP.b[+l.dataset.i]; if (!b) return; const dot = l.querySelector('.dot');
+    l.classList.add('pin'); l.setAttribute('aria-label', b.n); if (parseFloat(l.style.top) < 95) l.style.top = '95px';   // nicht unter Aufgaben/Tag-Nacht l.removeAttribute('aria-hidden'); l.tabIndex = 0;
+    l.innerHTML = `<i style="background-image:url(img/icons/${MAP_IC[b.k] || 'ic_unbekannt'}.png)"></i>` + (dot ? dot.outerHTML : '');
+  });
+  return r;
+})(mapRender);
+hubQuestBtn = (o => function () {
+  const r = o.apply(this, arguments); const b = document.getElementById('hubQ'); if (!b || !PLAYER) return r;
+  const Q = qEnsure(), ready = Q.list.filter(q => q.n >= Q_POOL[q.k][1] && !q.got).length, done = Q.list.filter(q => q.got).length;
+  b.classList.add('pin-btn'); b.setAttribute('aria-label', 'Aufgaben ' + done + ' von 3');
+  b.innerHTML = `<i style="background-image:url(img/icons/ic_aufgaben.png)"></i><em>${done}/3</em>${ready ? '<span class="dot y">' + ready + '</span>' : ''}`;
+  return r;
+})(hubQuestBtn);
+(() => {
+  const t = document.getElementById('mapTest'); if (t) { t.classList.add('pin-btn'); t.innerHTML = '<i style="background-image:url(img/icons/ic_nacht.png)"></i>'; t.setAttribute('aria-label', 'Tag oder Nacht'); }
+  const s = document.querySelector('.map-swipe'); if (s) s.style.display = 'none';
+  try { mapRender(); hubQuestBtn(); } catch (e) {}
+})();
+
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
 
@@ -6388,8 +6711,9 @@ async function clFriendsLoad() {
   const P = Object.fromEntries(pr.map(p => [p.id, clProf(p, 0)]));
   CL_FR.list = fr.map(f => { const o = f.a === uid ? f.b : f.a; return { ...(P[o] || { id: o, n: '?', r: 0, L: 0, pos: '' }), st: f.status, inc: f.b === uid && f.status === 'offen', out: f.a === uid && f.status === 'offen' }; });
   CL_FR.inv = inv.map(i => ({ from: P[i.from_id] || { id: i.from_id, n: '?' }, club: i.club_name }));
+  if (typeof SET !== 'undefined') { if (!SET.invites) CL_FR.inv = []; if (!SET.friends) CL_FR.list = CL_FR.list.filter(f => !f.inc); }   // 14. Okt.: Einstellungen
   CL_FR.n = CL_FR.list.filter(f => f.inc).length + CL_FR.inv.length;
-  const r = document.getElementById('ftRank'); if (r) { let d = r.querySelector('.mn-badge'); if (CL_FR.n) { if (!d) { r.insertAdjacentHTML('beforeend', '<span class="mn-badge"></span>'); d = r.querySelector('.mn-badge'); } d.textContent = CL_FR.n; } else if (d) d.remove(); }
+  const r = document.getElementById('mnHof') || document.getElementById('ftRank'); if (r) { let d = r.querySelector('.mn-badge'); if (CL_FR.n) { if (!d) { r.insertAdjacentHTML('beforeend', '<span class="mn-badge"></span>'); d = r.querySelector('.mn-badge'); } d.textContent = CL_FR.n; } else if (d) d.remove(); }
   return CL_FR;
 }
 setInterval(() => clFriendsLoad().catch(() => {}), 60000); setTimeout(() => clFriendsLoad().catch(() => {}), 5000);
@@ -6609,5 +6933,52 @@ async function clLeagueTick() {
 setInterval(() => clLeagueTick(), 60000);
 // Meldung sofort an den Server, damit der Rechner des Spiels sie sieht
 document.getElementById('mtGo').addEventListener('click', () => setTimeout(() => clPush(true), 200));
+
+// ---------- 14. Okt.: Einstellungen › Konto (inline) + Vereinschat über Supabase (schema4.sql) ----------
+SET_ACC = {
+  html() {
+    const a = CL.auth, on = CL.state === 'ok';
+    return `<p class="st-line">Online-Speicher: <b style="color:${on ? '#8FD14F' : '#FF9A8A'}">${on ? 'verbunden' : 'offline'}</b> · zuletzt gespeichert ${clAgo()}</p>
+      ${CL.err && !on ? `<p class="st-note">${hfEsc(CL.err)}</p>` : ''}<p class="st-note" id="accMsg">${SET_ACC.msg || ''}</p>
+      ${a && !a.anon && a.email ? `<p class="st-line">Konto: <b>${hfEsc(a.email)}</b></p><div class="st-btns"><button type="button" class="st-btn" id="accNow">Jetzt speichern</button><button type="button" class="st-btn" id="accPw">Passwort ändern</button></div>
+        <div id="accPwBox" hidden><input id="accPw1" class="st-in" type="password" placeholder="Neues Passwort (min. 6 Zeichen)" autocomplete="new-password"><div class="st-btns"><button type="button" class="st-btn" id="accPwOk">Speichern</button></div></div>`
+      : `<h4>Konto sichern</h4><p class="st-note">Damit du deinen Spieler auf einem anderen Handy wiederfindest.</p>
+        <input id="accMail" class="st-in" type="email" placeholder="E-Mail" autocomplete="email"><input id="accPw1" class="st-in" type="password" placeholder="Passwort (min. 6 Zeichen)" autocomplete="new-password">
+        <div class="st-btns"><button type="button" class="st-btn" id="accLink">Sichern</button><button type="button" class="st-btn two" id="accLogin">Anmelden</button></div>
+        <p class="st-note">„Anmelden“ holt einen Spieler von einem anderen Gerät. Der Spielstand hier wird dann ersetzt.</p>
+        <div class="st-btns"><button type="button" class="st-btn" id="accNow">Jetzt speichern</button></div>`}`;
+  },
+  bind(re) {
+    const $ = id => document.getElementById(id), say = m => { SET_ACC.msg = m; re(); };
+    if ($('accNow')) $('accNow').onclick = async () => { await clPush(true); say(CL.state === 'ok' ? 'Gespeichert!' : 'Keine Verbindung.'); };
+    if ($('accPw')) $('accPw').onclick = () => { $('accPwBox').hidden = false; };
+    if ($('accPwOk')) $('accPwOk').onclick = async () => { const pw = $('accPw1').value; if (pw.length < 6) return say('Mindestens 6 Zeichen.'); try { await clReq('/auth/v1/user', { method: 'PUT', body: JSON.stringify({ password: pw }) }); say('Passwort geändert.'); } catch (e) { say('Fehler: ' + e.message); } };
+    if ($('accLink')) $('accLink').onclick = async () => {
+      const email = $('accMail').value.trim(), password = $('accPw1').value;
+      if (!/.+@.+\..+/.test(email) || password.length < 6) return say('Bitte gültige E-Mail und mind. 6 Zeichen Passwort.');
+      try { await clEnsure(); const u = await clReq('/auth/v1/user', { method: 'PUT', body: JSON.stringify({ email, password }) }); say(u && u.email ? 'Konto gesichert!' : 'Fast fertig: Bitte den Link in der E-Mail bestätigen.'); } catch (e) { say('Fehler: ' + e.message); }
+    };
+    if ($('accLogin')) $('accLogin').onclick = async () => {
+      const email = $('accMail').value.trim(), password = $('accPw1').value;
+      try { clSaveAuth(clKeep(await clReq('/auth/v1/token?grant_type=password', { method: 'POST', body: JSON.stringify({ email, password }) }, false))); if (!(await clPull(true))) say('Angemeldet – aber für dieses Konto gibt es noch keinen Spielstand.'); }
+      catch (e) { say('Anmelden fehlgeschlagen: ' + e.message); }
+    };
+  }
+};
+// alter Einstellungen-Popup-Listener (oben) fängt den Klick vorher ab → neue Seite öffnen statt Popup
+openCloud = (o => function (msg) { if (msg) { SET_ACC.msg = msg; openSettings('set', 'acc'); } else openSettings('set', 'acc'); })(openCloud);
+CHAT_SRC = {
+  async load() {
+    const rows = await clReq('/rest/v1/club_chat?select=user_id,name,text,created_at&club_id=eq.' + CLUB.oid + '&order=created_at.desc&limit=60');
+    return rows.reverse().map(r => ({ n: r.name, t: r.text, ts: Date.parse(r.created_at) || Date.now(), me: r.user_id === CL.auth.uid }));
+  },
+  async send(text) { await clReq('/rest/v1/club_chat', { method: 'POST', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ club_id: CLUB.oid, user_id: CL.auth.uid, name: PLAYER ? PLAYER.name : 'Spieler', text }) }); }
+};
+// ungelesene Nachrichten am Chat-Knopf
+setInterval(async () => {
+  if (CL.state !== 'ok' || !CLUB || !CLUB.oid || OV.cur === 'ovChat') return;
+  let seen = 0; try { seen = +localStorage.getItem('dd_chat_seen') || 0; } catch (e) {}
+  try { const r = await clReq('/rest/v1/club_chat?select=created_at,user_id&club_id=eq.' + CLUB.oid + '&created_at=gt.' + new Date(seen).toISOString() + '&limit=20'); chBadge(r.filter(x => x.user_id !== CL.auth.uid).length); } catch (e) {}
+}, 30000);
 
 </script>
