@@ -1345,6 +1345,7 @@ button.mt-pl[disabled] { cursor: default; }
 #phone#phone .g-foot .ft-m { display: flex !important; }
 #tut { display: none !important; }
 #crNumMinus::after { transform: scaleX(-1); }
+.tr-port > img.tr-bust { left: 0 !important; top: 0 !important; width: 100% !important; height: calc(100% - 9px) !important; object-fit: contain; object-position: 50% 100%; transform: none; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -6182,6 +6183,14 @@ hfCard = function (x) {
   newCareer = (o => function () { const r = o.apply(this, arguments); S.tut = 0; S.tutGift = 1; try { syncGlobal(); } catch (e) {} off(); return r; })(newCareer);
   off();
 })();
+
+// ---------- 14. Okt.: Porträt oben links = ganze Figur mit Schultern (Hero-Bild statt Kopf-Ausschnitt) ----------
+applyPlayer = (o => function () {
+  const r = o.apply(this, arguments);
+  try { if (PLAYER && PLAYER.img && PLAYER.img.hero) document.querySelectorAll('.tr-port > img').forEach(i => { i.classList.remove('g-ava'); i.classList.add('tr-bust'); if (i.src !== PLAYER.img.hero) i.src = PLAYER.img.hero; }); } catch (e) {}
+  return r;
+})(applyPlayer);
+try { applyPlayer(); } catch (e) {}
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
