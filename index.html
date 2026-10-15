@@ -5929,8 +5929,9 @@ function openDuel() {
 // Ergebnis sofort auswürfeln + gutschreiben, danach nur noch abspielen (Schließen mittendrin verliert nichts)
 function duFight(b) {
   const D = duState(); if (D.next > Date.now() || D.n >= DU_MAX) return;
-  const me = duMine(), op = me * b.f * (0.9 + Math.random() * .2), q = me / (me + op);
-  const pm = Math.min(.95, Math.max(.4, .75 + .7 * (q - .5))), po = Math.min(.95, Math.max(.4, .75 - .7 * (q - .5)));
+  // 15. Okt.: Stärke zählt deutlich mehr (Verhältnis quadratisch): 1,25× ≈ 82 %, 1,5× ≈ 96 %, 2× ≈ 99 % Siegchance
+  const me = duMine(), op = me * b.f * (0.95 + Math.random() * .1), r = me / Math.max(1, op), q = r * r / (r * r + 1);
+  const pm = Math.min(.95, Math.max(.25, .7 + (q - .5))), po = Math.min(.95, Math.max(.25, .7 - (q - .5)));
   const shots = []; let a = 0, o = 0;
   const shot = (who, p) => { const goal = Math.random() < p, side = pick(['l', 'c', 'r']), miss = !goal && Math.random() < .3;
     const kSide = goal ? pick(['l', 'c', 'r'].filter(x => x !== side)) : miss ? pick(['l', 'c', 'r']) : side;
