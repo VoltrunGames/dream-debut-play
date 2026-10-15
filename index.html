@@ -1473,6 +1473,16 @@ button.mt-pl[disabled] { cursor: default; }
 .cr-chips button { font-size: 11px !important; padding: 0 2px; }
 .cr-colors { margin: 0 !important; }
 .cr-sw button { width: 26px !important; height: 26px !important; }
+#shop #shNew, #kiosk #kiNew { display: flex !important; position: absolute; left: 50%; right: auto; top: -58px; bottom: auto; transform: translateX(-50%) !important;
+  width: auto; height: 40px; padding: 0 8px 0 16px; margin: 0; gap: 10px; align-items: center; justify-content: center; white-space: nowrap; z-index: 3;
+  border-radius: 20px !important; border: 3px solid #2A1209 !important; border-image: none !important;
+  background: linear-gradient(#ffd75e, #e9a92a) !important; box-shadow: 0 3px 0 #2A1209, inset 0 2px 0 rgba(255,255,255,.55) !important;
+  color: #2A1209 !important; text-shadow: none !important; -webkit-text-stroke: 0 !important; font: 900 16px/1 'Titan One', Fredoka, sans-serif; letter-spacing: .5px; }
+#shop #shNew > b, #kiosk #kiNew > b { color: #2A1209 !important; text-shadow: 0 1px 0 rgba(255,255,255,.5) !important; -webkit-text-stroke: 0 !important; }
+#shop #shNew > span, #kiosk #kiNew > span { display: flex; align-items: center; gap: 2px; padding: 2px 7px 2px 8px; border-radius: 12px; background: #2A1209; color: #FFF6E3; font: 900 14px/1 Fredoka, sans-serif; }
+#shop #shNew > span img, #kiosk #kiNew > span img { width: 16px; height: 16px; }
+#shop #shNew:active, #kiosk #kiNew:active { transform: translateX(-50%) translateY(2px) !important; box-shadow: 0 1px 0 #2A1209 !important; }
+#shop .ki.bag-open #shNew, #kiosk .ki.bag-open #kiNew { display: none !important; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -2357,7 +2367,8 @@ const FORM_REGEN_MS = JOB_H / 16.7;   // Form: voll in 6 h
 const TEST_ANYTIME = false;            // Klick-Test: Aufwärmen jederzeit
 // XP-Tabelle nach Shakes-Vorbild: am Anfang sehr schnell, ab Level 250 deutlich langsamer.
 // Jahres-Simulation (F2P, 3 Besuche am Tag): Tag 7 Lv 35 · Tag 21 Lv 85 · Tag 85 Lv 255 · 1 Jahr Lv 340 · 1,5 Jahre Lv 370 · 3 Jahre Lv 410
-const XP_TAB = [[1, 45], [15, 1000], [35, 5400], [85, 6000], [125, 27500], [165, 34000], [210, 36000], [255, 153000], [300, 707000], [340, 1350000], [370, 1600000], [410, 4900000], [500, 12500000]];
+// 15. Okt.: Level 1–40 schneller (Tag 1 ≈ Level 15–20), ab Level 40 wie vorher
+const XP_TAB = [[1, 25], [10, 120], [20, 600], [30, 2000], [40, 5457], [85, 6000], [125, 27500], [165, 34000], [210, 36000], [255, 153000], [300, 707000], [340, 1350000], [370, 1600000], [410, 4900000], [500, 12500000]];
 const xpNeed = l => { for (let i = 1; i < XP_TAB.length; i++) { const [a1, n1] = XP_TAB[i - 1], [a2, n2] = XP_TAB[i]; if (l <= a2) return Math.round(n1 * Math.pow(n2 / n1, (l - a1) / (a2 - a1))); } const [a1, n1] = XP_TAB[XP_TAB.length - 2], [a2, n2] = XP_TAB[XP_TAB.length - 1]; return Math.round(n2 * Math.pow(n2 / n1, (l - a2) / (a2 - a1))); };
 let offers = [], runTimer = null;
 
@@ -2479,6 +2490,7 @@ const FIG = (() => {
         for (const k of ['head', 'hair', 'brows', 'eyes', 'nose', 'mouth', 'clip']) jobs.push(loadImg(`kit/${k}_${p}.png`).then(i => imgs[`${k}_${n}`] = i));
         for (const sd of ['l', 'r']) jobs.push(loadImg(`kit/ear_${p}_${sd}.png`).then(i => imgs[`ear_${n}_${sd}`] = i).catch(() => {}));
       }
+      for (let n = 2; n <= 10; n++) jobs.push(loadImg(`kit/ring_${String(n).padStart(2, '0')}.png`).then(i => imgs[`ring_${n}`] = i).catch(() => {}));
       for (const b of BODY_KEYS) for (const k of ['body', 'neck', 'jersey']) jobs.push(loadImg(`kit/${k}_${b}.png`).then(i => imgs[`${k}_${b}`] = i));
       await Promise.all(jobs);
     })();
@@ -2674,8 +2686,11 @@ const FIG = (() => {
   }
   // Ohrringe am Ohrläppchen (EARS = Positionen aus dem Ohren-Durchgang)
   const RINGS = ['ohne', 'Stecker Gold', 'Stecker Silber', 'Glitzerstein', 'Perle', 'Ring Gold', 'Creole Gold', 'Creole Silber', 'Tropfen', 'Sternchen'];
+  const RING_AT = {"2": [33.7, 34.0], "3": [33.5, 34.0], "4": [40.2, 37.7], "5": [45.4, 38.2], "6": [54.9, 5.6], "7": [90.9, 5.6], "8": [91.2, 5.6], "9": [33.0, 34.5], "10": [36.0, 34.0]};
   function drawRings(ctx, P, n) {
-    if (!n || n <= 1) return; const OL = '#2A1209', gold = '#F2C230', silver = '#D9DEE4';
+    if (!n || n <= 1) return;
+    const RI = imgs['ring_' + n], RA = RING_AT[n];
+    if (RI && RA) { for (const [x0, y0] of P) ctx.drawImage(RI, x0 - RA[0] * .7, y0 - RA[1] * .7, RI.width * .7, RI.height * .7); return; } const OL = '#2A1209', gold = '#F2C230', silver = '#D9DEE4';
     ctx.save(); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
     const dot = (x, y, r, f) => { ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = f; ctx.fill(); ctx.lineWidth = 4; ctx.strokeStyle = OL; ctx.stroke(); ctx.beginPath(); ctx.arc(x - r * .35, y - r * .35, r * .3, 0, Math.PI * 2); ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.fill(); };
     const ring = (x, y, r, f, w) => { ctx.beginPath(); ctx.arc(x, y + r, r, 0, Math.PI * 2); ctx.lineWidth = w + 6; ctx.strokeStyle = OL; ctx.stroke(); ctx.lineWidth = w; ctx.strokeStyle = f; ctx.stroke(); };
@@ -6727,6 +6742,24 @@ crUI = (o => function () {
 (() => {
   const b = document.getElementById('crRand'); if (!b) return; const o = b.onclick;
   b.onclick = () => { o(); CR.st.eyeColor = Math.random() < .5 ? '' : CR_EYE[1 + Math.floor(Math.random() * (CR_EYE.length - 1))]; crUI(); crRender(); };
+})();
+
+// ---------- 15. Okt.: Laden neu würfeln kostet immer 1 Traumball (Knopf rechts über der Ware) ----------
+(() => {
+  const SAY = { shop: 'shSay', kiosk: 'kiSay' };
+  const say = (scr, t) => { const el = document.getElementById(SAY[scr]); if (!el) return; el.textContent = t; el.hidden = false; clearTimeout(el._t); el._t = setTimeout(() => el.hidden = true, 3500); };
+  [['kiNew', 'kiGrid', 'kiosk', () => kiRoll(), () => kiRender(), w => kiSay(w)], ['shNew', 'shGrid', 'shop', () => shRoll(), () => shRender(), w => shSay(w)]].forEach(([id, grid, scr, roll, render, sayK]) => {
+    const b = document.getElementById(id); if (!b) return;
+    b.setAttribute('aria-label', 'Neue Ware für 1 Traumball');
+    b.onclick = e => { e.stopPropagation();
+      if ((S.tb || 0) < 1) { say(scr, 'Neue Ware kostet einen Traumball – du hast keinen mehr.'); return; }
+      S.tb--; syncGlobal(); roll(); render(); try { sayK(); } catch (er) {} };
+  });
+  const put = (id, grid) => { const b = document.getElementById(id), g = document.getElementById(grid); if (!b || !g) return;
+    b.innerHTML = '<b>NEUE WARE</b><span>1<img src="img/icons/ic_tb.png" alt=""></span>'; b.disabled = false; if (b.parentNode !== g) g.appendChild(b); };
+  const out = (id, grid) => { const b = document.getElementById(id), g = document.getElementById(grid); if (b && g && b.parentNode === g) g.parentNode.insertBefore(b, g); };   // vor dem Neuzeichnen retten
+  kiRender = (o => function () { out('kiNew', 'kiGrid'); const r = o.apply(this, arguments); put('kiNew', 'kiGrid'); return r; })(kiRender);
+  shRender = (o => function () { out('shNew', 'shGrid'); const r = o.apply(this, arguments); put('shNew', 'shGrid'); return r; })(shRender);
 })();
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
