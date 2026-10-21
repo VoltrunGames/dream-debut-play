@@ -1494,6 +1494,22 @@ button.mt-pl[disabled] { cursor: default; }
 #phone .blink, #phone .map-lbl.pin.blink, #phone .mn-tile.blink, #phone #gMenu.blink { animation: ddBlinkW 1.3s ease-in-out infinite !important; }
 #trRun.trs-done #trCancel { display: none !important; }
 #trRun.trs-done .trs-btns { grid-template-columns: 1fr !important; } #trRun.trs-done #trSkip { flex: 1 1 100% !important; width: 100% !important; max-width: none !important; font-size: 20px !important; height: 52px; }
+#phone .vr-actions { grid-template-columns: repeat(5, minmax(0,1fr)) !important; }
+.ks-ehr { margin: 6px 0 8px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.28); border: 2px solid #2A1209; }
+.ks-ehr > div { display: flex; justify-content: space-between; align-items: baseline; gap: 6px; font-size: 13px; }
+.ks-ehr > div span { color: #8FD14F; font-weight: 900; font-size: 12px; }
+.ks-ehr i { display: block; height: 9px; margin: 6px 0 3px; border-radius: 6px; background: #2A1209; overflow: hidden; }
+.ks-ehr i u { display: block; height: 100%; background: linear-gradient(90deg, #e9a92a, #ffd75e); }
+.ks-ehr small { font-size: 11px; opacity: .85; }
+.ks-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; max-height: 196px; overflow-y: auto; }
+.ks-it { position: relative; aspect-ratio: 1; padding: 3px; border-radius: 9px; border: 2px solid #2A1209; background: rgba(0,0,0,.3); cursor: pointer; }
+.ks-it img { width: 100%; height: 100%; object-fit: contain; }
+.ks-it .rar { position: absolute; left: 4px; top: 4px; width: 7px; height: 7px; border-radius: 50%; }
+.ks-it em { position: absolute; right: 2px; bottom: 1px; font-style: normal; font-size: 10px; font-weight: 900; color: #FFC93C; text-shadow: 0 1px 0 #000; }
+.ks-it.on { border-color: #8FD14F; box-shadow: 0 0 0 2px #8FD14F; background: rgba(143,209,79,.25); }
+.ks-it.on::after { content: '✓'; position: absolute; right: 3px; top: 0; color: #8FD14F; font-weight: 900; font-size: 14px; text-shadow: 0 1px 0 #000; }
+.ks-sum { text-align: center; margin: 6px 0 0 !important; }
+.ks-gift { text-align: center; color: #FFC93C; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -2470,7 +2486,7 @@ document.getElementById('trVideo').onclick = () => {
 };
 try {
   const saved = JSON.parse(localStorage.getItem('dd_state') || 'null');
-  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel', 'enBuy', 'bought', 'rr', 'duel', 'ach', 'cnt', 'itUp', 'evTest'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
+  if (saved) { ['tut', 'tb', 'car', 'daily', 'dbOff', 'quests', 'born', 'posFree', 'posTs', 'seen', 'jobHint', 'tutGift', 'enDay', 'meld', 'vidDay', 'wheel', 'enBuy', 'bought', 'rr', 'duel', 'ach', 'cnt', 'itUp', 'evTest', 'ehren'].forEach(k => { if (k in saved) S[k] = saved[k]; }); Object.assign(S, { level: saved.level, xp: saved.xp, en: saved.en, videos: saved.videos, job: saved.job || null, form: saved.form ?? 100, reserve: saved.reserve || 0, combo: saved.combo || { n: 0, last: 0 }, drinks: saved.drinks || { d: '', n: 0 }, warm: !!saved.warm, tick: saved.tick || Date.now(), enAcc: saved.enAcc || 0, formAcc: saved.formAcc || 0 }); gold = saved.gold; }
 } catch (e) {}
 rollOffers(); renderOffers(); syncGlobal();
 if (typeof renderAttrs === 'function') renderAttrs();
@@ -6528,7 +6544,7 @@ function stSection(s) {
       <h4>Individualisierung</h4><div class="st-btns"><button type="button" class="st-btn" id="stLook">Aussehen ändern</button>${canRename ? '<button type="button" class="st-btn" id="stName">Name ändern</button>' : ''}</div>`;
   }
   if (s === 'view') return `${stRng('bright', 'Helligkeit', 50)}<h4>Darstellung</h4>${stChk('anim', 'Bewegte Hintergründe', 'Training, Nebenjob, Erholen')}${stChk('wheelAnim', 'Glücksrad-Animation')}${stChk('rg', 'Rot-Grün-Schwäche', 'Blau/Orange statt Grün/Rot bei besser/schlechter')}${stChk('badges', 'Hinweis-Punkte (!) im Menü')}`;
-  if (s === 'sound') return `${stRng('vol', 'Gesamtlautstärke')}${stRng('sfx', 'Effektlautstärke')}${stRng('amb', 'Umgebung / Stadion')}<p class="st-note">Das Spiel hat noch keine Töne. Die Regler gelten, sobald Sounds dazukommen.</p>`;
+  if (s === 'sound') return `${stRng('vol', 'Gesamtlautstärke')}${stRng('sfx', 'Effektlautstärke')}${stRng('amb', 'Umgebung / Stadion')}<p class="st-note">Die Töne sind vorerst Platzhalter. Echte Sounds kommen später.</p><button type="button" class="st-btn" id="stSndTest">▶ Probehören</button>`;
   if (s === 'acc') return typeof SET_ACC !== 'undefined' && SET_ACC ? SET_ACC.html() : `<p class="st-line">Dein Spielstand liegt auf diesem Gerät.</p><p class="st-note">Online-Konto, Sichern per E-Mail und Anmelden auf einem anderen Handy gibt es in der Handy-Version.</p>`;
   if (s === 'lang') return `<div class="st-lang">${[['de', 'Deutsch'], ['en', 'English'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'], ['tr', 'Türkçe'], ['nl', 'Nederlands'], ['cs', 'Čeština']].map(([k, n]) => `<button type="button" data-lang="${k}" class="${SET.lang === k ? 'on' : ''}">${n}</button>`).join('')}</div><p class="st-note" id="stLangN"></p>`;
   return '';
@@ -6817,6 +6833,172 @@ mapRender = (o => function () {
   return r;
 })(mapRender);
 (() => { const t = document.querySelector('#menu .mn-tile[aria-label="Wellness"]'); if (t) t.style.display = 'none'; try { mapRender(); } catch (e) {} })();
+
+// ================== 21. Okt.: SOUND (Platzhalter-Töne aus Web Audio) ==================
+// Busse: Gesamt (SET.vol) → Effekte (SET.sfx) / Umgebung (SET.amb, Publikum). Start erst nach dem ersten Antippen (iPhone-Regel).
+const SND = { ctx: null, m: null, fx: null, amb: null, last: {}, noise: null };
+function sndInit() {
+  if (SND.ctx) { if (SND.ctx.state === 'suspended') SND.ctx.resume().catch(() => {}); return SND.ctx; }
+  try {
+    const C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    const c = SND.ctx = new C(); SND.m = c.createGain(); SND.m.connect(c.destination);
+    SND.fx = c.createGain(); SND.fx.connect(SND.m); SND.amb = c.createGain(); SND.amb.connect(SND.m);
+    const n = c.sampleRate * 2, b = c.createBuffer(1, n, c.sampleRate), d = b.getChannelData(0); for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1; SND.noise = b;
+    sndVol(); return c;
+  } catch (e) { return null; }
+}
+function sndVol() { if (!SND.ctx) return; SND.m.gain.value = (SET.vol / 100) ** 1.5; SND.fx.gain.value = (SET.sfx / 100) ** 1.5; SND.amb.gain.value = (SET.amb / 100) ** 1.5; }
+setSave = (o => function () { const r = o.apply(this, arguments); sndVol(); return r; })(setSave);
+// Ton: Sinus/Dreieck/Rechteck mit Hüllkurve, optional Tonhöhen-Rutsche
+function sndTone(f, t0, dur, o) {
+  o = o || {}; const c = SND.ctx, os = c.createOscillator(), g = c.createGain();
+  os.type = o.type || 'sine'; os.frequency.setValueAtTime(f, t0); if (o.to) os.frequency.exponentialRampToValueAtTime(o.to, t0 + dur);
+  const v = o.v || .3; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(v, t0 + (o.a || .005)); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  os.connect(g); g.connect(o.bus || SND.fx); os.start(t0); os.stop(t0 + dur + .05);
+  if (o.vib) { const l = c.createOscillator(), lg = c.createGain(); l.frequency.value = o.vib; lg.gain.value = f * .06; l.connect(lg); lg.connect(os.frequency); l.start(t0); l.stop(t0 + dur + .05); }
+}
+// Rauschen durch einen Filter (Publikum, Netz, Wusch)
+function sndNoise(t0, dur, o) {
+  o = o || {}; const c = SND.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+  s.buffer = SND.noise; s.loop = true; f.type = o.ft || 'bandpass'; f.frequency.setValueAtTime(o.f || 1000, t0); if (o.fTo) f.frequency.exponentialRampToValueAtTime(o.fTo, t0 + dur); f.Q.value = o.q || 1;
+  const v = o.v || .3, a = o.a || .01; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(v, t0 + a); if (o.hold) g.gain.setValueAtTime(v, t0 + a + o.hold); g.gain.exponentialRampToValueAtTime(.0001, t0 + dur);
+  s.connect(f); f.connect(g); g.connect(o.bus || SND.fx); s.start(t0, Math.random()); s.stop(t0 + dur + .05);
+}
+const SFX = {
+  tap: t => sndTone(520, t, .06, { type: 'triangle', v: .12, to: 380 }),
+  coin: t => { sndTone(1320, t, .09, { type: 'square', v: .06 }); sndTone(1980, t + .07, .28, { type: 'square', v: .06 }); },
+  buy: t => { sndNoise(t, .08, { f: 3000, q: 2, v: .2 }); sndTone(1568, t + .04, .12, { type: 'triangle', v: .2 }); sndTone(2093, t + .1, .35, { type: 'triangle', v: .2 }); },
+  tb: t => { [1047, 1319, 1568].forEach((f, i) => sndTone(f, t + i * .06, .6, { v: .16 })); sndTone(3136, t + .18, .5, { v: .05 }); },
+  level: t => { [523, 659, 784, 1047].forEach((f, i) => sndTone(f, t + i * .11, .25, { type: 'square', v: .07 })); [523, 659, 784, 1047].forEach(f => sndTone(f, t + .48, .9, { type: 'triangle', v: .12 })); },
+  tick: t => sndTone(1800, t, .025, { type: 'square', v: .05 }),
+  win: t => { [784, 988, 1175, 1568].forEach((f, i) => sndTone(f, t + i * .08, .4, { type: 'triangle', v: .16 })); },
+  lose: t => { sndTone(392, t, .3, { type: 'triangle', v: .16, to: 370 }); sndTone(311, t + .25, .55, { type: 'triangle', v: .16, to: 262 }); },
+  kick: t => { sndTone(140, t, .12, { v: .5, to: 50 }); sndNoise(t, .05, { f: 1800, v: .15 }); },
+  net: t => sndNoise(t, .35, { f: 2500, fTo: 900, q: .8, v: .18 }),
+  save: t => { sndTone(110, t, .15, { v: .4, to: 60 }); sndNoise(t, .1, { f: 600, v: .2 }); },
+  cheer: t => { sndNoise(t, 2.2, { f: 1100, q: .5, v: .35, a: .25, hold: .6, bus: SND.amb }); sndNoise(t + .1, 1.8, { f: 2600, q: 1.2, v: .12, a: .2, bus: SND.amb }); },
+  groan: t => sndNoise(t, 1.4, { f: 700, fTo: 300, q: .7, v: .3, a: .15, bus: SND.amb }),
+  whistle: t => sndTone(2900, t, .45, { v: .14, vib: 28, a: .02 }),
+  whistle3: t => { sndTone(2900, t, .3, { v: .14, vib: 28 }); sndTone(2900, t + .38, .3, { v: .14, vib: 28 }); sndTone(2900, t + .76, .8, { v: .14, vib: 28 }); },
+  swoosh: t => sndNoise(t, .22, { f: 600, fTo: 3000, q: 1.5, v: .1 }),
+  gift: t => { [880, 1109, 1319, 1760].forEach((f, i) => sndTone(f, t + i * .05, .5, { v: .12 })); },
+};
+// sfx(name, gap) – gleicher Ton nicht öfter als alle gap ms
+function sfx(k, gap) {
+  try {
+    if (!SND.ctx || SND.ctx.state !== 'running' || !SFX[k] || SET.vol <= 0) return;
+    const now = performance.now(); if (now - (SND.last[k] || 0) < (gap == null ? 60 : gap)) return; SND.last[k] = now;
+    SFX[k](SND.ctx.currentTime + .01);
+  } catch (e) {}
+}
+// Erster Fingertipp schaltet Ton frei; jeder Knopf klickt leise
+document.addEventListener('pointerdown', e => {
+  sndInit();
+  const b = e.target.closest('button, .mn-tile, .map-lbl, [role="button"], .pr-cell, .ki-cell');
+  if (b && !b.disabled) setTimeout(() => sfx('tap', 40), 0);
+}, true);
+// Gold, Traumbälle, Level beobachten → Münz-Klimpern, Pling, Fanfare
+(() => {
+  let g0 = null, tb0 = null, l0 = null;
+  setInterval(() => {
+    if (!PLAYER) return; const g = typeof gold === 'number' ? gold : 0;
+    if (g0 !== null) {
+      if (S.level > l0) sfx('level', 800);
+      else if (S.tb > tb0) sfx('tb', 300);
+      else if (g > g0) sfx('coin', 250);
+      if (g < g0 || S.tb < tb0) sfx('buy', 250);
+    }
+    g0 = g; tb0 = S.tb; l0 = S.level;
+  }, 150);
+})();
+// Glücksrad: Klicken, das langsamer wird, dann Gewinn-Jingle
+whSpin = (o => function () {
+  const r = o.apply(this, arguments);
+  if (SET.wheelAnim) { let t = 0, d = 35; while (t < 3150) { setTimeout(() => sfx('tick', 0), t); t += d; d *= 1.075; } setTimeout(() => sfx('win'), 3300); }
+  else sfx('win');
+  return r;
+})(whSpin);
+// Elfmeter-Duell: Schuss, Netz/Parade, Publikum, Sieg/Niederlage
+duAnim = (o => function () {
+  const r = o.apply(this, arguments);
+  try {
+    const fl = document.getElementById('duFlash'), res = document.getElementById('duRes');
+    if (fl) new MutationObserver(() => {
+      if (!fl.classList.contains('on')) return; const t = fl.textContent;
+      if (t === 'TOR!') { sfx('net'); sfx('cheer', 300); } else if (t === 'GEHALTEN!') { sfx('save'); sfx('groan', 300); } else if (t === 'SIEG!') { sfx('whistle3'); setTimeout(() => sfx('win'), 900); } else if (t === 'NIEDERLAGE') { sfx('whistle3'); setTimeout(() => sfx('lose'), 900); } else sfx('groan', 300);
+    }).observe(fl, { attributes: true, attributeFilter: ['class'] });
+    if (res) new MutationObserver(() => { if (/läuft an/.test(res.textContent) && !DU_SKIP) setTimeout(() => sfx('kick', 200), 700); }).observe(res, { childList: true, characterData: true, subtree: true });
+  } catch (e) {}
+  return r;
+})(duAnim);
+// Spieltag-Ticker: Pfiff bei An-/Abpfiff, Jubel bei Tor, Raunen bei Gegentor
+(() => {
+  const ol = document.getElementById('mtTick'); if (!ol) return;
+  new MutationObserver(ms => {
+    for (const m of ms) for (const li of m.addedNodes) {
+      if (!li.classList) continue; const tx = li.textContent || '';
+      if (li.classList.contains('goal')) { if (li.classList.contains('them')) sfx('groan', 400); else { sfx('net', 300); sfx('cheer', 400); } }
+      else if (/Abpfiff/.test(tx)) sfx('whistle3', 1000);
+      else if (/Anpfiff/.test(tx)) sfx('whistle', 1000);
+    }
+  }).observe(ol, { childList: true });
+})();
+// Fenster auf: leiser Wusch
+ddPop = (o => function () { sfx('swoosh', 200); return o.apply(this, arguments); })(ddPop);
+if (typeof ovOpen === 'function') ovOpen = (o => function () { sfx('swoosh', 200); return o.apply(this, arguments); })(ovOpen);
+
+// ================== 21. Okt.: KLEIDERSPENDE (Vereins-Spendenbox) + EHRENAMT ==================
+// Klamotten aus der Tasche → Vereinskasse (50 % Ladenpreis, wie Verkaufen). Dafür: Ehrenamt-Punkte (auch für Gold-/Traumball-Spenden)
+// → Stufen mit Dauer-Bonus +1 % Gold & XP aus Spielen/Training je Stufe; je gespendetem Teil 12 % Chance auf ein Dankeschön.
+const EHR_ST = [0, 30, 100, 250, 500, 1000, 2000, 3500, 6000, 10000, 16000];   // Punkte (1 Punkt = 1 Gold-Einheit GU(Level))
+const EHR_NAME = ['Neuling', 'Helfer', 'Fleißiger Helfer', 'Platzwart-Freund', 'Ehrenamtler', 'Vereinsseele', 'Stütze des Vereins', 'Vereins-Held', 'Ehrenmitglied', 'Vereins-Legende', 'Ehrenpräsident'];
+function ehrPts() { return S.ehren || 0; }
+function ehrLvl() { const p = ehrPts(); let l = 0; while (l < EHR_ST.length - 1 && p >= EHR_ST[l + 1]) l++; return l; }
+function ehrAdd(p, quiet) { const l0 = ehrLvl(); S.ehren = Math.round((ehrPts() + p) * 10) / 10; const l1 = ehrLvl(); if (quiet) { syncGlobal(); return l1 > l0 ? l1 : 0; } if (l1 > l0) setTimeout(() => { sfx('level'); ddPop(`<img class="ki-dimg" src="img/icons/ic_freunde.png" alt=""><h3>Ehrenamt Stufe ${l1}!</h3><p class="dd-p">Du bist jetzt <b>${EHR_NAME[l1]}</b>.</p><p class="dd-p">Dauer-Bonus: <b>+${l1} % Gold und XP</b> aus Spielen und Training.</p><div class="sd-pop-btns"><button type="button" class="sd-pb" data-close>Super!</button></div>`); }, 400); syncGlobal(); }
+evMul = (o => function (k) { return o.apply(this, arguments) * (k === 'xp' || k === 'gold' ? 1 + ehrLvl() / 100 : 1); })(evMul);
+// Gold-/Traumball-Spenden zählen mit (1 Traumball = 10 Punkte)
+donAdd = (o => function (m, g, tb) { const r = o.apply(this, arguments); if (m && m.me && !donAdd._skip) ehrAdd((g || 0) / GU(S.level) + (tb || 0) * 10); return r; })(donAdd);
+const KS_GIFT = [
+  { w: 35, f: () => { S.tb++; return '1 Traumball'; } },
+  { w: 30, f: () => { if (bagUsed() >= BAG_SIZE) { const g = Math.round(8 * GU(S.level)); gold += g; return fmt(g) + ' Gold'; } potBagAdd(HAUPT[myPos()], 0); return 'Kleiner Trank (in der Tasche)'; } },
+  { w: 25, f: () => { const g = Math.round(15 * GU(S.level)); gold += g; return fmt(g) + ' Gold'; } },
+  { w: 10, f: () => giveItem('selten') },
+];
+let KS_SEL = new Set();
+function openKleider() {
+  if (!CLUB) return;
+  const L = ehrLvl(), p = ehrPts(), nx = EHR_ST[L + 1], pr = nx ? Math.min(100, (p - EHR_ST[L]) / (nx - EHR_ST[L]) * 100) : 100;
+  const bag = P.bag.map((id, i) => ITEMS[id] ? { id, i, it: ITEMS[id], pr: sellPrice(id) } : null).filter(Boolean);
+  KS_SEL = new Set([...KS_SEL].filter(i => bag.some(b => b.i === i)));
+  const sum = bag.filter(b => KS_SEL.has(b.i)).reduce((a, b) => a + b.pr, 0);
+  ddPop(`<h3>👕 Kleiderspende</h3>
+    <p class="dd-p">Gib Klamotten aus deiner Tasche ab – der Erlös geht in die <b>Vereinskasse</b>. Du sammelst <b>Ehrenamt</b> und bekommst manchmal ein Dankeschön.</p>
+    <div class="ks-ehr"><div><b>${EHR_NAME[L]}</b> · Stufe ${L}<span>+${L} % Gold &amp; XP</span></div><i><u style="width:${pr}%"></u></i><small>${nx ? `${fmt(Math.floor(p))} / ${fmt(nx)} Punkte bis Stufe ${L + 1}` : 'Höchste Stufe erreicht!'}</small></div>
+    <div class="ks-grid">${bag.length ? bag.map(b => `<button type="button" class="ks-it${KS_SEL.has(b.i) ? ' on' : ''}" data-i="${b.i}" aria-label="${b.it.name}"><img src="${b.it.img}" alt=""><span class="rar" style="background:${RAR[b.it.rar][1]}"></span><em>${fmtK(b.pr)}</em></button>`).join('') : '<p class="dd-p" style="grid-column:1/-1">Deine Tasche ist leer – angezogene Sachen kann man nicht spenden.</p>'}</div>
+    <p class="dd-p ks-sum">${KS_SEL.size ? `${KS_SEL.size} Teil${KS_SEL.size > 1 ? 'e' : ''} · <b>${fmt(sum)} Gold</b> für die Kasse` : 'Tippe Teile an, um sie auszuwählen.'}</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb two" data-close>Zurück</button><button type="button" class="sd-pb" id="ksGo"${KS_SEL.size ? '' : ' disabled'}>Spenden</button></div>`);
+  document.querySelectorAll('#ddPopIn .ks-it').forEach(x => x.onclick = () => { const i = +x.dataset.i; KS_SEL.has(i) ? KS_SEL.delete(i) : KS_SEL.add(i); openKleider(); });
+  const go = document.getElementById('ksGo'); if (go) go.onclick = () => {
+    const pick_ = bag.filter(b => KS_SEL.has(b.i)); if (!pick_.length) return;
+    const g = pick_.reduce((a, b) => a + b.pr, 0), pts = pick_.reduce((a, b) => a + b.pr * 2, 0) / GU(S.level);
+    pick_.map(b => b.i).sort((a, b) => b - a).forEach(i => P.bag.splice(i, 1)); KS_SEL = new Set();
+    CLUB.kasse = (CLUB.kasse || 0) + g; const me = CLUB.kader.find(m => m.me); if (me) { donAdd._skip = 1; donAdd(me, g, 0); donAdd._skip = 0; }
+    cntInc('kleider', pick_.length);
+    sdChat(null, `${PLAYER ? PLAYER.name : 'Du'} hat ${pick_.length} Teil${pick_.length > 1 ? 'e' : ''} gespendet (${fmt(g)} Gold für die Kasse).`);
+    let gift = null; if (Math.random() < 1 - Math.pow(.88, pick_.length)) { const tot = KS_GIFT.reduce((a, x) => a + x.w, 0); let r = Math.random() * tot, k = 0; for (; k < KS_GIFT.length - 1; k++) { r -= KS_GIFT[k].w; if (r <= 0) break; } gift = KS_GIFT[k].f(); }
+    saveProfile(); saveClub(); renderProfile(); if (typeof renderAttrs === 'function') renderAttrs(); const up = ehrAdd(pts, true);
+    ddPop(`<img class="ki-dimg" src="img/icons/ic_geldsack.png" alt=""><h3>Danke für deine Spende!</h3><p class="dd-p"><b>+${fmt(g)} Gold</b> in der Vereinskasse · <b>+${fmt(Math.round(pts))}</b> Ehrenamt-Punkte</p>
+      ${up ? `<p class="dd-p ks-gift">⭐ Ehrenamt Stufe ${up}: <b>${EHR_NAME[up]}</b> · jetzt +${up} % Gold &amp; XP</p>` : ''}${gift ? `<p class="dd-p ks-gift">🎁 Der Verein sagt Danke: <b>${gift}</b></p>` : ''}<div class="sd-pop-btns"><button type="button" class="sd-pb two" id="ksMore">Weiter spenden</button><button type="button" class="sd-pb" data-close>Fertig</button></div>`);
+    setTimeout(() => sfx(up ? 'level' : gift ? 'gift' : 'coin', 0), 150);
+    document.getElementById('ksMore').onclick = () => openKleider();
+  };
+}
+(() => {
+  const box = document.querySelector('.vr-actions'); if (!box) return;
+  box.insertAdjacentHTML('beforeend', `<button type="button" id="vrKleider">${ICI('ic_tasche', 'vr-aic')}<span>Spende</span></button>`);
+  document.getElementById('vrKleider').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openKleider(); }, true);
+})();
+document.addEventListener('click', e => { if (e.target.closest('#stSndTest')) { sndInit(); ['coin', 'tb', 'level', 'kick', 'cheer', 'whistle'].forEach((k, i) => setTimeout(() => sfx(k, 0), 120 + i * 700)); } });
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
