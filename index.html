@@ -1527,6 +1527,8 @@ button.mt-pl[disabled] { cursor: default; }
 .cm-set input[type=number] { width: 64px; padding: 3px 6px; border-radius: 6px; border: 2px solid #2A1209; font: inherit; }
 #vrInvite { position: relative; }
 #arbeit:not(.ab-rest) .ab-bg { background-image: url(img/bg/arbeitsamt.jpg); background-position: center 38%; filter: none; }
+#arbeit .ab-tabs { display: none !important; }
+#arbeit.ab-night:not(.ab-rest) .ab-bg { background-image: url(img/bg/arbeitsamt_nacht.jpg); }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -6555,7 +6557,7 @@ function stSection(s) {
     const perm = typeof Notification === 'undefined' ? 'nicht unterstützt' : Notification.permission === 'granted' ? 'erlaubt' : Notification.permission === 'denied' ? 'blockiert' : 'nicht erlaubt';
     return `<h4>Allgemeines</h4>${stChk('cmp', 'Gegenstände vergleichen', '▲/▼ an der Ware im Laden')}${stChk('bagOpen', 'Rucksack im Laden gleich offen')}${stChk('say', 'Sprüche der Verkäufer anzeigen')}
       <h4>Benachrichtigungen</h4><div class="st-row">${stChk('notif', 'Benachrichtigungen')}<span class="st-perm ${perm === 'erlaubt' ? 'ok' : ''}">Systemstatus:<br>${perm}</span>${perm !== 'erlaubt' && perm !== 'nicht unterstützt' ? '<button type="button" class="st-mini" id="stPerm">Erlauben</button>' : ''}</div>
-      <div class="st-sub${SET.notif ? '' : ' off'}">${stChk('nJob', 'Nebenjob / Erholen fertig')}${stChk('nMatch', 'Spiel-Erinnerung', '10 Min. vor Anstoß, wenn du nicht gemeldet bist')}${stChk('nDaily', 'Tagesbonus wartet')}</div>`;
+      <div class="st-sub${SET.notif ? '' : ' off'}">${stChk('nJob', 'Nebenjob fertig')}${stChk('nMatch', 'Spiel-Erinnerung', '10 Min. vor Anstoß, wenn du nicht gemeldet bist')}${stChk('nDaily', 'Tagesbonus wartet')}</div>`;
   }
   if (s === 'char') {
     const pos = PLAYER ? (POSITIONS.find(p => p.id === PLAYER.pos) || {}).n : '';
@@ -6566,7 +6568,7 @@ function stSection(s) {
       <h4>Einstellungen</h4>${stChk('invites', 'Vereinseinladungen empfangen')}${stChk('friends', 'Freundschaftsanfragen empfangen')}
       <h4>Individualisierung</h4><div class="st-btns"><button type="button" class="st-btn" id="stLook">Aussehen ändern</button>${canRename ? '<button type="button" class="st-btn" id="stName">Name ändern</button>' : ''}</div>`;
   }
-  if (s === 'view') return `${stRng('bright', 'Helligkeit', 50)}<h4>Darstellung</h4>${stChk('anim', 'Bewegte Hintergründe', 'Training, Nebenjob, Erholen')}${stChk('wheelAnim', 'Glücksrad-Animation')}${stChk('rg', 'Rot-Grün-Schwäche', 'Blau/Orange statt Grün/Rot bei besser/schlechter')}${stChk('badges', 'Hinweis-Punkte (!) im Menü')}`;
+  if (s === 'view') return `${stRng('bright', 'Helligkeit', 50)}<h4>Darstellung</h4>${stChk('anim', 'Bewegte Hintergründe', 'Training und Nebenjob')}${stChk('wheelAnim', 'Glücksrad-Animation')}${stChk('rg', 'Rot-Grün-Schwäche', 'Blau/Orange statt Grün/Rot bei besser/schlechter')}${stChk('badges', 'Hinweis-Punkte (!) im Menü')}`;
   if (s === 'sound') return `${stRng('vol', 'Gesamtlautstärke')}${stRng('sfx', 'Effektlautstärke')}${stRng('amb', 'Umgebung / Stadion')}<p class="st-note">Die Töne sind vorerst Platzhalter. Echte Sounds kommen später.</p><button type="button" class="st-btn" id="stSndTest">▶ Probehören</button>`;
   if (s === 'acc') return typeof SET_ACC !== 'undefined' && SET_ACC ? SET_ACC.html() : `<p class="st-line">Dein Spielstand liegt auf diesem Gerät.</p><p class="st-note">Online-Konto, Sichern per E-Mail und Anmelden auf einem anderen Handy gibt es in der Handy-Version.</p>`;
   if (s === 'lang') return `<div class="st-lang">${[['de', 'Deutsch'], ['en', 'English'], ['es', 'Español'], ['fr', 'Français'], ['it', 'Italiano'], ['pl', 'Polski'], ['pt', 'Português'], ['tr', 'Türkçe'], ['nl', 'Nederlands'], ['cs', 'Čeština']].map(([k, n]) => `<button type="button" data-lang="${k}" class="${SET.lang === k ? 'on' : ''}">${n}</button>`).join('')}</div><p class="st-note" id="stLangN"></p>`;
@@ -7068,6 +7070,12 @@ document.addEventListener('visibilitychange', () => { if (document.hidden) sndMu
 // 21. Okt.: Gold darf nie NaN werden (z. B. Ausbau-Werte fehlten bei Online-Vereinen → Spiel-Gold NaN)
 let GOLD_OK = 0;
 syncGlobal = (o => function () { if (typeof gold === 'number') { if (!Number.isFinite(gold)) gold = GOLD_OK; else GOLD_OK = gold; } return o.apply(this, arguments); })(syncGlobal);
+
+// ================== 21. Okt. abends: ERHOLEN komplett raus (Nutzer: andere Lösung für die Form kommt später) + Nacht-Dame im Arbeitsamt ==================
+// Laufende Erholen-Aufträge aus alten Spielständen laufen einfach zu Ende; neue gibt es nicht mehr.
+openArbeit = (o => function () { abTab = 'work'; return o.call(this, 'work'); })(openArbeit);
+abRender = (o => function () { if (abTab !== 'work') abTab = 'work'; const r = o.apply(this, arguments);
+  const a = document.getElementById('arbeit'); if (a) a.classList.toggle('ab-night', typeof mapNight === 'function' && mapNight()); return r; })(abRender);
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
