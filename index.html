@@ -6927,7 +6927,7 @@ duAnim = (o => function () {
       if (!fl.classList.contains('on')) return; const t = fl.textContent;
       if (t === 'TOR!') { sfx('net'); sfx('cheer', 300); } else if (t === 'GEHALTEN!') { sfx('save'); sfx('groan', 300); } else if (t === 'SIEG!') { sfx('whistle3'); setTimeout(() => sfx('win'), 900); } else if (t === 'NIEDERLAGE') { sfx('whistle3'); setTimeout(() => sfx('lose'), 900); } else sfx('groan', 300);
     }).observe(fl, { attributes: true, attributeFilter: ['class'] });
-    if (res) new MutationObserver(() => { if (/läuft an/.test(res.textContent) && !DU_SKIP) setTimeout(() => sfx('kick', 200), 700); }).observe(res, { childList: true, characterData: true, subtree: true });
+    if (res) { const k = () => { if (/läuft an/.test(res.textContent) && !DU_SKIP) setTimeout(() => sfx('kick', 200), 700); }; k(); new MutationObserver(k).observe(res, { childList: true, characterData: true, subtree: true }); }
   } catch (e) {}
   return r;
 })(duAnim);
@@ -6999,6 +6999,48 @@ function openKleider() {
   document.getElementById('vrKleider').addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); openKleider(); }, true);
 })();
 document.addEventListener('click', e => { if (e.target.closest('#stSndTest')) { sndInit(); ['coin', 'tb', 'level', 'kick', 'cheer', 'whistle'].forEach((k, i) => setTimeout(() => sfx(k, 0), 120 + i * 700)); } });
+
+// ================== 21. Okt. abends: ECHTE SOUNDS (vom Nutzer, Pixabay/Mixkit) statt Piep-Tönen ==================
+// Dateien: assets/sounds/raw → tools/kit/snd_cut.py → assets/sounds/out → tools/kit/snd_bundle.py → kit/sounds.js (DD_SND, data-URIs).
+// Fehlt ein Sound (noch nicht geladen), bleibt es still – keine Piep-Töne mehr.
+SND.buf = {}; SND.music = null;
+(() => { const s = document.createElement('script'); s.src = 'kit/sounds.js'; s.async = true; s.onload = () => sndDecode(); document.head.appendChild(s); })();
+function sndDecode() {
+  if (!SND.ctx || !window.DD_SND || SND._dec) return; SND._dec = 1;
+  Object.entries(DD_SND).forEach(([k, uri]) => {
+    try {
+      const bin = atob(uri.split(',')[1]), u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i);
+      const ok = b => { SND.buf[k] = b; }, p = SND.ctx.decodeAudioData(u.buffer, ok, () => {}); if (p && p.catch) p.catch(() => {});
+    } catch (e) {}
+  });
+}
+sndInit = (o => function () { const c = o.apply(this, arguments); if (c) sndDecode(); return c; })(sndInit);
+function sndPlay(k, t, v, bus, loop) {
+  const b = SND.buf[k]; if (!b) return null;
+  const s = SND.ctx.createBufferSource(), g = SND.ctx.createGain(); s.buffer = b; s.loop = !!loop; g.gain.value = v == null ? 1 : v;
+  s.connect(g); g.connect(bus || SND.fx); s.start(t); return { s, g };
+}
+const SB = (k, v, bus) => t => sndPlay(k, t, v, bus && SND[bus]);
+Object.assign(SFX, {
+  tap: SB('tap', .5), swoosh: SB('open', .55), coin: SB('coin', .8), buy: SB('buy', .7), tb: SB('coin', .8), gift: SB('coin', .9),
+  level: SB('level', .8), win: SB('coin', .8), tick: () => {}, kick: SB('kick', .9), net: SB('net', .9), save: SB('save', .9),
+  whistle: SB('whistle', .6), whistle3: SB('whistle3', .6), cheer: SB('cheer', .8, 'amb'), groan: SB('groan', .8, 'amb'), lose: SB('lose', .7),
+  wheel: SB('wheel', .7),
+});
+// Glücksrad: eine Rattern-Aufnahme (3,2 s) statt einzelner Klicks, danach Münze
+whSpin = (o => function () { const r = o.apply(this, arguments); if (SET.wheelAnim) sfx('wheel', 500); return r; })(whSpin);
+// Musik leise im Elfmeter-Duell, endet beim Schließen
+function sndMusic(on) {
+  if (!on) { if (SND.music) { try { const m = SND.music; m.g.gain.setTargetAtTime(0, SND.ctx.currentTime, .3); setTimeout(() => { try { m.s.stop(); } catch (e) {} }, 1200); } catch (e) {} SND.music = null; } return; }
+  if (SND.music || !SND.ctx || SND.ctx.state !== 'running' || SET.vol <= 0) return;
+  SND.music = sndPlay('music', SND.ctx.currentTime + .05, .35, SND.amb, true);
+}
+duAnim = (o => function () {
+  const r = o.apply(this, arguments); sndMusic(true);
+  const t = setInterval(() => { if (!document.getElementById('duPitch') || document.getElementById('ddPop').hidden) { sndMusic(false); clearInterval(t); } }, 500);
+  return r;
+})(duAnim);
+document.addEventListener('visibilitychange', () => { if (document.hidden) sndMusic(false); });
 
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
