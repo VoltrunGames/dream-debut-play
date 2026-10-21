@@ -1526,6 +1526,7 @@ button.mt-pl[disabled] { cursor: default; }
 .cm-set { display: grid; gap: 6px; font-size: 13px; } .cm-set label { display: flex; align-items: center; gap: 6px; }
 .cm-set input[type=number] { width: 64px; padding: 3px 6px; border-radius: 6px; border: 2px solid #2A1209; font: inherit; }
 #vrInvite { position: relative; }
+#arbeit:not(.ab-rest) .ab-bg { background-image: url(img/bg/arbeitsamt.jpg); background-position: center 38%; filter: none; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -6738,7 +6739,7 @@ function blinkTick() {
   tog(document.getElementById('gMenu'), (jobDone || train) && document.getElementById('menu').hidden);
   tog(document.getElementById('sdbChat'), chat);
   document.querySelectorAll('#mapSpots .map-lbl.pin').forEach(l => { const b = MAP.b[+l.dataset.i]; if (!b) return;
-    tog(l, (b.k === 'verein' && jobDone && !jobRest) || (b.k === 'spa' && jobRest) || (b.k === 'training' && train)); });
+    tog(l, (b.k === 'verein' && jobDone && !jobRest) || (b.k === 'spa' && jobDone) || (b.k === 'training' && train)); });
   const tile = n => document.querySelector(`#menu .mn-tile[aria-label="${n}"]`);
   tog(tile('Nebenjob'), jobDone && !jobRest); tog(tile('Wellness'), jobRest); tog(tile('Trainingsplatz'), train);
 }
@@ -6848,13 +6849,13 @@ blinkTick = (o => function () {
   const menu = document.getElementById('gMenu');
   if (menu && document.getElementById('menu').hidden && (wheel || daily || quest)) menu.classList.add('blink');
 })(blinkTick);
-// Wellness/Spa nicht mehr auf der Karte und im Menü (Erholen bleibt im Nebenjob-Fenster)
-mapRender = (o => function () {
-  const r = o.apply(this, arguments);
-  MAP.b.forEach((b, i) => { if (b.k === 'spa') document.querySelectorAll(`#mapSpots [data-i="${i}"]`).forEach(e => e.remove()); });
-  return r;
-})(mapRender);
-(() => { const t = document.querySelector('#menu .mn-tile[aria-label="Wellness"]'); if (t) t.style.display = 'none'; try { mapRender(); } catch (e) {} })();
+// Wellness/Spa nicht mehr im Menü (Erholen bleibt im Nebenjob-Fenster). 21. Okt.: auf der Karte steht dort jetzt das ARBEITSAMT → Nebenjob
+(() => {
+  const sp = MAP.b.find(b => b.k === 'spa');
+  if (sp) { sp.n = 'Arbeitsamt'; sp.spot = [1720, 480, 270, 230]; sp.lbl = [1850, 470]; sp.go = () => openArbeit('work'); }
+  MAP_IC.spa = 'ic_nebenjob';
+  const t = document.querySelector('#menu .mn-tile[aria-label="Wellness"]'); if (t) t.style.display = 'none'; try { mapRender(); } catch (e) {}
+})();
 
 // ================== 21. Okt.: SOUND (Platzhalter-Töne aus Web Audio) ==================
 // Busse: Gesamt (SET.vol) → Effekte (SET.sfx) / Umgebung (SET.amb, Publikum). Start erst nach dem ersten Antippen (iPhone-Regel).
