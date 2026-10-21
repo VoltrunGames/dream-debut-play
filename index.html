@@ -1529,6 +1529,13 @@ button.mt-pl[disabled] { cursor: default; }
 #arbeit:not(.ab-rest) .ab-bg { background-image: url(img/bg/arbeitsamt.jpg); background-position: center 38%; filter: none; }
 #arbeit .ab-tabs { display: none !important; }
 #arbeit.ab-night:not(.ab-rest) .ab-bg { background-image: url(img/bg/arbeitsamt_nacht.jpg); }
+#shBg { transform: translateY(calc(-50% - 100px)) !important; }
+#shop .sh-sign { top: 9% !important; }
+#arbeit:not(.ab-rest) .ab-bg { inset: 0 !important; background-color: #2A1A10 !important; background-repeat: no-repeat !important; background-size: 100% auto !important; background-position: center var(--abY, -40px) !important; }
+#abList.work .ab-card.pick { padding: 3px 8px !important; grid-template-columns: 34px 1fr auto !important; }
+#abList.work .ab-card.pick .ab-ic { width: 34px !important; height: 34px !important; font-size: 18px !important; }
+#abList.work .ab-card.pick .ab-txt > span { display: none !important; }
+#abList.work .ab-card.pick .ab-txt { display: flex; gap: 8px; align-items: baseline; flex-wrap: wrap; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
