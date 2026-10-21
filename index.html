@@ -1510,6 +1510,22 @@ button.mt-pl[disabled] { cursor: default; }
 .ks-it.on::after { content: '✓'; position: absolute; right: 3px; top: 0; color: #8FD14F; font-weight: 900; font-size: 14px; text-shadow: 0 1px 0 #000; }
 .ks-sum { text-align: center; margin: 6px 0 0 !important; }
 .ks-gift { text-align: center; color: #FFC93C; }
+.vr-q { display: block; width: calc(100% - 24px); margin: 6px 12px 4px; }
+.vr-item-t i + i { display: block; font-style: italic; opacity: .8; }
+.vr-join[disabled] { opacity: .55; filter: grayscale(.4); }
+.cm-h { margin: 10px 0 4px; font: 900 13px/1.2 'Titan One', Fredoka, sans-serif; letter-spacing: 1px; color: #FFC93C; text-transform: uppercase; }
+.cm-list { max-height: 230px; overflow-y: auto; display: grid; gap: 4px; }
+.cm-row { display: grid; grid-template-columns: 34px 1fr auto; gap: 8px; align-items: center; padding: 4px 6px; border-radius: 9px; background: rgba(0,0,0,.25); }
+.cm-row img { width: 34px; height: 34px; border-radius: 50%; object-fit: cover; background: #2a1209; }
+.cm-row span { display: grid; min-width: 0; } .cm-row b { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-row small { font-size: 11px; opacity: .8; } .cm-row em { display: flex; gap: 4px; font-style: normal; }
+.cm-b { border: 2px solid #2A1209; border-radius: 8px; padding: 4px 7px; font: 800 11px/1 Fredoka, sans-serif; color: #FFF6E3; background: #5a3a24; cursor: pointer; }
+.cm-b.gold { background: linear-gradient(#ffd75e, #e9a92a); color: #2A1209; } .cm-b.red { background: #a8322c; }
+.cm-b[disabled] { opacity: .5; }
+.cm-none { font-size: 12px; opacity: .75; margin: 2px 0 !important; }
+.cm-set { display: grid; gap: 6px; font-size: 13px; } .cm-set label { display: flex; align-items: center; gap: 6px; }
+.cm-set input[type=number] { width: 64px; padding: 3px 6px; border-radius: 6px; border: 2px solid #2A1209; font: inherit; }
+#vrInvite { position: relative; }
 
 body > .bar { display: none !important; }
 html, body { position: fixed; inset: 0; width: 100%; height: 100%; margin: 0; overflow: hidden; overscroll-behavior: none; background: #000 !important; }
@@ -2029,6 +2045,12 @@ body { padding: 0 !important; gap: 0 !important; display: block !important; min-
 </div>
 <div class="bar"><span>Ablauf: Laden → Spieler erstellen (beim ersten Mal) → Vereinsgelände → Menü (runder Knopf unten rechts), Profil (dein Bild oben links), Training (Schild oder Menü), X schließt.</span><button type="button" id="newPlayer">Neuer Spieler</button><button type="button" id="restart">Neu starten</button></div>
 <script>
+(() => { let sk = 0; try { sk = +localStorage.getItem('dd_cloud_skew') || 0; } catch (e) {}
+  const _D = Date, _now = _D.now.bind(_D); window.DD_SKEW = Math.abs(sk) < 400 * 86400000 ? sk : 0; window.DD_REAL_NOW = _now;
+  function DDDate(...a) { if (!new.target) return new _D(_now() + window.DD_SKEW).toString(); return a.length ? new _D(...a) : new _D(_now() + window.DD_SKEW); }
+  DDDate.prototype = _D.prototype; Object.setPrototypeOf(DDDate, _D); DDDate.now = () => _now() + window.DD_SKEW;
+  window.Date = DDDate; })();
+
 const screens = ['laden', 'erstellung', 'hub', 'menu', 'profil', 'training', 'verein', 'stadion', 'spieltag', 'kiosk', 'arbeit', 'shop'];
 function show(id) {
   for (const s of screens) document.getElementById(s).hidden = s !== id;
@@ -3787,14 +3809,14 @@ function mtEnsure() {
 const mtTeam = name => CLUB.liga.teams.find(t => t.name === name);
 const mtMe = () => CLUB.liga.teams.find(t => t.me);
 const mtCrest = t => t.me ? crestSVG(CLUB.crest) : crestSVG(t.crest);
-const mtOpp = () => mtTeam(CLUB.liga.opps[CLUB.liga.day % 17]);
-const mtHome = () => (CLUB.liga.day % 2 === 0) !== (CLUB.liga.day >= 17);
+var mtOpp = () => mtTeam(CLUB.liga.opps[CLUB.liga.day % 17]);
+var mtHome = () => (CLUB.liga.day % 2 === 0) !== (CLUB.liga.day >= 17);
 function mtStrFor(t, home) { let v = t.me ? mtOurStr() : t.str; if (home) v *= 1 + (t.me && CLUB.build ? CLUB.build.tribuene : 3) / 100; return v; }
 function mtSorted() {
   const T = CLUB.liga.tab;
   return CLUB.liga.teams.map(t => ({ t, r: T[t.name] })).sort((a, b) => b.r.pts - a.r.pts || (b.r.tf - b.r.tg) - (a.r.tf - a.r.tg) || b.r.tf - a.r.tf || a.t.name.localeCompare(b.t.name));
 }
-const mtPlace = () => mtSorted().findIndex(x => x.t.me) + 1;
+var mtPlace = () => mtSorted().findIndex(x => x.t.me) + 1;
 // Anstoßzeiten
 function mtSlotTimes(fromMs, toMs) {
   const out = [], d = new Date(fromMs); d.setHours(0, 0, 0, 0);
@@ -5581,8 +5603,8 @@ function ligaMul() { return 1 + LIGA_STEP * Math.max(0, MT_LEAGUES.indexOf(CLUB 
 // (4) Zum Spiel melden: nur wer sich für die nächste Anstoßzeit gemeldet hat, spielt mit und bekommt Belohnung.
 //     S.meld = Zeitstempel der Anstoßzeit, für die man gemeldet ist (gilt für genau ein Spiel).
 let MT_SLOT = null, MT_OFF = false;
-const mtNextT = () => mtSlotTimes(Date.now(), Date.now() + 2 * 86400000)[0];
-const mtMeld = () => !!S.meld && S.meld === mtNextT();
+var mtNextT = () => mtSlotTimes(Date.now(), Date.now() + 2 * 86400000)[0];
+var mtMeld = () => !!S.meld && S.meld === mtNextT();
 function mtRewF() { return MT_OFF ? 0 : ligaMul(); }
 mtCatchUp = function () {
   const L = CLUB.liga, slots = mtSlotTimes(L.start, Date.now()), target = Math.min(MT_DAYS, slots.length + (L.extra || 0));
@@ -5985,13 +6007,13 @@ function duAnim(b, shots, R) {
   const T = { l: [-62, -6], c: [0, -14], r: [62, -6] }, KX = { l: -48, c: 0, r: 48 };
   const wait = ms => new Promise(res => setTimeout(res, DU_SKIP ? 0 : ms));
   const an = (el, kf, ms, ease) => DU_SKIP ? Promise.resolve() : el.animate(kf, { duration: ms, easing: ease || 'ease-out', fill: 'forwards' }).finished.catch(() => {});
-  const mark = (who, goal) => { const k = n[who]++, box = $('duD_' + who); if (!box) return; let d = box.children[k]; if (!d) { d = document.createElement('i'); box.appendChild(d); } d.className = goal ? 'g' : 'x'; if (goal) sc[who]++; $('duScore').textContent = sc.me + ' : ' + sc.op; };
+  const mark = (who, goal) => { const k = n[who]++, box = $('duD_' + who); if (!box) return; let d = box.children[k]; if (!d) { d = document.createElement('i'); box.appendChild(d); } d.className = goal ? 'g' : 'x'; if (goal) sc[who]++; ($('duScore') || {}).textContent = sc.me + ' : ' + sc.op; };
   (async () => {
     for (const s of shots) {
       if (!document.getElementById('duPitch')) return;   // Fenster geschlossen
       const run = $('duRun'), ball = $('duBall'), kp = $('duK'), fl = $('duFlash');
       run.src = s.who === 'me' ? myAv : opAv; run.getAnimations().forEach(x => x.cancel()); ball.getAnimations().forEach(x => x.cancel()); kp.getAnimations().forEach(x => x.cancel()); fl.className = 'du-flash';
-      $('duRes').innerHTML = `${s.who === 'me' ? 'Du' : b.n} läuft an …`;
+      ($('duRes') || {}).innerHTML = `${s.who === 'me' ? 'Du' : b.n} läuft an …`;
       // Anlauf: von unten zum Ball, leicht wippend
       await an(run, [{ transform: 'translate(calc(-50% - 60px), 10px) scale(1)' }, { transform: 'translate(calc(-50% - 50px), -6px) scale(.97)', offset: .3 }, { transform: 'translate(calc(-50% - 44px), -2px) scale(.95)', offset: .55 }, { transform: 'translate(calc(-50% - 30px), -26px) scale(.92)' }], 700, 'linear');
       // Schuss: Ball fliegt, Torwart hechtet gleichzeitig
@@ -6005,13 +6027,13 @@ function duAnim(b, shots, R) {
       await kAnim;
       fl.textContent = s.goal ? 'TOR!' : s.miss ? (s.hi ? 'DRÜBER!' : 'DANEBEN!') : 'GEHALTEN!'; fl.className = 'du-flash on ' + (s.goal ? 'g' : 'x');
       mark(s.who, s.goal);
-      $('duRes').innerHTML = `${s.who === 'me' ? 'Du' : b.n}: ${s.goal ? 'Tor!' : s.miss ? 'verschossen.' : 'Der Torwart hält!'}`;
+      ($('duRes') || {}).innerHTML = `${s.who === 'me' ? 'Du' : b.n}: ${s.goal ? 'Tor!' : s.miss ? 'verschossen.' : 'Der Torwart hält!'}`;
       await wait(650);
       if (!DU_SKIP) { run.getAnimations().forEach(x => x.cancel()); ball.getAnimations().forEach(x => x.cancel()); kp.getAnimations().forEach(x => x.cancel()); fl.className = 'du-flash'; await wait(150); }
     }
     if (!document.getElementById('duPitch')) return;
     const fl = $('duFlash'); fl.textContent = R.win ? 'SIEG!' : 'NIEDERLAGE'; fl.className = 'du-flash on ' + (R.win ? 'g' : 'x');
-    $('duRes').innerHTML = `<b style="color:${R.win ? '#8FD14F' : '#FF7A6E'}">${R.win ? 'Gewonnen' : 'Verloren'} ${R.a}:${R.o}</b> · ${R.dr >= 0 ? '+' : ''}${R.dr} Ruhm${R.win ? ` · +${fmtK(R.xp)} XP · +${fmt(R.g)} Gold` : ''}`;
+    ($('duRes') || {}).innerHTML = `<b style="color:${R.win ? '#8FD14F' : '#FF7A6E'}">${R.win ? 'Gewonnen' : 'Verloren'} ${R.a}:${R.o}</b> · ${R.dr >= 0 ? '+' : ''}${R.dr} Ruhm${R.win ? ` · +${fmtK(R.xp)} XP · +${fmt(R.g)} Gold` : ''}`;
     $('duOk').disabled = false; $('duSkip').disabled = true;
   })();
 }
@@ -7042,6 +7064,10 @@ duAnim = (o => function () {
 })(duAnim);
 document.addEventListener('visibilitychange', () => { if (document.hidden) sndMusic(false); });
 
+// 21. Okt.: Gold darf nie NaN werden (z. B. Ausbau-Werte fehlten bei Online-Vereinen → Spiel-Gold NaN)
+let GOLD_OK = 0;
+syncGlobal = (o => function () { if (typeof gold === 'number') { if (!Number.isFinite(gold)) gold = GOLD_OK; else GOLD_OK = gold; } return o.apply(this, arguments); })(syncGlobal);
+
 // 13. Okt.: gespeicherte Spielerbilder einmalig mit dem neuen Ausschnitt neu erzeugen
 (function () { try { if (PLAYER && PLAYER.look && PLAYER.imgV !== 2) FIG.load().then(() => { PLAYER.img = FIG.exportImages(PLAYER.look); PLAYER.imgV = 2; try { localStorage.setItem('dd_player', JSON.stringify(PLAYER)); } catch (e) {} applyPlayer(); }); } catch (e) {} })();
 
@@ -7524,6 +7550,7 @@ const clShot = () => { const me = (CLUB.kader || []).find(k => k.me), d = me && 
 function clKasseAdopt(r) {
   if (!r || !CLUB) return;
   CLUB.kasse = +r.kasse_gold || 0; CLUB.kasseTb = +r.kasse_tb || 0; CLUB.build = r.bau || {}; CLUB.job = r.bau_job || null;
+  try { BUILD.forEach(b => { if (!CLUB.build[b.k]) CLUB.build[b.k] = 1; }); } catch (e) {}   // 21. Okt.: fehlende Stufen = 1 (sonst Spiel-Gold NaN)
   CL_NET.sh = clShot(); clSaveClubRaw();
   try { if (!document.getElementById('stadion').hidden) sdRender(); } catch (e) {}
 }
@@ -7623,5 +7650,383 @@ async function clDuelInbox() {
 }
 setTimeout(() => { clDuelInbox(); clDuelPool(); }, 6000);
 setInterval(() => { clDuelInbox(); }, 90000);
+
+// =====================================================================================================
+// 21. Okt.: LIVE-PAKET (schema6.sql) – Server-Uhr, Schutz, gemeinsame Saison, Ligen mit echten Vereinen,
+// Vereine finden/beitreten/bewerben, Kapitän/Vize-Rechte, Duelle rechnet der Server.
+// Ohne schema6 (server_now fehlt) bleibt alles wie vorher (CL6.on = false).
+// =====================================================================================================
+const CL6 = { on: false, st: null, busy: false, mem: [], role: '', req: 0 };
+const clRpc6 = (f, b) => clReq('/rest/v1/rpc/' + f, { method: 'POST', body: JSON.stringify(b || {}) });
+const clErr = e => String(e && e.message || e || 'Fehler').replace(/^.*?:\s*(?=[A-ZÄÖÜ])/, '');
+function clMsg(t, h) { ddPop(`<h3>${t}</h3><p class="dd-p">${h}</p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`); }
+
+// ---------- 1) Server-Uhr ----------
+async function clClock() {
+  try {
+    await clEnsure();
+    const real = window.DD_REAL_NOW || (() => Date.now()), t0 = real(), srv = await clRpc6('server_now'), t1 = real();
+    if (typeof srv !== 'number') return false;
+    const sk = Math.round(srv - (t0 + t1) / 2);
+    if (Math.abs(sk - (window.DD_SKEW || 0)) > 3000) window.DD_SKEW = sk;
+    try { localStorage.setItem('dd_cloud_skew', String(window.DD_SKEW || 0)); } catch (e) {}
+    CL6.on = true; return true;
+  } catch (e) { return false; }
+}
+// Uhr am Handy verstellt, während das Spiel läuft? Sprung herausrechnen (geht auch offline)
+(() => {
+  if (!window.DD_REAL_NOW) return;
+  let w0 = window.DD_REAL_NOW(), p0 = performance.now();
+  setInterval(() => {
+    const w = window.DD_REAL_NOW(), p = performance.now(), jump = (w - w0) - (p - p0);
+    if (Math.abs(jump) > 60000) { window.DD_SKEW = (window.DD_SKEW || 0) - jump; try { localStorage.setItem('dd_cloud_skew', String(window.DD_SKEW)); } catch (e) {} }
+    w0 = w; p0 = p;
+  }, 5000);
+})();
+setInterval(() => clClock(), 300000);
+
+// ---------- 2) Profil: Stärke für Ligaspiele mitschicken, Ruhm kommt vom Server ----------
+clProfileBody = (o => async function (now) { const b = await o(now); try { b.str = Math.round(memberStr({ me: true })); } catch (e) {} return b; })(clProfileBody);
+async function clRuhmPull() {
+  if (!CL6.on || CL.state !== 'ok') return;
+  try { const [p] = await clReq('/rest/v1/profiles?select=ruhm&id=eq.' + CL.auth.uid); if (p && p.ruhm != null) { duState().r = p.ruhm; syncGlobal(); } } catch (e) {}
+}
+clPush = (o => async function (force) { const r = await o(force); if (CL6.on) clRuhmPull(); return r; })(clPush);
+
+// ---------- 2) Duelle: Ergebnis, Ruhm, Abklingzeit und 10 pro Tag rechnet der Server ----------
+duFight = (o => function (b) {
+  if (!CL6.on || CL.state !== 'ok') return o.apply(this, arguments);
+  const D = duState();
+  if (CL6.duBusy) return; CL6.duBusy = true;
+  clPush(true).catch(() => {}).then(() => clRpc6('duel_fight', { p_def: b && b.id || null, p_bot_f: b && b.f || 1 })).then(R => {
+    CL6.duBusy = false;
+    D.r = R.ruhm; D.n = R.n; D.next = Date.now() + duCd(); R.win ? D.w++ : D.l++;
+    let xp = 0, g = 0;
+    if (R.win) { xp = Math.max(5 * S.level, Math.round(xpNeed(S.level) * .002)); g = Math.max(1, Math.round(GU(S.level))); gold += g; const lv = S.level; S.xp += xp; while (S.xp >= xpNeed(S.level)) { S.xp -= xpNeed(S.level); S.level++; } levelUps(lv); }
+    DU_OPP = null; DUEL_POOL = []; syncGlobal();
+    duAnim(b, R.shots, { a: R.a, o: R.o, win: R.win, dr: R.dr, xp, g });
+  }).catch(e => {
+    CL6.duBusy = false; const m = clErr(e), s = /\((\d+) s\)/.exec(m);
+    if (s) D.next = Date.now() + (+s[1]) * 1000; if (/alle 10 Duelle/.test(m)) D.n = DU_MAX; syncGlobal();
+    clMsg('⚽ Elfmeter-Duell', hfEsc(m.replace(/\s*\(\d+ s\)/, '')));
+  });
+})(duFight);
+clDuelInbox = (o => async function () {
+  if (!CL6.on) return o.apply(this, arguments);
+  if (CL.state !== 'ok' || !PLAYER) return;
+  try {
+    const L = await clReq('/rest/v1/duels?select=id,att_name,att_win,d_def,attacker,defender&defender=eq.' + CL.auth.uid + '&applied=eq.false&order=created_at.asc&limit=30');
+    const X = L.filter(x => x.attacker !== x.defender); if (!L.length) return;
+    await clReq('/rest/v1/duels?id=in.(' + L.map(x => x.id).join(',') + ')', { method: 'PATCH', headers: { Prefer: 'return=minimal' }, body: JSON.stringify({ applied: true }) });
+    await clRuhmPull(); if (!X.length) return;
+    let sum = 0; X.forEach(x => sum += x.d_def);
+    const rows = X.map(x => `<div class="hf-row"><span>${hfEsc(x.att_name || 'Jemand')}</span><small>${x.att_win ? 'hat gegen dich gewonnen' : 'hat gegen dich verloren'}</small><em style="color:${x.d_def >= 0 ? '#8FD14F' : '#FF7A6E'}">${x.d_def >= 0 ? '+' : ''}${x.d_def}</em></div>`).join('');
+    const show = () => { if (!document.getElementById('ddPop').hidden) { setTimeout(show, 4000); return; }
+      ddPop(`<h3>⚔️ Herausforderungen</h3><p class="dd-p">Während du weg warst, haben dich Spieler zum Elfmeter-Duell herausgefordert:</p><div class="hf-list">${rows}</div><p class="dd-p">Ruhm gesamt: <b>${sum >= 0 ? '+' : ''}${sum}</b></p><div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">OK</button></div>`); };
+    show();
+  } catch (e) {}
+})(clDuelInbox);
+
+// ---------- 5) Vereine: gründen, finden, beitreten/bewerben, verlassen, verwalten ----------
+const clLeagueName = i => MT_LEAGUES[Math.max(0, Math.min(MT_LEAGUES.length - 1, i || 0))];
+function clCrestOf(n) {   // festes Wappen aus dem Namen (Bot-Vereine)
+  let h = 2166136261; for (const c of String(n)) h = Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0;
+  const r = k => { h = (Math.imul(h, 1103515245) + 12345) >>> 0; return (h >>> 8) % k; };
+  return { shape: r(5), pattern: r(6), symbol: r(5), c1: CREST.colors[r(10)], c2: CREST.colors[r(10)], short: mtShort(n) };
+}
+function clClubFrom(c, founder) {
+  return { name: c.name, crest: c.crest || (c.ausbau && c.ausbau.crest) || clCrestOf(c.name), league: clLeagueName(c.liga), place: 10, kader: makeKader(0), founder: !!founder, oid: c.id };
+}
+// Gründen
+(() => {
+  const b = document.getElementById('vrFound'); if (!b) return; const o = b.onclick;
+  b.onclick = async function () {
+    if (!CL6.on || CL.state !== 'ok') return o.apply(this, arguments);
+    const name = document.getElementById('vrName').value.trim(), er = document.getElementById('vrErr');
+    if (name.length < 3) { er.textContent = 'Der Name braucht mindestens 3 Zeichen.'; return; }
+    b.disabled = true;
+    try {
+      const r = await clRpc6('club_create', { p_name: name, p_crest: { ...VC.crest } });
+      CLUB = { name: r.name, crest: { ...VC.crest }, league: 'Pfützenliga', place: 10, kader: makeKader(0), founder: true, oid: r.id };
+      try { localStorage.setItem('dd_cloud_club', r.id); } catch (e) {}
+      finishClub('Verein gegründet!', `<b>${hfEsc(r.name)}</b> startet in der Pfützenliga.<br>Bots halten die Plätze frei, bis echte Mitspieler kommen.`);
+      CLUB.liga = null; await clClubSync(); clLeagueTick();
+    } catch (e) { er.textContent = clErr(e); } finally { b.disabled = false; }
+  };
+})();
+// Suchen + Beitreten / Bewerben
+vrSearchUI = (o => function () {
+  if (!CL6.on || CL.state !== 'ok') return o.apply(this, arguments);
+  const box = document.getElementById('vrList');
+  if (!document.getElementById('vrQ')) box.insertAdjacentHTML('beforebegin', `<input id="vrQ" class="hf-q vr-q" placeholder="Verein suchen …" autocomplete="off" maxlength="24">`);
+  const q = document.getElementById('vrQ'); let t = 0;
+  q.oninput = () => { clearTimeout(t); t = setTimeout(load, 350); };
+  async function load() {
+    box.innerHTML = '<p class="dd-p" style="text-align:center">Lädt …</p>';
+    let L = []; try { L = await clRpc6('club_list', { p_q: q.value.trim() }); } catch (e) { box.innerHTML = `<p class="dd-p">${hfEsc(clErr(e))}</p>`; return; }
+    if (!L.length) { box.innerHTML = '<p class="dd-p" style="text-align:center">Noch keine Vereine gefunden. Gründe doch selbst einen!</p>'; return; }
+    box.innerHTML = L.map((c, i) => {
+      const st = c.full ? ['voll', 'disabled'] : c.asked ? ['Angefragt', 'disabled'] : c.offen && S.level >= c.min_level ? ['Beitreten', ''] : ['Bewerben', ''];
+      return `<div class="vr-item"><div class="vr-item-c">${crestSVG(c.crest || clCrestOf(c.name))}</div>
+        <div class="vr-item-t"><b>${hfEsc(c.name)}</b><span>${clLeagueName(c.liga)} · Ø Lv ${c.lvl}${c.min_level > 1 ? ' · ab Lv ' + c.min_level : ''}</span><i>${c.n}/16 Spieler${c.offen ? '' : ' · nur mit Bewerbung'}${c.cap ? ' · Kapitän ' + hfEsc(c.cap) : ''}</i>${c.info ? `<i>„${hfEsc(c.info)}“</i>` : ''}</div>
+        <button type="button" class="vr-join" data-i="${i}" ${st[1]}>${st[0]}</button></div>`;
+    }).join('');
+    box.onclick = async e => {
+      const b = e.target.closest('.vr-join'); if (!b || b.disabled) return; const c = L[+b.dataset.i]; b.disabled = true;
+      try {
+        const r = await clRpc6('club_join', { p_club: c.id, p_msg: null });
+        if (r === 'joined') {
+          CLUB = clClubFrom(c); try { localStorage.setItem('dd_cloud_club', c.id); } catch (x) {}
+          finishClub('Willkommen beim ' + c.name + '!', 'Ligaspiele sind um 12 und 20 Uhr. Melde dich vorher zum Spiel!');
+          await clClubSync(); await clPush(true); clLeagueTick();
+        } else { b.textContent = 'Angefragt'; clMsg('Bewerbung gesendet', `Der Kapitän von <b>${hfEsc(c.name)}</b> entscheidet über deine Bewerbung.`); }
+      } catch (x) { b.disabled = false; clMsg('Beitreten', hfEsc(clErr(x))); }
+    };
+  }
+  load();
+})(vrSearchUI);
+// Einladung annehmen = beitreten (auch bei geschlossenen Vereinen)
+clJoinClub = (o => async function (inv) {
+  if (!CL6.on) return o.apply(this, arguments);
+  try {
+    const [c] = await clReq('/rest/v1/clubs?select=id,name,liga,ausbau&name=eq.' + encodeURIComponent(inv.club));
+    if (!c) { clMsg('Einladung', 'Den Verein „' + hfEsc(inv.club) + '“ gibt es nicht mehr.'); return; }
+    if (CLUB && CLUB.oid) await clRpc6('club_act', { p_op: 'leave' });
+    await clRpc6('club_join', { p_club: c.id });
+    CLUB = clClubFrom(c); try { localStorage.setItem('dd_cloud_club', c.id); } catch (x) {}
+    ddPopClose(); show('verein');
+    finishClub('Willkommen beim ' + c.name + '!', (inv.from && inv.from.n ? hfEsc(inv.from.n) + ' hat dich eingeladen. ' : '') + 'Ligaspiele sind um 12 und 20 Uhr.');
+    await clClubSync(); await clPush(true); await clFriendsLoad(); clLeagueTick();
+  } catch (e) { clMsg('Beitreten fehlgeschlagen', hfEsc(clErr(e))); }
+})(clJoinClub);
+// Verlassen (Kapitän: Vize oder ältestes Mitglied übernimmt; letzter Spieler: Verein wird aufgelöst)
+(() => {
+  const b = document.getElementById('vrLeave'); if (!b) return; const o = b.onclick;
+  b.onclick = function () {
+    if (!CL6.on || CL.state !== 'ok' || !CLUB || !CLUB.oid) return o.apply(this, arguments);
+    vrPopup('Verein verlassen?', CL6.role === 'kapitaen' ? 'Du bist Kapitän: dein Vize (oder das älteste Mitglied) übernimmt. Bist du allein, wird der Verein aufgelöst.' : 'Du kannst danach einem anderen Verein beitreten.', [
+      ['Bleiben', 'vr-btn vr-btn-2', vrPopClose],
+      ['Verlassen', 'vr-btn', async () => {
+        try { await clRpc6('club_act', { p_op: 'leave' }); } catch (e) { vrPopClose(); clMsg('Verlassen', hfEsc(clErr(e))); return; }
+        CLUB = null; saveClub(); try { localStorage.removeItem('dd_cloud_club'); } catch (e) {}
+        applyClub(); if (typeof applyClubBonus === 'function') applyClubBonus(); vrPopClose(); vrShow('start'); clPush(true);
+      }]]);
+  };
+})();
+// Verwalten: Bewerbungen, Mitglieder (Vize ernennen, Kapitän übergeben, rauswerfen), Einstellungen
+async function clMembers() {
+  const mem = await clReq('/rest/v1/club_members?select=user_id,rolle,joined_at&club_id=eq.' + CLUB.oid);
+  const ids = mem.map(m => m.user_id), pr = ids.length ? await clReq('/rest/v1/profiles?select=id,name,level,pos,avatar,updated_at&id=in.(' + ids.join(',') + ')') : [];
+  const P = Object.fromEntries(pr.map(p => [p.id, p]));
+  const ord = { kapitaen: 0, vize: 1, spieler: 2 };
+  return mem.map(m => ({ id: m.user_id, rolle: m.rolle, ...(P[m.user_id] || { name: '?' }) })).sort((a, b) => ord[a.rolle] - ord[b.rolle] || (b.level || 0) - (a.level || 0));
+}
+async function openClubManage(msg) {
+  if (!CLUB || !CLUB.oid) return;
+  ddPop('<h3>Verein</h3><p class="dd-p">Lädt …</p>');
+  let M = [], R = [], club = null;
+  try { [M, R, [club]] = await Promise.all([clMembers(), CL6.role !== 'spieler' ? clRpc6('club_requests_list') : [], clReq('/rest/v1/clubs?select=offen,min_level,info&id=eq.' + CLUB.oid)]); }
+  catch (e) { clMsg('Verein', hfEsc(clErr(e))); return; }
+  const me = M.find(m => m.id === CL.auth.uid), myR = me ? me.rolle : 'spieler', boss = myR !== 'spieler';
+  CL6.role = myR; CL6.req = R.length;
+  const RN = { kapitaen: 'Kapitän', vize: 'Vize', spieler: '' };
+  const btn = (op, id, t, cls) => `<button type="button" class="cm-b${cls ? ' ' + cls : ''}" data-op="${op}" data-id="${id}">${t}</button>`;
+  const memRow = m => {
+    let a = '';
+    if (m.id !== CL.auth.uid) {
+      if (myR === 'kapitaen') a += m.rolle === 'vize' ? btn('unvize', m.id, 'Vize weg') : btn('vize', m.id, 'Vize');
+      if (myR === 'kapitaen') a += btn('captain', m.id, 'Kapitän', 'gold');
+      if (boss && m.rolle !== 'kapitaen' && !(myR === 'vize' && m.rolle === 'vize')) a += btn('kick', m.id, 'Raus', 'red');
+    }
+    return `<div class="cm-row"><img src="${m.avatar || 'img/icons/ic_unbekannt.png'}" alt=""><span><b>${hfEsc(m.name)}${m.id === CL.auth.uid ? ' (du)' : ''}</b><small>${m.pos || ''} · Lv ${m.level || '?'}${RN[m.rolle] ? ' · ' + RN[m.rolle] : ''}</small></span><em>${a}</em></div>`;
+  };
+  ddPop(`<h3>${hfEsc(CLUB.name)}</h3>${msg ? `<p class="dd-p"><b>${hfEsc(msg)}</b></p>` : ''}
+    ${boss ? `<h4 class="cm-h">Bewerbungen${R.length ? ' (' + R.length + ')' : ''}</h4>${R.length ? R.map(r => `<div class="cm-row"><img src="${r.avatar || 'img/icons/ic_unbekannt.png'}" alt=""><span><b>${hfEsc(r.name)}</b><small>${r.pos} · Lv ${r.level} · Stärke ${fmt(r.staerke)}${r.msg ? ' · „' + hfEsc(r.msg) + '“' : ''}</small></span><em>${btn('accept', r.id, '✔', 'gold')}${btn('deny', r.id, '✖', 'red')}</em></div>`).join('') : '<p class="dd-p cm-none">Keine offenen Bewerbungen.</p>'}` : ''}
+    <h4 class="cm-h">Mitglieder (${M.length}/16)</h4><div class="cm-list">${M.map(memRow).join('')}</div>
+    ${boss && club ? `<h4 class="cm-h">Aufnahme</h4><div class="cm-set"><label><input type="checkbox" id="cmOpen" ${club.offen ? 'checked' : ''}> Jeder darf direkt beitreten</label>
+      <label>ab Level <input type="number" id="cmLvl" min="1" max="500" value="${club.min_level}"></label>
+      <input id="cmInfo" class="hf-q" maxlength="160" placeholder="Kurzer Text für die Vereinssuche" value="${hfEsc(club.info || '')}"><button type="button" class="cm-b gold" id="cmSave">Speichern</button></div>` : ''}
+    <p class="dd-p" style="font-size:12px">Freunde einladen: Ruhmeshalle → Spieler antippen → „In Verein einladen“.</p>
+    <div class="sd-pop-btns"><button type="button" class="sd-pb" onclick="ddPopClose()">Schließen</button></div>`);
+  const pop = document.getElementById('ddPopIn');
+  pop.onclick = async e => {
+    const b = e.target.closest('.cm-b[data-op]'); if (!b) return;
+    const op = b.dataset.op, id = b.dataset.id, nm = (M.find(m => m.id === id) || R.find(r => r.id === id) || {}).name || '';
+    if ((op === 'kick' || op === 'captain') && b.dataset.sure !== '1') { b.dataset.sure = '1'; b.textContent = op === 'kick' ? 'Sicher?' : 'Wirklich?'; return; }
+    b.disabled = true;
+    try { await clRpc6('club_act', { p_op: op, p_user: id }); }
+    catch (x) { openClubManage(clErr(x)); return; }
+    await clClubSync().catch(() => {});
+    openClubManage({ accept: nm + ' ist jetzt im Verein.', deny: 'Bewerbung abgelehnt.', kick: nm + ' wurde aus dem Verein entfernt.', vize: nm + ' ist jetzt Vize.', unvize: nm + ' ist kein Vize mehr.', captain: nm + ' ist jetzt Kapitän.' }[op]);
+  };
+  const sv = document.getElementById('cmSave');
+  if (sv) sv.onclick = async () => {
+    sv.disabled = true;
+    try { await clRpc6('club_settings', { p_offen: document.getElementById('cmOpen').checked, p_min_level: +document.getElementById('cmLvl').value || 1, p_info: document.getElementById('cmInfo').value.trim() }); openClubManage('Gespeichert.'); }
+    catch (x) { openClubManage(clErr(x)); }
+  };
+}
+function clManageBtn() {
+  const b = document.getElementById('vrInvite'); if (!b || !CL6.on || !CLUB || !CLUB.oid) return;
+  const boss = CL6.role === 'kapitaen' || CL6.role === 'vize';
+  const tn = [...b.childNodes].reverse().find(n => n.nodeType === 3 && n.textContent.trim()); if (tn) tn.textContent = boss ? 'Verwalten' : 'Mitglieder';
+  let d = b.querySelector('.mn-badge'); if (boss && CL6.req) { if (!d) { b.insertAdjacentHTML('beforeend', '<span class="mn-badge"></span>'); d = b.querySelector('.mn-badge'); } d.textContent = CL6.req; } else if (d) d.remove();
+}
+document.getElementById('vrInvite').addEventListener('click', e => { if (!CL6.on || CL.state !== 'ok' || !CLUB || !CLUB.oid) return; e.stopImmediatePropagation(); e.preventDefault(); openClubManage(); }, true);
+vrClubUI = (o => function () { const r = o.apply(this, arguments); try { clManageBtn(); } catch (e) {} return r; })(vrClubUI);
+async function clReqCount() {
+  if (!CL6.on || CL.state !== 'ok' || !CLUB || !CLUB.oid || (CL6.role !== 'kapitaen' && CL6.role !== 'vize')) return;
+  try { CL6.req = (await clRpc6('club_requests_list')).length; clManageBtn(); } catch (e) {}
+}
+setInterval(clReqCount, 60000);
+
+// Vereins-Abgleich: Rolle merken, rausgeworfen erkennen, alte (nur lokale) Vereine einmal auf dem Server anlegen
+clClubSync = (o => async function () {
+  if (!CL6.on || CL.state !== 'ok' || typeof CLUB === 'undefined') return o.apply(this, arguments);
+  const uid = CL.auth.uid;
+  let [mine] = await clReq('/rest/v1/club_members?select=club_id,rolle&user_id=eq.' + uid);
+  if (!CLUB) {
+    if (mine) {   // Server sagt: du bist in einem Verein (z. B. auf anderem Gerät beigetreten / Bewerbung angenommen)
+      const [c] = await clReq('/rest/v1/clubs?select=id,name,liga,ausbau&id=eq.' + mine.club_id);
+      if (c) { CLUB = clClubFrom(c, mine.rolle === 'kapitaen'); saveClub(); try { applyClub(); } catch (e) {} clMsg('Verein', `Du spielst jetzt bei <b>${hfEsc(c.name)}</b>!`); }
+    }
+    if (!CLUB) return;
+  }
+  if (!CLUB.oid && CLUB.founder && !CLUB.oidTaken && !mine) {   // alter lokaler Verein → einmal online gründen
+    try { const r = await clRpc6('club_create', { p_name: CLUB.name, p_crest: CLUB.crest || null }); CLUB.oid = r.id; CLUB.liga = null; saveClub(); mine = { club_id: r.id, rolle: 'kapitaen' }; }
+    catch (e) { CLUB.oidTaken = true; saveClub(); }
+  }
+  if (!CLUB.oid) return;
+  if (!mine || mine.club_id !== CLUB.oid) {
+    const nm = CLUB.name; CLUB = null; saveClub(); try { localStorage.removeItem('dd_cloud_club'); applyClub(); if (typeof applyClubBonus === 'function') applyClubBonus(); if (!document.getElementById('verein').hidden) vrShow('start'); } catch (e) {}
+    clMsg('Verein', `Du bist nicht mehr bei <b>${hfEsc(nm)}</b>.`); return;
+  }
+  CL6.role = mine.rolle;
+  const meK = CLUB.kader && CLUB.kader.find(m => m.me); if (meK) meK.role = { kapitaen: 'KAPITÄN', vize: 'VIZE' }[mine.rolle] || '';
+  CLUB.founder = mine.rolle === 'kapitaen';
+  const r = await o.apply(this, arguments);
+  try { const [c] = await clReq('/rest/v1/clubs?select=liga&id=eq.' + CLUB.oid); if (c) { CLUB.league = clLeagueName(c.liga); saveClub(); } } catch (e) {}
+  try { clManageBtn(); } catch (e) {}
+  return r;
+})(clClubSync);
+// Die Liga kommt jetzt vom Server – nicht mehr die Liga des Kapitäns übernehmen
+clLgAdopt = (o => async function () { if (CL6.on) return; return o.apply(this, arguments); })(clLgAdopt);
+
+// ---------- 3) + 4) Liga vom Server: gemeinsamer Kalender, echte Gegner, Ergebnis vom Server ----------
+function clLgTable(st, upto) {
+  const T = {}; st.teams.forEach(t => T[t.n] = { sp: 0, s: 0, u: 0, n: 0, tf: 0, tg: 0, pts: 0, prev: 0 });
+  st.m.forEach(([d, h, a, hg, ag, k, done]) => {
+    if (!done || (upto && d > upto)) return; const H = T[st.teams[h].n], A = T[st.teams[a].n];
+    H.sp++; A.sp++; H.tf += hg; H.tg += ag; A.tf += ag; A.tg += hg;
+    if (hg > ag) { H.s++; A.n++; H.pts += 3; } else if (hg < ag) { A.s++; H.n++; A.pts += 3; } else { H.u++; A.u++; H.pts++; A.pts++; }
+  });
+  return T;
+}
+function clLgBuild(st) {
+  const old = CLUB.liga && CLUB.liga.srv === st.season ? CLUB.liga : null, my = st.me;
+  const seen = {}; st.teams.forEach(t => { if (seen[t.n]) t.n = t.n + ' II'; seen[t.n] = 1; });
+  const base = (() => { try { return mtOurStr(); } catch (e) { return 40; } })();
+  const teams = st.teams.map(t => { let h = 0; for (const c of t.n) h = (h * 31 + c.charCodeAt(0)) >>> 0;
+    return { name: t.n, s: t.s, id: t.id, me: t.s === my, real: !t.bot, crest: t.s === my ? CLUB.crest : (t.crest || clCrestOf(t.n)), str: Math.round(base * (0.85 + (h % 30) / 100)) }; });
+  const ours = st.m.filter(x => x[1] === my || x[2] === my).sort((a, b) => a[0] - b[0])
+    .map(x => ({ d: x[0], home: x[1] === my, opp: teams[x[1] === my ? x[2] : x[1]].name, hg: x[3], ag: x[4], kick: x[5], done: x[6] }));
+  const L = old || { v: 2, srv: st.season, day: 0, tab: {}, extra: 0, tactic: 'bal', last: null, unseen: [], hist: [], lvl0: clubAvgLvl() };
+  L.srv = st.season; L.start = st.start; L.end = st.end; L.teams = teams; L.ours = ours; L.joined = st.joined; L.tier = st.tier;
+  L.opps = ours.slice(0, 17).map(o => o.opp);
+  if (!old) { L.day = 0; L.tab = clLgTable(st); }
+  CLUB.league = clLeagueName(st.tier);
+  return L;
+}
+// mtOpp/mtHome/mtPlace nach dem Server-Spielplan
+mtOpp = (o => function () { const L = CLUB.liga; if (L && L.ours) { const x = L.ours[Math.min(L.day, L.ours.length - 1)]; return mtTeam(x.opp); } return o(); })(mtOpp);
+mtHome = (o => function () { const L = CLUB.liga; if (L && L.ours) return L.ours[Math.min(L.day, L.ours.length - 1)].home; return o(); })(mtHome);
+mtPlace = (o => function () { const L = CLUB.liga; if (L && L.final) return L.final; return o(); })(mtPlace);
+mtNextT = (o => function () { const L = CLUB && CLUB.liga; if (L && L.ours) { const n = Date.now(), x = L.ours.find(y => !y.done && y.kick > n); return x ? x.kick : 0; } return o(); })(mtNextT);
+mtNextSlot = (o => function () {
+  const t0 = mtNextT(), L = CLUB && CLUB.liga; if (!(L && L.ours) || !t0) return o();
+  const now = Date.now(), t = new Date(t0), today = new Date(), ms = t0 - now, h = Math.floor(ms / 3600000), m = Math.floor(ms % 3600000 / 60000);
+  const tm = new Date(now + 86400000), lbl = t.toDateString() === today.toDateString() ? 'Heute' : t.toDateString() === tm.toDateString() ? 'Morgen' : t.toLocaleDateString('de-DE', { weekday: 'short' });
+  return { t, label: `${lbl} ${String(t.getHours()).padStart(2, '0')}:00`, left: h ? `${h} h ${m} min` : `${Math.max(0, m)} min` };
+})(mtNextSlot);
+// Bis zur ersten Server-Antwort zeigt der Spieltag die zuletzt bekannte Liga; keine lokale Liga mehr für Online-Vereine
+mtEnsure = (o => function () {
+  if (CL6.on && CLUB && CLUB.oid) { if (CLUB.liga && CLUB.liga.ours) return; if (CL6.st && CL6.st.league) { CLUB.liga = clLgBuild(CL6.st); saveClub(); return; } }
+  return o.apply(this, arguments);
+})(mtEnsure);
+// Die Simulation muss das Server-Ergebnis treffen (Ticker passt dann zum Endstand)
+mtSimulate = (o => function () {
+  const F = CL_LG.force; if (!F || CL_LG.shared) return o.apply(this, arguments);
+  const opp = mtOpp(), s0 = opp ? opp.str : 0; let best = null, bias = 1;
+  try {
+    for (let i = 0; i < 400; i++) {
+      if (opp) opp.str = s0 * bias;
+      const r = o.apply(this, arguments), d = (r.g[0] - r.g[1]) - (F[0] - F[1]);
+      if (r.g[0] === F[0] && r.g[1] === F[1]) return r;
+      const err = Math.abs(r.g[0] - F[0]) + Math.abs(r.g[1] - F[1]); if (!best || err < best.err) best = { r, err };
+      bias *= d > 0 ? 1.04 : d < 0 ? .96 : (r.g[0] + r.g[1] > F[0] + F[1] ? 1 : 1); bias = Math.max(.3, Math.min(3, bias));
+    }
+  } finally { if (opp) opp.str = s0; }
+  // sehr selten: Endstand per Hand angleichen
+  const r = best.r, us = [], them = [];
+  r.ev = r.ev.filter(e => { if (!/\bgoal\b/.test(e.c || '') || !e.g) return true; const ours = !/\bthem\b/.test(e.c); if (ours ? us.length < F[0] : them.length < F[1]) { (ours ? us : them).push(e); return true; } return false; });
+  while (us.length < F[0]) { const e = { m: 30 + 15 * us.length, c: 'goal', h: 'TOOOR! Nach einem Gestocher im Strafraum ist der Ball drin!' }; us.push(e); r.ev.push(e); }
+  while (them.length < F[1]) { const e = { m: 40 + 13 * them.length, c: 'goal them', h: 'Gegentor. Ein abgefälschter Schuss trudelt ins Netz.' }; them.push(e); r.ev.push(e); }
+  r.ev.sort((a, b) => a.m - b.m); let a = 0, b = 0; r.ev.forEach(e => { if (e.g || /\bgoal\b/.test(e.c || '')) { if (/\bgoal\b/.test(e.c || '')) { /\bthem\b/.test(e.c) ? b++ : a++; e.g = [a, b]; } } });
+  r.g = F.slice(); if (r.me) { r.me.goals = Math.min(r.me.goals, F[0]); r.me.assists = Math.min(r.me.assists, F[0]); }
+  return r;
+})(mtSimulate);
+// Neue Saison startet für alle gleichzeitig um 0 Uhr nach dem 34. Spieltag – nicht mehr per Knopf
+mtNewSeason = (o => function () {
+  if (!(CL6.on && CLUB && CLUB.oid)) return o.apply(this, arguments);
+  const L = CLUB.liga;
+  if (L && CL6.st && L.srv === CL6.st.season) { const d = new Date(L.end || Date.now()); clMsg('Neue Saison', `Die neue Saison startet für alle Vereine am <b>${d.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'numeric' })} um 0 Uhr</b>.`); return; }
+  CLUB.liga = null; saveClub(); clLeagueTick();
+})(mtNewSeason);
+seWaitPop = (o => function () { if (CL6.on && CLUB && CLUB.oid) return mtNewSeason(); return o.apply(this, arguments); })(seWaitPop);
+// Spieltage abholen: Server rechnet das Ergebnis, ein Mitglied schreibt den Ticker, alle übernehmen ihn
+clLeagueTick = (o => async function () {
+  if (!CL6.on) return o.apply(this, arguments);
+  if (CL6.busy || CL.state !== 'ok' || !CLUB || !CLUB.oid) return;
+  CL6.busy = true;
+  try {
+    const st = await clRpc6('league_state'); CL6.st = st;
+    if (!st || !st.league) return;
+    let L = CLUB.liga;
+    // Saisonwechsel: alte Saison erst abschließen (Belohnung), dann die neue übernehmen
+    if (L && L.ours && L.srv !== st.season) {
+      if (L.claimed !== L.start) { L.day = MT_DAYS; L.final = st.prev && st.prev.place || mtPlace(); saveClub(); if (!document.getElementById('spieltag').hidden) { mtRenderPre(); seasonEndPop(); } return; }
+      CLUB.liga = null; L = null;
+    }
+    if (!L || !L.ours) { CLUB.liga = clLgBuild(st); L = CLUB.liga; L.day = 0; L.tab = clLgTable(st); }
+    else clLgBuild(st);
+    const done = [];
+    while (L.day < MT_DAYS && L.ours[L.day] && L.ours[L.day].done) {
+      const x = L.ours[L.day];
+      if (x.kick < (st.joined || 0) - 60000) { L.day++; continue; }   // vor dem Beitritt gespielt (Bot-Verein) – zählt nur in der Tabelle
+      L.tab = clLgTable(st, x.d - 1);
+      CL_LG.force = x.home ? [x.hg, x.ag] : [x.ag, x.hg];
+      try {
+        const row = (await clReq(clMatchQ(L.start, x.d)))[0];
+        done.push(row ? clApplyRow(row, x.kick) : await clWriteDay(x.d, x.kick, L.start));
+      } finally { CL_LG.force = null; }
+    }
+    L.tab = clLgTable(st);
+    if (L.day >= MT_DAYS) L.final = null;
+    if (done.length) {
+      L.unseen = (L.unseen || []).concat(done.map(r => ({ day: r.day, opp: r.opp, home: r.home, g: r.g, gold: r.gold, xp: r.xp, off: r.off }))).slice(-6);
+      syncGlobal(); try { renderAttrs(); } catch (e) {}
+    }
+    saveClub();
+    if (!document.getElementById('spieltag').hidden) { mtRenderPre(); if (done.length) mtAwayPopup(); }
+  } catch (e) { CL.lgErr = e.message; } finally { CL6.busy = false; }
+})(clLeagueTick);
+// Melden: gilt für die nächste Server-Anstoßzeit, sofort hochladen
+mtCatchUp = (o => function () { if (CL6.on && CLUB && CLUB.oid) { clLeagueTick(); return 0; } return o.apply(this, arguments); })(mtCatchUp);
+
+// Start: erst Uhr + Version prüfen, dann Liga holen
+setTimeout(async () => { if (await clClock()) { await clClubSync().catch(() => {}); clLeagueTick(); clRuhmPull(); clReqCount(); } }, 2500);
+clClock();
+// Online-Verein: kein Test-Knopf „JETZT“ (würde ein Spiel nur bei dir rechnen)
+mtRenderPre = (o => function () { const r = o.apply(this, arguments); try { if (CL6.on && CLUB && CLUB.oid) document.getElementById('mtTest').hidden = true; } catch (e) {} return r; })(mtRenderPre);
 
 </script>
